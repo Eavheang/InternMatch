@@ -11,9 +11,7 @@ export async function middleware(request: NextRequest) {
     '/api/auth/verify-email',
     '/api/auth/forgot-password',
     '/api/auth/reset-password',
-    '/api/job', // GET only
-    '/api/company', // GET only
-    '/api/students', // GET only
+
   ];
 
   // Check if route is public
