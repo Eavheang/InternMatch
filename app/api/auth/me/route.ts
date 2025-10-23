@@ -2,52 +2,41 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { users, students, companies, socialLinks, skills, studentSkills, projects, experiences } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { verifyToken } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helpers';
 
 // GET - Fetch user profile
 export async function GET(request: NextRequest) {
   try {
     // Get token from Authorization header
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Authorization token required' },
-        { status: 401 }
-      );
-    }
-
-    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    const user = getAuthenticatedUser(request);
     
-    // Verify token
-    let decoded;
-    try {
-      decoded = verifyToken(token);
-    } catch (error) {
+    // Verify user is authenticated
+    if (!user.userId) {
       return NextResponse.json(
-        { error: 'Invalid or expired token' },
+        { error: 'Authentication required' },
         { status: 401 }
       );
     }
 
-    const userId = decoded.userId;
-    const userRole = decoded.role;
+    const userId = user.userId;
+    const userRole = user.role;
 
     // Get user basic info
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
+    const [userData] = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
 
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+    if (!userData) {
+    return NextResponse.json(
+      { error: 'User not found' },
+      { status: 404 }
+    );
     }
 
     // Remove sensitive data
-    const { password, verificationCode, verificationExpires, ...userInfo } = user;
+    const { password, verificationCode, verificationExpires, ...userInfo } = userData;
 
     let profileData: any = {
       ...userInfo,
@@ -152,29 +141,18 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     // Get token from Authorization header
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Authorization token required' },
-        { status: 401 }
-      );
-    }
-
-    const token = authHeader.substring(7);
+    const user = getAuthenticatedUser(request);
     
-    // Verify token
-    let decoded;
-    try {
-      decoded = verifyToken(token);
-    } catch (error) {
+    // Verify user is authenticated
+    if (!user.userId) {
       return NextResponse.json(
-        { error: 'Invalid or expired token' },
+        { error: 'Authentication required' },
         { status: 401 }
       );
     }
 
-    const userId = decoded.userId;
-    const userRole = decoded.role;
+    const userId = user.userId;
+    const userRole = user.role;
     const body = await request.json();
 
     // Update role-specific profile

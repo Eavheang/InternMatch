@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Public routes that don't require authentication
@@ -30,6 +30,7 @@ export function middleware(request: NextRequest) {
 
   // Get token from Authorization header
   const authHeader = request.headers.get('authorization');
+  
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return NextResponse.json(
       { error: 'Authorization token required' },
@@ -41,7 +42,7 @@ export function middleware(request: NextRequest) {
 
   try {
     // Verify token
-    const decoded = verifyToken(token);
+    const decoded = await verifyToken(token);
     
     // Add user info to request headers for use in API routes
     const requestHeaders = new Headers(request.headers);

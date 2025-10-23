@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate JWT token
-    const token = generateToken(user.id, user.email, user.role, user.isVerified);
+    const token = await generateToken(user.id, user.email, user.role, user.isVerified);
 
     return NextResponse.json({
       message: 'Login successful',

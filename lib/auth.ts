@@ -1,13 +1,15 @@
-import jwt from 'jsonwebtoken';
+import { SignJWT, jwtVerify } from 'jose';
 import bcrypt from 'bcryptjs';
 
 // JWT Token Management
-export function generateToken(userId: string, email: string, role: string, isVerified: boolean): string {
+export async function generateToken(userId: string, email: string, role: string, isVerified: boolean): Promise<string> {
   const secret = process.env.JWT_SECRET;
   
   if (!secret) {
     throw new Error('JWT_SECRET environment variable is not defined');
   }
+  
+  const secretKey = new TextEncoder().encode(secret);
   
   const payload = { 
     userId, 
@@ -16,20 +18,30 @@ export function generateToken(userId: string, email: string, role: string, isVer
     isVerified 
   };
   
-  const options: jwt.SignOptions = { 
-    expiresIn: '7d' 
-  };
-  return jwt.sign(payload, secret, options);
+  const token = await new SignJWT(payload)
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('7d')
+    .sign(secretKey);
+    
+  return token;
 }
 
-export function verifyToken(token: string): any {
+export async function verifyToken(token: string): Promise<any> {
   const secret = process.env.JWT_SECRET;
   
   if (!secret) {
     throw new Error('JWT_SECRET environment variable is not defined');
   }
   
-  return jwt.verify(token, secret);
+  const secretKey = new TextEncoder().encode(secret);
+  
+  try {
+    const { payload } = await jwtVerify(token, secretKey);
+    return payload;
+  } catch (error) {
+    throw new Error('Invalid or expired token');
+  }
 }
 
 // Password Management
