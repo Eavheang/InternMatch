@@ -176,7 +176,7 @@ export async function PUT(request: NextRequest) {
     // Verify token
     let decoded;
     try {
-      decoded = verifyToken(token);
+      decoded = await verifyToken(token);
       // Use decoded values (they're the source of truth)
       userId = decoded.userId;
       userRole = decoded.role;
