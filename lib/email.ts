@@ -1,9 +1,9 @@
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 
 // Email transporter configuration
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
-  port: parseInt(process.env.EMAIL_PORT || '587'),
+  port: parseInt(process.env.EMAIL_PORT || "587"),
   secure: false,
   auth: {
     user: process.env.EMAIL_USER,
@@ -14,7 +14,7 @@ const transporter = nodemailer.createTransport({
 // Email templates
 export const emailTemplates = {
   verification: (verificationCode: string, role: string) => ({
-    subject: 'Verify Your Account - Intern Match',
+    subject: "Verify Your Account - Intern Match",
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #333;">Welcome to Intern Match!</h2>
@@ -30,9 +30,9 @@ export const emailTemplates = {
     `,
   }),
 
-// Update the passwordReset template in lib/email.ts
-passwordReset: (resetToken: string) => ({
-    subject: 'Reset Your Password - Intern Match',
+  // Update the passwordReset template in lib/email.ts
+  passwordReset: (resetToken: string) => ({
+    subject: "Reset Your Password - Intern Match",
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #333;">Password Reset Request</h2>
@@ -55,7 +55,7 @@ passwordReset: (resetToken: string) => ({
   }),
 
   welcome: (firstName: string, role: string) => ({
-    subject: 'Welcome to Intern Match!',
+    subject: "Welcome to Intern Match!",
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #333;">Welcome ${firstName}!</h2>
@@ -63,17 +63,21 @@ passwordReset: (resetToken: string) => ({
         <div style="background-color: #e8f5e8; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <h3 style="color: #28a745; margin: 0;">What's next?</h3>
           <ul style="color: #333;">
-            ${role === 'student' ? `
+            ${
+              role === "student"
+                ? `
               <li>Complete your profile</li>
               <li>Upload your resume</li>
               <li>Browse available internships</li>
               <li>Apply to positions that match your skills</li>
-            ` : `
+            `
+                : `
               <li>Complete your company profile</li>
               <li>Post internship opportunities</li>
               <li>Review applications</li>
               <li>Connect with talented students</li>
-            `}
+            `
+            }
           </ul>
         </div>
         <p>If you have any questions, feel free to contact our support team.</p>
@@ -85,9 +89,26 @@ passwordReset: (resetToken: string) => ({
 };
 
 // Email sending functions
-export async function sendVerificationEmail(email: string, verificationCode: string, role: string): Promise<boolean> {
+export async function sendVerificationEmail(
+  email: string,
+  verificationCode: string,
+  role: string
+): Promise<boolean> {
+  // Check if email configuration is set up
+  if (
+    !process.env.EMAIL_HOST ||
+    !process.env.EMAIL_USER ||
+    !process.env.EMAIL_PASS ||
+    !process.env.EMAIL_FROM
+  ) {
+    console.error(
+      "Email configuration is missing. Required env vars: EMAIL_HOST, EMAIL_USER, EMAIL_PASS, EMAIL_FROM"
+    );
+    return false;
+  }
+
   const template = emailTemplates.verification(verificationCode, role);
-  
+
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: email,
@@ -96,17 +117,31 @@ export async function sendVerificationEmail(email: string, verificationCode: str
   };
 
   try {
-    await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Verification email sent successfully:", {
+      messageId: info.messageId,
+      to: email,
+      code: verificationCode,
+    });
     return true;
   } catch (error) {
-    console.error('Error sending verification email:', error);
+    console.error("Error sending verification email:", error);
+    if (error instanceof Error) {
+      console.error("Error details:", {
+        message: error.message,
+        stack: error.stack,
+      });
+    }
     return false;
   }
 }
 
-export async function sendPasswordResetEmail(email: string, resetCode: string): Promise<boolean> {
+export async function sendPasswordResetEmail(
+  email: string,
+  resetCode: string
+): Promise<boolean> {
   const template = emailTemplates.passwordReset(resetCode);
-  
+
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: email,
@@ -118,14 +153,18 @@ export async function sendPasswordResetEmail(email: string, resetCode: string): 
     await transporter.sendMail(mailOptions);
     return true;
   } catch (error) {
-    console.error('Error sending password reset email:', error);
+    console.error("Error sending password reset email:", error);
     return false;
   }
 }
 
-export async function sendWelcomeEmail(email: string, firstName: string, role: string): Promise<boolean> {
+export async function sendWelcomeEmail(
+  email: string,
+  firstName: string,
+  role: string
+): Promise<boolean> {
   const template = emailTemplates.welcome(firstName, role);
-  
+
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: email,
@@ -137,13 +176,17 @@ export async function sendWelcomeEmail(email: string, firstName: string, role: s
     await transporter.sendMail(mailOptions);
     return true;
   } catch (error) {
-    console.error('Error sending welcome email:', error);
+    console.error("Error sending welcome email:", error);
     return false;
   }
 }
 
 // Generic email sender
-export async function sendEmail(to: string, subject: string, html: string): Promise<boolean> {
+export async function sendEmail(
+  to: string,
+  subject: string,
+  html: string
+): Promise<boolean> {
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to,
@@ -155,7 +198,7 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
     await transporter.sendMail(mailOptions);
     return true;
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error("Error sending email:", error);
     return false;
   }
 }
