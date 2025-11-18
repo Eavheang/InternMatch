@@ -1,14 +1,15 @@
-import jwt from 'jsonwebtoken';
+import { SignJWT, jwtVerify } from 'jose';
 import bcrypt from 'bcryptjs';
-import { jwtVerify } from 'jose';
 
 // JWT Token Management
-export function generateToken(userId: string, email: string, role: string, isVerified: boolean): string {
+export async function generateToken(userId: string, email: string, role: string, isVerified: boolean): Promise<string> {
   const secret = process.env.JWT_SECRET;
   
   if (!secret) {
     throw new Error('JWT_SECRET environment variable is not defined');
   }
+  
+  const secretKey = new TextEncoder().encode(secret);
   
   const payload = { 
     userId, 
@@ -17,54 +18,29 @@ export function generateToken(userId: string, email: string, role: string, isVer
     isVerified 
   };
   
-  const options: jwt.SignOptions = { 
-    expiresIn: '7d' 
-  };
-  return jwt.sign(payload, secret, options);
+  const token = await new SignJWT(payload)
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('7d')
+    .sign(secretKey);
+    
+  return token;
 }
 
-export function verifyToken(token: string): any {
+export async function verifyToken(token: string): Promise<any> {
   const secret = process.env.JWT_SECRET;
   
   if (!secret) {
-    console.error('JWT_SECRET is not defined in environment variables');
     throw new Error('JWT_SECRET environment variable is not defined');
   }
   
-  try {
-    return jwt.verify(token, secret);
-  } catch (error) {
-    console.error('JWT verification failed:', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      name: error instanceof Error ? error.name : 'Unknown',
-      tokenLength: token.length,
-      tokenPrefix: token.substring(0, 20)
-    });
-    throw error;
-  }
-}
-
-// Edge Runtime compatible JWT verification (for middleware)
-export async function verifyTokenEdge(token: string): Promise<any> {
-  const secret = process.env.JWT_SECRET;
-  
-  if (!secret) {
-    console.error('JWT_SECRET is not defined in environment variables');
-    throw new Error('JWT_SECRET environment variable is not defined');
-  }
+  const secretKey = new TextEncoder().encode(secret);
   
   try {
-    const secretKey = new TextEncoder().encode(secret);
     const { payload } = await jwtVerify(token, secretKey);
     return payload;
   } catch (error) {
-    console.error('Edge JWT verification failed:', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      name: error instanceof Error ? error.name : 'Unknown',
-      tokenLength: token.length,
-      tokenPrefix: token.substring(0, 20)
-    });
-    throw error;
+    throw new Error('Invalid or expired token');
   }
 }
 

@@ -12,8 +12,15 @@
     {
       "idx": 1,
       "version": "7",
+      "when": 1761877307257,
+      "tag": "0001_typical_winter_soldier",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
       "when": 1763450400000,
-      "tag": "0001_company_profile_fields",
+      "tag": "0002_company_profile_fields",
       "breakpoints": true
     }
   ]
