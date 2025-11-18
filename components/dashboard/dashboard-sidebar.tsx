@@ -2,10 +2,11 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import { type User, type ProfileData } from "./dashboard-context";
 
 type DashboardSidebarProps = {
-  user: any;
-  profileData: any;
+  user: User | null;
+  profileData: ProfileData | null;
 };
 
 export function DashboardSidebar({ user, profileData }: DashboardSidebarProps) {

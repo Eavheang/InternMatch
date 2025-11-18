@@ -31,7 +31,10 @@ export function Step3Skills({
 
   // Sync local state with parent data when it changes
   useEffect(() => {
-    setSkills(data.skills || []);
+    if (data.skills && JSON.stringify(data.skills) !== JSON.stringify(skills)) {
+      setSkills(data.skills);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.skills]);
 
   // Close suggestions when clicking outside
@@ -234,7 +237,7 @@ export function Step3Skills({
             skillInput.trim() &&
             filteredSkills.length === 0 && (
               <div className="absolute z-10 mt-2 w-full rounded-lg border border-zinc-200 bg-white p-4 text-sm text-zinc-600 shadow-lg">
-                No matching skills found. You can still add "{skillInput.trim()}" as a custom skill.
+                No matching skills found. You can still add &quot;{skillInput.trim()}&quot; as a custom skill.
               </div>
             )}
         </div>

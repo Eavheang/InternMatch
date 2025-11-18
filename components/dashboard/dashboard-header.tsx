@@ -1,7 +1,9 @@
 "use client";
 
+import { type User } from "./dashboard-context";
+
 type DashboardHeaderProps = {
-  user: any;
+  user: User | null;
 };
 
 export function DashboardHeader({ user }: DashboardHeaderProps) {

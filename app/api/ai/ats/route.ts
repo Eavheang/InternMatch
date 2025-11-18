@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     const [resume] = await db.select().from(resumes).where(eq(resumes.id, resumeId)).limit(1);
     if (!resume) return NextResponse.json({ error: 'Resume not found' }, { status: 404 });
 
-    let job: any = null;
+    let job: { id?: string; [key: string]: unknown } | null = null;
     if (jobId) {
       const found = await db.select().from(jobPostings).where(eq(jobPostings.id, jobId)).limit(1);
       job = found[0] || null;
@@ -69,8 +69,9 @@ ${JSON.stringify(job || {}, null, 2)}
     } catch {}
 
     return NextResponse.json({ success: true, analysis: inserted[0] });
-  } catch (e: any) {
-    return NextResponse.json({ success: false, error: e?.message || 'ATS analysis failed' }, { status: 500 });
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : 'ATS analysis failed';
+    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
   }
 }
 
@@ -120,7 +121,8 @@ export async function GET(req: NextRequest) {
         data: rows,
         pagination: { limit, offset, count: rows.length }
       });
-    } catch (e: any) {
-      return NextResponse.json({ success: false, error: e?.message || 'Failed to fetch ATS analyses' }, { status: 500 });
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : 'Failed to fetch ATS analyses';
+      return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
     }
   }

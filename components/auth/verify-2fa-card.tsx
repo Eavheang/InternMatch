@@ -77,11 +77,7 @@ export function Verify2FACard() {
 
       // Redirect based on user role
       setTimeout(() => {
-        if (data.user?.role === "company") {
-          router.push("/company-profile");
-        } else {
-          router.push("/complete-profile");
-        }
+        router.push("/dashboard/profile/complete");
       }, 1500);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unexpected error");

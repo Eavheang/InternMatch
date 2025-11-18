@@ -46,7 +46,15 @@ export async function GET(request: NextRequest) {
     const { password, verificationCode, verificationExpires, ...userInfo } =
       userData;
 
-    let profileData: any = {
+    const profileData: {
+      id: string;
+      email: string;
+      role: string;
+      isVerified: boolean;
+      createdAt: Date | null;
+      profile: unknown;
+      [key: string]: unknown;
+    } = {
       ...userInfo,
       profile: null,
     };

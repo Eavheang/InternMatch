@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { AuthShell } from "@/components/auth/auth-shell";
-import { Audience, AudienceToggle } from "@/components/auth/audience-toggle";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -26,7 +25,6 @@ type LoginValues = {
 
 export function LoginCard() {
   const router = useRouter();
-  const [audience, setAudience] = useState<Audience>("student");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -75,7 +73,7 @@ export function LoginCard() {
           !profile.graduationYear;
 
         if (isProfileIncomplete) {
-          router.push("/complete-profile");
+          router.push("/dashboard/profile/complete");
           return;
         }
 
@@ -101,7 +99,7 @@ export function LoginCard() {
           !profile.contactEmail;
 
         if (isCompanyProfileIncomplete) {
-          router.push("/company-profile");
+          router.push("/dashboard/profile/complete");
           return;
         }
 
@@ -112,21 +110,11 @@ export function LoginCard() {
         return;
       }
 
-      if (data.user?.role && data.user.role !== audience) {
-        setSuccess(
-          `Signed in as ${data.user.role}. You selected ${audience}, double-check you're in the right portal.`
-        );
-        // Still redirect after showing message
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 2000);
-      } else {
-        setSuccess("Signed in successfully!");
-        // Redirect to dashboard
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 1000);
-      }
+      setSuccess("Signed in successfully!");
+      // Redirect to dashboard
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unexpected error");
     } finally {
@@ -143,19 +131,18 @@ export function LoginCard() {
       helperCta="Sign up"
     >
       <div className="space-y-6">
-        <AudienceToggle value={audience} onChange={setAudience} />
         <Form {...form}>
           <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
             <FormField
               control={form.control}
               name="email"
-              rules={{ required: "Work email is required" }}
+              rules={{ required: "Email is required" }}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="you@company.com"
+                      placeholder="you@example.com"
                       type="email"
                       {...field}
                     />
@@ -237,11 +224,7 @@ export function LoginCard() {
               className="w-full rounded-2xl text-base"
               disabled={submitting}
             >
-              {submitting
-                ? "Signing in..."
-                : audience === "student"
-                ? "Sign In as Student"
-                : "Sign In as Company"}
+              {submitting ? "Signing in..." : "Sign In"}
             </Button>
           </form>
         </Form>

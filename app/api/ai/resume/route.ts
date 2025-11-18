@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { resumes, students, aiGeneratedContent } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { model, generateJson } from '@/lib/gemini';
+import { generateJson } from '@/lib/gemini';
 import { getAuthenticatedUser } from '@/lib/auth-helpers';
 
 type BuildResumeInput = {
@@ -79,8 +79,9 @@ ${JSON.stringify(body, null, 2)}
     }
 
     return NextResponse.json({ success: true, resume: inserted[0] });
-  } catch (e: any) {
-    return NextResponse.json({ success: false, error: e?.message || 'Failed to build resume' }, { status: 500 });
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : 'Failed to build resume';
+    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
   }
 }
 
@@ -103,7 +104,8 @@ export async function GET(req: NextRequest) {
       .where(eq(resumes.studentId, student.id));
 
     return NextResponse.json({ success: true, resumes: resumeList });
-  } catch (e: any) {
-    return NextResponse.json({ success: false, error: e?.message || 'Failed to fetch resumes' }, { status: 500 });
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : 'Failed to fetch resumes';
+    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
   }
 }

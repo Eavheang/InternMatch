@@ -87,13 +87,13 @@ export function CompleteProfileFlow() {
               gpa: profile.gpa?.toString() || "",
               skills: profile.skills || [],
               projects:
-                profile.projects?.map((p: any) => ({
+                profile.projects?.map((p: { projectName?: string; projectDescription?: string }) => ({
                   projectName: p.projectName || "",
                   projectDescription: p.projectDescription || "",
                   technologiesUsed: "",
                 })) || [],
               experiences:
-                profile.experiences?.map((e: any) => {
+                profile.experiences?.map((e: { experienceTitle?: string; experienceDescription?: string }) => {
                   // Parse experience title and description
                   const titleMatch =
                     e.experienceTitle?.match(/(.+?)\s+at\s+(.+)/);
@@ -153,7 +153,7 @@ export function CompleteProfileFlow() {
 
   const handleSubmit = async () => {
     try {
-      let token = localStorage.getItem("internmatch_token");
+      const token = localStorage.getItem("internmatch_token");
       if (!token) {
         console.error("No token found in localStorage");
         router.push("/login");
@@ -167,7 +167,7 @@ export function CompleteProfileFlow() {
       );
 
       // Try to decode token to check if it's valid (just for debugging)
-      let tokenPayload: any = null;
+      let tokenPayload: { userId?: string; email?: string; role?: string; isVerified?: boolean; exp?: number } | null = null;
       try {
         const tokenParts = token.split(".");
         if (tokenParts.length === 3) {
@@ -247,7 +247,7 @@ export function CompleteProfileFlow() {
 
       // Check response status first
       if (!response.ok) {
-        let errorData: any = {};
+        let errorData: { error?: string; details?: string } = {};
         const contentType = response.headers.get("content-type");
 
         try {
@@ -349,7 +349,7 @@ export function CompleteProfileFlow() {
                 Complete Your Profile
               </h1>
               <p className="mt-2 text-zinc-600">
-                Let's set up your account to find the perfect internship
+                Let&apos;s set up your account to find the perfect internship
               </p>
             </div>
             <div className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white">
