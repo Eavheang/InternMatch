@@ -136,7 +136,6 @@ export const skills = [
     "Google Ads",
     "Facebook Ads",
     "Google Analytics",
-    "Copywriting",
     "Content Strategy",
     "Influencer Marketing",
     "Brand Management",

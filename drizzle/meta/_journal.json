@@ -8,6 +8,13 @@
       "when": 1761101971657,
       "tag": "0000_colossal_warstar",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1763450400000,
+      "tag": "0001_company_profile_fields",
+      "breakpoints": true
     }
   ]
 }
