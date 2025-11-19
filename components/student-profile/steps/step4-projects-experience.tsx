@@ -12,6 +12,15 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useForm } from "react-hook-form";
 
 type Project = {
@@ -64,6 +73,8 @@ export function Step4ProjectsExperience({
   const [experiences, setExperiences] = useState<Experience[]>(
     data.experiences || []
   );
+  const [showProjectDialog, setShowProjectDialog] = useState(false);
+  const [showExperienceDialog, setShowExperienceDialog] = useState(false);
 
   // Sync local state with parent data when it changes
   useEffect(() => {
@@ -102,10 +113,16 @@ export function Step4ProjectsExperience({
   }, [isPresent, experienceForm]);
 
   const handleAddProject = (values: ProjectFormData) => {
+    // Validate that project name is filled
+    if (!values.projectName || values.projectName.trim() === "") {
+      setShowProjectDialog(true);
+      return;
+    }
+
     const newProject: Project = {
-      projectName: values.projectName,
-      projectDescription: values.projectDescription,
-      technologiesUsed: values.technologiesUsed,
+      projectName: values.projectName.trim(),
+      projectDescription: values.projectDescription.trim(),
+      technologiesUsed: values.technologiesUsed.trim(),
     };
     const newProjects = [...projects, newProject];
     setProjects(newProjects);
@@ -114,6 +131,27 @@ export function Step4ProjectsExperience({
   };
 
   const handleAddExperience = (values: ExperienceFormData) => {
+    // Validate required fields
+    if (!values.company || values.company.trim() === "") {
+      setShowExperienceDialog(true);
+      return;
+    }
+
+    if (!values.role || values.role.trim() === "") {
+      setShowExperienceDialog(true);
+      return;
+    }
+
+    if (!values.startDate) {
+      setShowExperienceDialog(true);
+      return;
+    }
+
+    if (!values.isPresent && (!values.endDate || values.endDate.trim() === "")) {
+      setShowExperienceDialog(true);
+      return;
+    }
+
     // Format dates to "MMM YYYY" format
     const formatDate = (dateString: string) => {
       if (!dateString) return "";
@@ -142,10 +180,10 @@ export function Step4ProjectsExperience({
     const duration = `${startDateFormatted} - ${endDateFormatted}`;
 
     const newExperience: Experience = {
-      company: values.company,
-      role: values.role,
+      company: values.company.trim(),
+      role: values.role.trim(),
       duration: duration,
-      description: values.description,
+      description: values.description.trim(),
     };
     const newExperiences = [...experiences, newExperience];
     setExperiences(newExperiences);
@@ -170,7 +208,10 @@ export function Step4ProjectsExperience({
     console.log("Step4 handleNext - Experiences:", experiences);
     // Ensure we update parent state before navigating
     onUpdate({ projects, experiences });
-    onNext();
+    // Small delay to ensure state update propagates before navigation
+    setTimeout(() => {
+      onNext();
+    }, 0);
   };
 
   return (
@@ -476,6 +517,40 @@ export function Step4ProjectsExperience({
           <ArrowRightIcon className="ml-2 h-4 w-4" />
         </Button>
       </div>
+
+      {/* Project Validation Dialog */}
+      <AlertDialog open={showProjectDialog} onOpenChange={setShowProjectDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Missing Information</AlertDialogTitle>
+            <AlertDialogDescription>
+              Please fill in the project title before adding a project. The project title is required.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowProjectDialog(false)}>
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Experience Validation Dialog */}
+      <AlertDialog open={showExperienceDialog} onOpenChange={setShowExperienceDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Missing Information</AlertDialogTitle>
+            <AlertDialogDescription>
+              Please fill in all required fields (Company, Role, Start Date, and End Date if not currently working) before adding an experience.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowExperienceDialog(false)}>
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

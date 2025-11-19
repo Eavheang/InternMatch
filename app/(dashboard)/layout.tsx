@@ -76,7 +76,7 @@ export default function DashboardLayout({
             !profile.graduationYear;
 
           if (isProfileIncomplete && !pathname.includes("/complete")) {
-            router.push("/dashboard/profile/complete");
+            router.push("/profile/complete");
             setLoading(false);
             return;
           }
@@ -95,7 +95,7 @@ export default function DashboardLayout({
             !profile.contactEmail;
 
           if (isCompanyProfileIncomplete && !pathname.includes("/complete")) {
-            router.push("/dashboard/profile/complete");
+            router.push("/profile/complete");
             setLoading(false);
             return;
           }

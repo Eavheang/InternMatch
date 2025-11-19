@@ -70,7 +70,7 @@ export function CompleteCompanyProfileFlow() {
       try {
         const token = localStorage.getItem("internmatch_token");
         if (!token) {
-          router.push("/login");
+          // Layout already handles this, but just in case
           return;
         }
 
@@ -78,14 +78,17 @@ export function CompleteCompanyProfileFlow() {
           headers: { Authorization: `Bearer ${token}` },
         });
 
+        // Only proceed if response is OK - don't redirect on errors (layout handles that)
         if (!response.ok) {
+          // Only redirect on 401 (unauthorized) - other errors are handled by layout
           if (response.status === 401) {
             localStorage.removeItem("internmatch_token");
             router.push("/login");
             return;
           }
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || "Failed to load company profile.");
+          // For other errors, just log and return - layout will handle redirect if needed
+          console.warn("Failed to load company profile:", response.status);
+          return;
         }
 
         const data = await response.json();
@@ -189,19 +192,29 @@ export function CompleteCompanyProfileFlow() {
         throw new Error(errorData.error || "Failed to save company profile.");
       }
 
-      const responseData = await response.json();
-      if (responseData.token) {
-        localStorage.setItem("internmatch_token", responseData.token);
-      }
-
-      router.push("/dashboard");
+      await response.json();
+      
+      // No new token needed - existing token remains valid since token payload doesn't change
+      // Profile data is stored in database, not in token
+      console.log("Company profile completed successfully, redirecting to dashboard");
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 100);
     } catch (err) {
       console.error("Error saving company profile:", err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to save company profile. Please try again."
-      );
+      const errorMessage = err instanceof Error
+        ? err.message
+        : "Failed to save company profile. Please try again.";
+      
+      // Only redirect to login if it's an authentication error
+      if (err instanceof Error && (errorMessage.includes("401") || errorMessage.includes("unauthorized"))) {
+        localStorage.removeItem("internmatch_token");
+        alert("Your session has expired. Please log in again.");
+        router.push("/login");
+      } else {
+        // Show error but stay on page so user can try again
+        setError(errorMessage);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -217,15 +230,15 @@ export function CompleteCompanyProfileFlow() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50">
+      <div className="flex min-h-screen items-center justify-center bg-white">
         <p className="text-sm text-zinc-500">Loading your company profile...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 px-4 py-12">
-      <div className="mx-auto flex max-w-3xl flex-col gap-6">
+    <div className="w-full max-w-3xl px-4 py-12">
+      <div className="mx-auto flex flex-col gap-6">
         <div className="rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm">
           <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
             <div>

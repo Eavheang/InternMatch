@@ -22,29 +22,60 @@ export default function DashboardLayout({
     const checkAuth = async () => {
       try {
         const token = localStorage.getItem("internmatch_token");
+        console.log("[Dashboard Layout] Checking auth, token exists:", !!token);
         if (!token) {
+          console.log("[Dashboard Layout] No token found, redirecting to login");
           router.push("/login");
           return;
         }
 
+        console.log("[Dashboard Layout] Fetching user data with token");
         const response = await fetch("/api/auth/me", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
+        console.log("[Dashboard Layout] Auth response status:", response.status);
         if (!response.ok) {
           if (response.status === 401) {
+            console.log("[Dashboard Layout] 401 Unauthorized, redirecting to login");
             localStorage.removeItem("internmatch_token");
             router.push("/login");
             return;
           }
-          throw new Error("Failed to load user");
+          // For other errors, log and retry once, or redirect to login if no token
+          console.warn("[Dashboard Layout] Failed to load user data:", response.status);
+          const existingToken = localStorage.getItem("internmatch_token");
+          if (!existingToken) {
+            console.log("[Dashboard Layout] Token removed, redirecting to login");
+            router.push("/login");
+            return;
+          }
+          // If we have a token but got an error, it might be temporary - throw to retry
+          throw new Error(`Failed to load user: ${response.status}`);
         }
 
         const data = await response.json();
-        const userData = data.data;
+        console.log("[Dashboard Layout] Response data structure:", {
+          hasData: !!data.data,
+          hasUser: !!data.user,
+          keys: Object.keys(data),
+        });
+        const userData = data.data || data.user || data;
+        
+        // Ensure userData exists and has required properties
+        if (!userData || !userData.role) {
+          console.error("[Dashboard Layout] Invalid user data structure:", userData);
+          throw new Error("Invalid user data received from API");
+        }
+        
         const profile = userData?.profile;
+        console.log("[Dashboard Layout] User data:", {
+          role: userData?.role,
+          hasProfile: !!profile,
+          profileKeys: profile ? Object.keys(profile) : [],
+        });
 
         // Role-based route protection
         const isStudentRoute = pathname.includes("/resume") ||
@@ -76,7 +107,7 @@ export default function DashboardLayout({
             !profile.graduationYear;
 
           if (isProfileIncomplete && !pathname.includes("/complete")) {
-            router.push("/dashboard/profile/complete");
+            router.push("/profile/complete");
             setLoading(false);
             return;
           }
@@ -95,7 +126,7 @@ export default function DashboardLayout({
             !profile.contactEmail;
 
           if (isCompanyProfileIncomplete && !pathname.includes("/complete")) {
-            router.push("/dashboard/profile/complete");
+            router.push("/profile/complete");
             setLoading(false);
             return;
           }
@@ -104,9 +135,20 @@ export default function DashboardLayout({
         setUser(userData);
         setProfileData(profile);
         setIsAuthorized(true);
+        console.log("[Dashboard Layout] Auth check successful, user authorized");
       } catch (error) {
-        console.error("Auth check error:", error);
-        router.push("/login");
+        console.error("[Dashboard Layout] Auth check error:", error);
+        // Only redirect to login if it's an authentication error
+        // For network errors or other issues, don't redirect immediately
+        if (error instanceof Error && error.message.includes("401")) {
+          console.log("[Dashboard Layout] 401 error detected, redirecting to login");
+          localStorage.removeItem("internmatch_token");
+          router.push("/login");
+        } else {
+          // For other errors, log but don't redirect - might be temporary
+          console.warn("[Dashboard Layout] Non-auth error, allowing page to load");
+          setLoading(false);
+        }
       } finally {
         setLoading(false);
       }

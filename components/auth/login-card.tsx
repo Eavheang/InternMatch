@@ -73,7 +73,7 @@ export function LoginCard() {
           !profile.graduationYear;
 
         if (isProfileIncomplete) {
-          router.push("/dashboard/profile/complete");
+          router.push("/profile/complete");
           return;
         }
 
@@ -99,7 +99,7 @@ export function LoginCard() {
           !profile.contactEmail;
 
         if (isCompanyProfileIncomplete) {
-          router.push("/dashboard/profile/complete");
+          router.push("/profile/complete");
           return;
         }
 

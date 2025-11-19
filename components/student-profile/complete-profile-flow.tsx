@@ -53,7 +53,7 @@ export function CompleteProfileFlow() {
       try {
         const token = localStorage.getItem("internmatch_token");
         if (!token) {
-          router.push("/login");
+          // Layout already handles this, but just in case
           return;
         }
 
@@ -63,6 +63,7 @@ export function CompleteProfileFlow() {
           },
         });
 
+        // Only proceed if response is OK - don't redirect on errors (layout handles that)
         if (response.ok) {
           const data = await response.json();
           const profile = data.data?.profile || data.profile;
@@ -124,11 +125,16 @@ export function CompleteProfileFlow() {
     checkProfile();
   }, [router]);
 
-  const updateFormData = (stepData: Partial<ProfileData>) => {
+  const updateFormData = (stepData: Partial<ProfileData>, callback?: () => void) => {
     console.log("updateFormData called with:", stepData);
     setFormData((prev) => {
       const updated = { ...prev, ...stepData };
       console.log("Updated formData:", updated);
+      // If callback provided, execute it after state update
+      if (callback) {
+        // Use setTimeout to ensure state update is applied
+        setTimeout(callback, 0);
+      }
       return updated;
     });
   };
@@ -289,40 +295,29 @@ export function CompleteProfileFlow() {
       console.log("API Response:", responseData);
       console.log("Profile saved successfully");
 
-      // Update token if a new one is provided
-      if (responseData.token) {
-        console.log("Updating token in localStorage");
-        localStorage.setItem("internmatch_token", responseData.token);
-
-        // Verify the new token works before redirecting
-        try {
-          const verifyResponse = await fetch("/api/auth/me", {
-            headers: {
-              Authorization: `Bearer ${responseData.token}`,
-            },
-          });
-
-          if (verifyResponse.ok) {
-            console.log("Token verified successfully");
-          } else {
-            console.warn("New token verification failed, but continuing");
-          }
-        } catch (verifyError) {
-          console.warn("Token verification error:", verifyError);
-        }
-      } else {
-        console.warn("No new token provided in response, using existing token");
-      }
-
-      // Redirect to dashboard
-      router.push("/dashboard");
+      // No new token needed - existing token remains valid since token payload doesn't change
+      // Profile data is stored in database, not in token
+      console.log("[Profile Complete] Profile saved successfully, redirecting to dashboard");
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 100);
     } catch (error) {
       console.error("Error saving profile:", error);
       const errorMessage =
         error instanceof Error
           ? error.message
           : "Failed to save profile. Please try again.";
-      alert(errorMessage);
+      
+      // Only redirect to login if it's an authentication error
+      // For other errors, show alert but stay on the page
+      if (error instanceof Error && (error.message.includes("401") || error.message.includes("unauthorized"))) {
+        localStorage.removeItem("internmatch_token");
+        alert("Your session has expired. Please log in again.");
+        router.push("/login");
+      } else {
+        alert(errorMessage);
+        // Stay on the page so user can try again
+      }
     }
   };
 
@@ -330,7 +325,7 @@ export function CompleteProfileFlow() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50">
+      <div className="flex min-h-screen items-center justify-center bg-white">
         <div className="text-center">
           <p className="text-zinc-600">Loading...</p>
         </div>
@@ -339,8 +334,8 @@ export function CompleteProfileFlow() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 px-4 py-12">
-      <div className="mx-auto max-w-2xl">
+    <div className="w-full max-w-2xl px-4 py-12">
+      <div className="mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="mb-4 flex items-center justify-between">
