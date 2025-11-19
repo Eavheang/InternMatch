@@ -3,7 +3,8 @@ import { db } from '@/db';
 import { resumes, students, aiGeneratedContent } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { generateJson } from '@/lib/gemini';
-import { getAuthenticatedUser } from '@/lib/auth-helpers';
+import { verifyToken } from '@/lib/auth';
+import { uploadResumeToCloudinary } from '@/lib/cloudinary';
 
 type BuildResumeInput = {
   title?: string;
@@ -21,14 +22,75 @@ type BuildResumeInput = {
 // POST: Build or improve a resume
 export async function POST(req: NextRequest) {
   try {
-    const auth = getAuthenticatedUser(req);
-    if (!auth.userId || auth.role !== 'student') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Verify token directly (more reliable than middleware headers)
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Authorization token required' }, { status: 401 });
     }
 
-    const body = (await req.json()) as BuildResumeInput;
-    const [student] = await db.select().from(students).where(eq(students.userId, auth.userId)).limit(1);
+    const token = authHeader.substring(7);
+    let decoded;
+    try {
+      decoded = await verifyToken(token);
+    } catch (error) {
+      console.error('Token verification error:', error);
+      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
+    }
+
+    // Check if user is a student
+    if (decoded.role !== 'student') {
+      return NextResponse.json({ error: 'Only students can upload resumes' }, { status: 403 });
+    }
+
+    const [student] = await db.select().from(students).where(eq(students.userId, decoded.userId)).limit(1);
     if (!student) return NextResponse.json({ error: 'Student not found' }, { status: 404 });
+
+    // Check if request contains FormData (file upload) or JSON
+    const contentType = req.headers.get('content-type') || '';
+    let cloudinaryUrl: string | null = null;
+    let body: BuildResumeInput;
+
+    // Try to handle FormData first (for file uploads)
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await req.formData();
+      const file = formData.get('file') as File | null;
+      const resumeData = formData.get('resumeData') as string | null;
+
+      if (!resumeData) {
+        return NextResponse.json({ error: 'Resume data is required' }, { status: 400 });
+      }
+
+      body = JSON.parse(resumeData) as BuildResumeInput;
+
+      // Upload PDF to Cloudinary if file is provided
+      if (file) {
+        if (file.type !== 'application/pdf') {
+          return NextResponse.json({ error: 'Only PDF files are allowed' }, { status: 400 });
+        }
+
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const fileName = file.name.replace(/\.pdf$/i, '') || 'resume';
+
+        try {
+          const uploadResult = await uploadResumeToCloudinary(buffer, fileName, student.id);
+          cloudinaryUrl = uploadResult.secure_url;
+        } catch (uploadError) {
+          console.error('Cloudinary upload error:', uploadError);
+          return NextResponse.json(
+            { error: 'Failed to upload resume to Cloudinary' },
+            { status: 500 }
+          );
+        }
+      } else if (body.exportPdfUrl) {
+        // Use existing URL if provided
+        cloudinaryUrl = body.exportPdfUrl;
+      }
+    } else {
+      // Handle JSON request (legacy support)
+      body = (await req.json()) as BuildResumeInput;
+      cloudinaryUrl = body.exportPdfUrl || null;
+    }
 
     // Prompt Gemini to normalize/upgrade resume content (keeps structure)
     const prompt = `
@@ -48,8 +110,8 @@ ${JSON.stringify(body, null, 2)}
       studentId: student.id,
       title: aiResult.title || body.title || 'Resume',
       structuredContent: aiResult.structuredContent || body.sections,
-      fileUrl: body.exportPdfUrl || null,
-      publicUrl: null,
+      fileUrl: cloudinaryUrl, // Store Cloudinary URL here
+      publicUrl: cloudinaryUrl, // Also store in publicUrl for easy access
       isPrimary: !!body.makePrimary,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -78,7 +140,11 @@ ${JSON.stringify(body, null, 2)}
         .where(eq(resumes.id, inserted[0].id));
     }
 
-    return NextResponse.json({ success: true, resume: inserted[0] });
+    return NextResponse.json({ 
+      success: true, 
+      resume: inserted[0],
+      cloudinaryUrl: cloudinaryUrl // Return the Cloudinary URL
+    });
   } catch (e: unknown) {
     const errorMessage = e instanceof Error ? e.message : 'Failed to build resume';
     return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
@@ -88,13 +154,28 @@ ${JSON.stringify(body, null, 2)}
 // GET: Retrieve all resumes for the authenticated student
 export async function GET(req: NextRequest) {
   try {
-    const auth = getAuthenticatedUser(req);
-    if (!auth.userId || auth.role !== 'student') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Verify token directly (more reliable than middleware headers)
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Authorization token required' }, { status: 401 });
+    }
+
+    const token = authHeader.substring(7);
+    let decoded;
+    try {
+      decoded = await verifyToken(token);
+    } catch (error) {
+      console.error('Token verification error:', error);
+      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
+    }
+
+    // Check if user is a student
+    if (decoded.role !== 'student') {
+      return NextResponse.json({ error: 'Only students can view resumes' }, { status: 403 });
     }
 
     // Find the studentId for the logged in user
-    const [student] = await db.select().from(students).where(eq(students.userId, auth.userId)).limit(1);
+    const [student] = await db.select().from(students).where(eq(students.userId, decoded.userId)).limit(1);
     if (!student) return NextResponse.json({ error: 'Student not found' }, { status: 404 });
 
     // Get all resumes for the student

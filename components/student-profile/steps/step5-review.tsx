@@ -19,6 +19,8 @@ type ProfileData = {
     duration: string;
     description: string;
   }>;
+  resumeFile?: File | null;
+  resumeUrl?: string | null;
 };
 
 type Step5ReviewProps = {
@@ -132,6 +134,36 @@ export function Step5Review({
             <p className="text-sm text-zinc-900">No experience added</p>
           )}
         </div>
+
+        {/* Resume Section */}
+        <div className="rounded-lg border border-zinc-200 bg-white p-6">
+          <h3 className="mb-4 text-lg font-semibold text-zinc-900">Resume</h3>
+          {data.resumeUrl ? (
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100">
+                <DocumentIcon className="h-5 w-5 text-indigo-600" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-zinc-900">
+                  {data.resumeFile?.name || "Resume.pdf"}
+                </p>
+                <p className="text-xs text-zinc-600">Uploaded successfully</p>
+              </div>
+              {data.resumeUrl && (
+                <a
+                  href={data.resumeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-indigo-600 hover:text-indigo-700"
+                >
+                  View
+                </a>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-zinc-500">No resume uploaded</p>
+          )}
+        </div>
       </div>
 
       {/* Navigation */}
@@ -154,6 +186,26 @@ export function Step5Review({
         </Button>
       </div>
     </div>
+  );
+}
+
+function DocumentIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <path d="M14 2v6h6" />
+      <path d="M16 13H8" />
+      <path d="M16 17H8" />
+      <path d="M10 9H8" />
+    </svg>
   );
 }
 

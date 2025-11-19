@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Step2Education } from "./steps/step2-education";
 import { Step3Skills } from "./steps/step3-skills";
 import { Step4ProjectsExperience } from "./steps/step4-projects-experience";
+import { Step6Resume } from "./steps/step6-resume";
 import { Step5Review } from "./steps/step5-review";
 
 type ProfileData = {
@@ -29,9 +30,13 @@ type ProfileData = {
     duration: string;
     description: string;
   }>;
+
+  // Step 5: Resume
+  resumeFile?: File | null;
+  resumeUrl?: string | null;
 };
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 
 export function CompleteProfileFlow() {
   const router = useRouter();
@@ -45,6 +50,8 @@ export function CompleteProfileFlow() {
     skills: [],
     projects: [],
     experiences: [],
+    resumeFile: null,
+    resumeUrl: null,
   });
 
   // Check if profile is already complete on mount
@@ -387,6 +394,14 @@ export function CompleteProfileFlow() {
             />
           )}
           {currentStep === 4 && (
+            <Step6Resume
+              data={formData}
+              onUpdate={updateFormData}
+              onNext={handleNext}
+              onPrevious={handlePrevious}
+            />
+          )}
+          {currentStep === 5 && (
             <Step5Review
               data={formData}
               onPrevious={handlePrevious}
