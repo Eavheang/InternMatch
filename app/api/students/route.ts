@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const offset = (page - 1) * limit;
 
     // Build query conditions
-    let query = db
+    const query = db
       .select({
         id: students.id,
         firstName: students.firstName,

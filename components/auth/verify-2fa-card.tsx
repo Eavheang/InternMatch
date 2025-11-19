@@ -68,21 +68,13 @@ export function Verify2FACard() {
         throw new Error(data.error || "Unable to verify code");
       }
 
-      setSuccess("Email verified successfully!");
+      setSuccess("Email verified successfully! Redirecting to login...");
 
-      // Store token if provided
-      if (data.token) {
-        localStorage.setItem("internmatch_token", data.token);
-      }
-
-      // Redirect based on user role
+      // Don't store token - user needs to login to get authenticated
+      // Small delay before redirecting to login
       setTimeout(() => {
-        if (data.user?.role === "company") {
-          router.push("/company-profile");
-        } else {
-          router.push("/complete-profile");
-        }
-      }, 1500);
+        router.push("/login");
+      }, 1000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unexpected error");
     } finally {

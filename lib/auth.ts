@@ -27,7 +27,7 @@ export async function generateToken(userId: string, email: string, role: string,
   return token;
 }
 
-export async function verifyToken(token: string): Promise<any> {
+export async function verifyToken(token: string): Promise<{ userId: string; email: string; role: string; isVerified: boolean; [key: string]: unknown }> {
   const secret = process.env.JWT_SECRET;
   
   if (!secret) {
@@ -38,8 +38,9 @@ export async function verifyToken(token: string): Promise<any> {
   
   try {
     const { payload } = await jwtVerify(token, secretKey);
-    return payload;
-  } catch (error) {
+    // Type assertion is safe here because we control the token generation
+    return payload as { userId: string; email: string; role: string; isVerified: boolean; [key: string]: unknown };
+  } catch {
     throw new Error('Invalid or expired token');
   }
 }

@@ -1,26 +1,25 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { type User, type ProfileData } from "./dashboard-context";
 
-type CompanyDashboardProps = {
-  user: {
-    id: string;
-    email: string;
-    role: string;
-    isVerified: boolean;
-  };
-  profileData: {
-    id: string;
-    companyName: string;
-    industry?: string;
-    companyLogo?: string;
-  };
+type JobPosting = {
+  id: string;
+  jobTitle: string;
+  location?: string;
+  createdAt: string;
+  status: string;
+  applicantCount?: number;
+  viewCount?: number;
 };
 
-export function CompanyDashboard({ user, profileData }: CompanyDashboardProps) {
-  const router = useRouter();
+type CompanyDashboardProps = {
+  user: User | null;
+  profileData: ProfileData | null;
+};
+
+export function CompanyDashboard({ profileData }: CompanyDashboardProps) {
   const [stats, setStats] = useState({
     activePostings: 0,
     totalApplicants: 0,
@@ -30,12 +29,16 @@ export function CompanyDashboard({ user, profileData }: CompanyDashboardProps) {
     applicantsChange: "+45 this week",
     interviewsChange: "5 this week",
   });
-  const [jobPostings, setJobPostings] = useState<any[]>([]);
-  const [topCandidates, setTopCandidates] = useState<any[]>([]);
+  const [jobPostings, setJobPostings] = useState<JobPosting[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadDashboardData = async () => {
+      if (!profileData?.id) {
+        setLoading(false);
+        return;
+      }
+
       try {
         const token = localStorage.getItem("internmatch_token");
         if (!token) return;
@@ -51,7 +54,7 @@ export function CompanyDashboard({ user, profileData }: CompanyDashboardProps) {
 
           // Calculate stats from job postings
           const activeJobs = (jobsData.data || []).filter(
-            (job: any) => job.status === "open"
+            (job: JobPosting) => job.status === "open"
           );
           setStats((prev) => ({
             ...prev,
@@ -66,7 +69,7 @@ export function CompanyDashboard({ user, profileData }: CompanyDashboardProps) {
     };
 
     loadDashboardData();
-  }, [profileData.id]);
+  }, [profileData?.id]);
 
   if (loading) {
     return (
@@ -82,7 +85,7 @@ export function CompanyDashboard({ user, profileData }: CompanyDashboardProps) {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-zinc-900">
-            Welcome back, {profileData.companyName}! 👋
+            Welcome back, {profileData?.companyName || "Company"}! 👋
           </h1>
           <p className="mt-2 text-zinc-600">
             Here&apos;s an overview of your internship program
@@ -233,7 +236,7 @@ function StatsCard({
   );
 }
 
-function JobPostingCard({ job }: { job: any }) {
+function JobPostingCard({ job }: { job: JobPosting }) {
   return (
     <div className="rounded-2xl border border-zinc-200 bg-white p-6 transition-shadow hover:shadow-md">
       <div className="flex items-start justify-between">

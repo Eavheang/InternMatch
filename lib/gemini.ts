@@ -4,7 +4,7 @@ export const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string
 
 // Fast/cheap default; change to 'gemini-1.5-pro' if you need better reasoning
 export function model() {
-  return genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  return genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 }
 
 export async function generateJson<T = unknown>(prompt: string): Promise<T> {

@@ -2,10 +2,11 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import { type User, type ProfileData } from "./dashboard-context";
 
 type DashboardSidebarProps = {
-  user: any;
-  profileData: any;
+  user: User | null;
+  profileData: ProfileData | null;
 };
 
 export function DashboardSidebar({ user, profileData }: DashboardSidebarProps) {
@@ -30,7 +31,7 @@ export function DashboardSidebar({ user, profileData }: DashboardSidebarProps) {
   const studentMenuItems = [
     { name: "Overview", href: "/dashboard", icon: HomeIcon },
     { name: "Profile", href: "/dashboard/profile", icon: UserIcon },
-    { name: "Resume Builder", href: "/dashboard/resume", icon: FileIcon },
+    { name: "Resume", href: "/dashboard/resume", icon: FileIcon },
     { name: "Applications", href: "/dashboard/applications", icon: BriefcaseIcon },
     { name: "Skills Analysis", href: "/dashboard/skills", icon: ChartIcon },
     { name: "Interview Prep", href: "/dashboard/interview", icon: MessageIcon },
@@ -63,7 +64,7 @@ export function DashboardSidebar({ user, profileData }: DashboardSidebarProps) {
     : profileData?.major || "Student";
 
   return (
-    <div className="w-64 bg-white border-r border-zinc-200 flex flex-col">
+    <div className="w-64 bg-white border-r border-zinc-200 flex flex-col sticky top-0 h-screen overflow-y-auto">
       {/* User Profile Section */}
       <div className="p-6 bg-indigo-600 text-white">
         <div className="flex items-center gap-4">

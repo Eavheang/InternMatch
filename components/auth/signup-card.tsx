@@ -157,10 +157,10 @@ export function SignupCard() {
             <FormField
               control={form.control}
               name="email"
-              rules={{ required: "Work email is required" }}
+              rules={{ required: "Email is required" }}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Work Email</FormLabel>
+                  <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="you@company.com"

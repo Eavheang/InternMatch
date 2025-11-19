@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import {
-  applications, students, resumes, jobPostings, companies,
+  applications, resumes, jobPostings, companies,
   interviewQuestions, aiGeneratedContent
 } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { generateJson } from '@/lib/gemini';
 import { getAuthenticatedUser } from '@/lib/auth-helpers';
 
@@ -87,8 +87,9 @@ ${JSON.stringify(resume?.structuredContent || {}, null, 2)}
     } catch {}
 
     return NextResponse.json({ success: true, questions: inserted[0] });
-  } catch (e: any) {
-    return NextResponse.json({ success: false, error: e?.message || 'Question generation failed' }, { status: 500 });
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : 'Question generation failed';
+    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
   }
 }
 
@@ -122,7 +123,8 @@ export async function GET(req: NextRequest) {
         .orderBy(desc(interviewQuestions.createdAt));
   
       return NextResponse.json({ success: true, data: list });
-    } catch (e: any) {
-      return NextResponse.json({ success: false, error: e?.message || 'Failed to fetch interview questions' }, { status: 500 });
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : 'Failed to fetch interview questions';
+      return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
     }
   }

@@ -1,27 +1,62 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { generateJson } from '@/lib/gemini';
-import { getAuthenticatedUser } from '@/lib/auth-helpers';
-// add students
+import { generateJson } from '@/lib/openai';
+import { verifyToken } from '@/lib/auth';
 import { resumes, jobPostings, resumeAtsAnalysis, aiGeneratedContent, students } from '@/db/schema';
-// add and, desc
 import { eq, and, desc } from 'drizzle-orm';
+
 type AtsInput = {
-  resumeId: string;
+  resumeId?: string;
+  resumeData?: any;
   jobId?: string;
   applicationId?: string;
 };
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = getAuthenticatedUser(req);
-    if (!auth.userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Verify token directly
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Authorization token required' }, { status: 401 });
+    }
 
-    const { resumeId, jobId, applicationId } = (await req.json()) as AtsInput;
-    const [resume] = await db.select().from(resumes).where(eq(resumes.id, resumeId)).limit(1);
-    if (!resume) return NextResponse.json({ error: 'Resume not found' }, { status: 404 });
+    const token = authHeader.substring(7);
+    let decoded;
+    try {
+      decoded = await verifyToken(token);
+    } catch (error) {
+      console.error('Token verification error:', error);
+      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
+    }
 
-    let job: any = null;
+    // Allow any authenticated user to use this endpoint
+    if (!decoded.userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { resumeId, resumeData, jobId, applicationId } = (await req.json()) as AtsInput;
+
+    let resumeContent: any = null;
+    let studentId: string | null = null;
+
+    // Strategy 1: Use provided resumeData (transient analysis)
+    if (resumeData) {
+      resumeContent = resumeData;
+      // Try to find student ID for logging purposes, but don't fail if not found (e.g. company analyzing)
+      const [student] = await db.select().from(students).where(eq(students.userId, decoded.userId)).limit(1);
+      if (student) studentId = student.id;
+    } 
+    // Strategy 2: Fetch from DB using resumeId
+    else if (resumeId) {
+      const [resume] = await db.select().from(resumes).where(eq(resumes.id, resumeId)).limit(1);
+      if (!resume) return NextResponse.json({ error: 'Resume not found' }, { status: 404 });
+      resumeContent = resume.structuredContent;
+      studentId = resume.studentId;
+    } else {
+      return NextResponse.json({ error: 'Either resumeId or resumeData is required' }, { status: 400 });
+    }
+
+    let job: { id?: string; [key: string]: unknown } | null = null;
     if (jobId) {
       const found = await db.select().from(jobPostings).where(eq(jobPostings.id, jobId)).limit(1);
       job = found[0] || null;
@@ -29,55 +64,88 @@ export async function POST(req: NextRequest) {
 
     const prompt = `
 You are an ATS evaluator. Score the resume against the job (if provided).
-Return JSON: { atsScore (0-100), keywordMatch (0-100), readability (0-100), length (integer), missingKeywords: string[], suggestions: [{field, advice}] }.
+Return JSON: { atsScore (0-100), keywordMatch (0-100), readability (0-100), length (integer), missingKeywords: string[], suggestions: [{field, advice}], summary: string, structureScore: number }.
 
 Resume:
-${JSON.stringify(resume.structuredContent || {}, null, 2)}
+${JSON.stringify(resumeContent || {}, null, 2)}
 
 Job:
 ${JSON.stringify(job || {}, null, 2)}
 `;
 
     const result = await generateJson<{
-      atsScore: number; keywordMatch: number; readability: number; length: number;
-      missingKeywords: string[]; suggestions: Array<{ field: string; advice: string }>;
+      atsScore: number; 
+      keywordMatch: number; 
+      readability: number; 
+      structureScore: number;
+      length: number;
+      missingKeywords: string[]; 
+      suggestions: Array<{ field: string; advice: string }>;
+      summary: string;
     }>(prompt);
 
-    const inserted = await db.insert(resumeAtsAnalysis).values({
-      resumeId,
-      applicationId: applicationId || null,
-      jobId: jobId || null,
-      atsScore: result.atsScore,
-      keywordMatch: result.keywordMatch,
-      readability: result.readability,
-      length: result.length,
-      suggestions: result.suggestions,
-      missingKeywords: result.missingKeywords,
-      analyzedAt: new Date(),
-    }).returning();
-
-    try {
-      await db.insert(aiGeneratedContent).values({
-        type: 'resume_suggestions',
-        studentId: resume.studentId,
-        companyId: null,
+    // If we have a resumeId, we can persist the analysis
+    let analysisRecord: any = null;
+    if (resumeId) {
+      const inserted = await db.insert(resumeAtsAnalysis).values({
+        resumeId,
+        applicationId: applicationId || null,
         jobId: jobId || null,
-        content: JSON.stringify(result),
-        prompt,
-        createdAt: new Date(),
-      });
-    } catch {}
+        atsScore: result.atsScore,
+        keywordMatch: result.keywordMatch,
+        readability: result.readability,
+        length: result.length,
+        suggestions: result.suggestions,
+        missingKeywords: result.missingKeywords,
+        analyzedAt: new Date(),
+      }).returning();
+      analysisRecord = inserted[0];
+    }
 
-    return NextResponse.json({ success: true, analysis: inserted[0] });
-  } catch (e: any) {
-    return NextResponse.json({ success: false, error: e?.message || 'ATS analysis failed' }, { status: 500 });
+    // Log AI usage - only if we identified a student ID (optional)
+    if (studentId) {
+      try {
+        await db.insert(aiGeneratedContent).values({
+          type: 'resume_suggestions',
+          studentId: studentId,
+          companyId: null,
+          jobId: jobId || null,
+          content: JSON.stringify(result),
+          prompt,
+          createdAt: new Date(),
+        });
+      } catch {}
+    }
+
+    return NextResponse.json({ 
+      success: true, 
+      analysis: analysisRecord, // might be null if not saved
+      data: result // return the raw AI result for immediate display
+    });
+  } catch (e: unknown) {
+    console.error('ATS API Error:', e); // Better error logging
+    const errorMessage = e instanceof Error ? e.message : 'ATS analysis failed';
+    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
   }
 }
 
 export async function GET(req: NextRequest) {
     try {
-      const auth = getAuthenticatedUser(req);
-      if (!auth.userId || auth.role !== 'student') {
+      // Verify token directly
+      const authHeader = req.headers.get('authorization');
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return NextResponse.json({ error: 'Authorization token required' }, { status: 401 });
+      }
+
+      const token = authHeader.substring(7);
+      let decoded;
+      try {
+        decoded = await verifyToken(token);
+      } catch (error) {
+        return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
+      }
+
+      if (!decoded.userId || decoded.role !== 'student') {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
   
@@ -87,7 +155,7 @@ export async function GET(req: NextRequest) {
       const offset = Math.max(parseInt(searchParams.get('offset') || '0', 10), 0);
   
       // Resolve student by current user
-      const [student] = await db.select({ id: students.id }).from(students).where(eq(students.userId, auth.userId)).limit(1);
+      const [student] = await db.select({ id: students.id }).from(students).where(eq(students.userId, decoded.userId)).limit(1);
       if (!student) return NextResponse.json({ error: 'Student not found' }, { status: 404 });
   
       // Join analyses with resumes to ensure ownership; optionally filter by resumeId
@@ -120,7 +188,8 @@ export async function GET(req: NextRequest) {
         data: rows,
         pagination: { limit, offset, count: rows.length }
       });
-    } catch (e: any) {
-      return NextResponse.json({ success: false, error: e?.message || 'Failed to fetch ATS analyses' }, { status: 500 });
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : 'Failed to fetch ATS analyses';
+      return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
     }
   }

@@ -4,7 +4,7 @@ import {
   applications, students, resumes, jobPostings, companies,
   applicationAiReviews, aiGeneratedContent
 } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq,  desc } from 'drizzle-orm';
 import { generateJson } from '@/lib/gemini';
 import { getAuthenticatedUser } from '@/lib/auth-helpers';
 
@@ -96,8 +96,9 @@ ${JSON.stringify(resume.structuredContent || {}, null, 2)}
     } catch {}
 
     return NextResponse.json({ success: true, review: inserted[0] });
-  } catch (e: any) {
-    return NextResponse.json({ success: false, error: e?.message || 'AI review failed' }, { status: 500 });
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : 'AI review failed';
+    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
   }
 }
 export async function GET(req: NextRequest) {
@@ -130,7 +131,8 @@ export async function GET(req: NextRequest) {
         .orderBy(desc(applicationAiReviews.analyzedAt));
   
       return NextResponse.json({ success: true, data: reviews });
-    } catch (e: any) {
-      return NextResponse.json({ success: false, error: e?.message || 'Failed to fetch reviews' }, { status: 500 });
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : 'Failed to fetch reviews';
+      return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
     }
   }

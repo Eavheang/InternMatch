@@ -18,18 +18,30 @@ import { verifyToken } from "@/lib/auth";
 export async function GET(request: NextRequest) {
   try {
     // Get token from Authorization header
-    const user = getAuthenticatedUser(request);
-
-    // Verify user is authenticated
-    if (!user.userId) {
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
-        { error: "Authentication required" },
+        { error: "Authorization token required" },
         { status: 401 }
       );
     }
 
-    const userId = user.userId;
-    const userRole = user.role;
+    const token = authHeader.substring(7);
+
+    // Verify token
+    let decoded;
+    try {
+      decoded = await verifyToken(token);
+    } catch (error) {
+      console.error("Token verification error:", error);
+      return NextResponse.json(
+        { error: "Invalid or expired token" },
+        { status: 401 }
+      );
+    }
+
+    const userId = decoded.userId;
+    const userRole = decoded.role;
 
     // Get user basic info
     const [userData] = await db
@@ -46,7 +58,15 @@ export async function GET(request: NextRequest) {
     const { password, verificationCode, verificationExpires, ...userInfo } =
       userData;
 
-    let profileData: any = {
+    const profileData: {
+      id: string;
+      email: string;
+      role: string;
+      isVerified: boolean;
+      createdAt: Date | null;
+      profile: unknown;
+      [key: string]: unknown;
+    } = {
       ...userInfo,
       profile: null,
     };
@@ -421,50 +441,15 @@ export async function PUT(request: NextRequest) {
         .where(eq(companies.id, company.id));
     }
 
-    // Generate new token with updated profile info
-    try {
-      const [updatedUser] = await db
-        .select()
-        .from(users)
-        .where(eq(users.id, userId))
-        .limit(1);
-
-      if (!updatedUser) {
-        return NextResponse.json({ error: "User not found" }, { status: 404 });
-      }
-
-      const { generateToken } = await import("@/lib/auth");
-      const newToken = generateToken(
-        updatedUser.id,
-        updatedUser.email,
-        updatedUser.role,
-        updatedUser.isVerified
-      );
-
-      console.log(
-        "New token generated successfully for user:",
-        updatedUser.email
-      );
-
-      return NextResponse.json(
-        {
-          success: true,
-          message: "Profile updated successfully",
-          token: newToken,
-        },
-        { status: 200 }
-      );
-    } catch (tokenError) {
-      console.error("Error generating new token:", tokenError);
-      // Still return success but without new token
-      return NextResponse.json(
-        {
-          success: true,
-          message: "Profile updated successfully",
-        },
-        { status: 200 }
-      );
-    }
+    // No need to generate new token - token payload (userId, email, role, isVerified) doesn't change
+    // Profile data is stored in database, not in token
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Profile updated successfully",
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Profile update error:", error);
     console.error("Error details:", {
