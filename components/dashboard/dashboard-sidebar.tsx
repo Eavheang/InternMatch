@@ -64,7 +64,7 @@ export function DashboardSidebar({ user, profileData }: DashboardSidebarProps) {
     : profileData?.major || "Student";
 
   return (
-    <div className="w-64 bg-white border-r border-zinc-200 flex flex-col">
+    <div className="w-64 bg-white border-r border-zinc-200 flex flex-col sticky top-0 h-screen overflow-y-auto">
       {/* User Profile Section */}
       <div className="p-6 bg-indigo-600 text-white">
         <div className="flex items-center gap-4">

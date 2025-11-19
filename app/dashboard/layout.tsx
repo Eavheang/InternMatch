@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
-import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { DashboardProvider, type User, type ProfileData } from "@/components/dashboard/dashboard-context";
 
 export default function DashboardLayout({
@@ -172,7 +171,6 @@ export default function DashboardLayout({
       <div className="flex min-h-screen bg-zinc-50">
         <DashboardSidebar user={user} profileData={profileData} />
         <div className="flex-1 flex flex-col">
-          <DashboardHeader user={user} />
           <main className="flex-1">{children}</main>
         </div>
       </div>
