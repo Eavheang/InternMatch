@@ -24,9 +24,11 @@ import {
   Trash2,
   Sparkles,
   Minus,
-  Plus
+  Plus,
+  ArrowLeft
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 const steps = [
   { id: "personal", title: "Personal Information", icon: User, component: PersonalInfo },
@@ -41,6 +43,7 @@ const steps = [
 const STORAGE_KEY = "internmatch_resume_draft";
 
 export function ResumeBuilder() {
+  const router = useRouter();
   const [activeStep, setActiveStep] = useState(0);
   const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData);
   const [previewScale, setPreviewScale] = useState(0.9);
@@ -162,6 +165,15 @@ export function ResumeBuilder() {
       {/* Sidebar */}
       <div className="w-72 bg-white/80 backdrop-blur-sm border-r border-zinc-200/50 shadow-sm flex flex-col">
         <div className="p-6 border-b border-zinc-200/50">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push("/dashboard/resume")}
+            className="mb-3 -ml-2 text-zinc-600 hover:text-zinc-900 gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Resume
+          </Button>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center shadow-lg shadow-purple-500/20">
               <FileText className="w-5 h-5 text-white" />

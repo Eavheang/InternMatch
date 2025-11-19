@@ -31,7 +31,7 @@ export function DashboardSidebar({ user, profileData }: DashboardSidebarProps) {
   const studentMenuItems = [
     { name: "Overview", href: "/dashboard", icon: HomeIcon },
     { name: "Profile", href: "/dashboard/profile", icon: UserIcon },
-    { name: "Resume Builder", href: "/dashboard/resume", icon: FileIcon },
+    { name: "Resume", href: "/dashboard/resume", icon: FileIcon },
     { name: "Applications", href: "/dashboard/applications", icon: BriefcaseIcon },
     { name: "Skills Analysis", href: "/dashboard/skills", icon: ChartIcon },
     { name: "Interview Prep", href: "/dashboard/interview", icon: MessageIcon },

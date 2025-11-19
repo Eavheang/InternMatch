@@ -19,6 +19,7 @@ export type ProfileData = {
   skills?: string[];
   projects?: unknown[];
   experiences?: unknown[];
+  resumeUrl?: string;
   companyName?: string;
   industry?: string;
   companySize?: string;
