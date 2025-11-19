@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { resumes, students, aiGeneratedContent } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { generateJson } from '@/lib/gemini';
+import { generateJson } from '@/lib/openai';
 import { verifyToken } from '@/lib/auth';
 import { uploadResumeToCloudinary } from '@/lib/cloudinary';
 
