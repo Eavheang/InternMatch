@@ -1,7 +1,77 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { jobPostings, companies } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { jobPostings, companies, applications } from "@/db/schema";
+import { eq, and, count } from "drizzle-orm";
+
+// GET - Fetch a specific job for the company
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string; jobId: string }> }
+) {
+  try {
+    const { id, jobId } = await params;
+
+    const company = await db
+      .select()
+      .from(companies)
+      .where(eq(companies.userId, id))
+      .limit(1);
+
+    if (company.length === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Company not found",
+        },
+        { status: 404 }
+      );
+    }
+
+    const jobRows = await db
+      .select({
+        id: jobPostings.id,
+        jobTitle: jobPostings.jobTitle,
+        jobDescription: jobPostings.jobDescription,
+        status: jobPostings.status,
+        requirements: jobPostings.requirements,
+        benefits: jobPostings.benefits,
+        salaryRange: jobPostings.salaryRange,
+        location: jobPostings.location,
+        jobType: jobPostings.jobType,
+        experienceLevel: jobPostings.experienceLevel,
+        aiGenerated: jobPostings.aiGenerated,
+        createdAt: jobPostings.createdAt,
+        updatedAt: jobPostings.updatedAt,
+        applicationCount: count(applications.id),
+      })
+      .from(jobPostings)
+      .leftJoin(applications, eq(jobPostings.id, applications.jobId))
+      .where(
+        and(eq(jobPostings.id, jobId), eq(jobPostings.companyId, company[0].id))
+      )
+      .groupBy(jobPostings.id)
+      .limit(1);
+
+    if (jobRows.length === 0) {
+      return NextResponse.json(
+        { success: false, error: "Job not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ success: true, data: jobRows[0] });
+  } catch (error) {
+    console.error("Error fetching job:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to fetch job",
+        message: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
+  }
+}
 
 // PUT - Update job posting
 export async function PUT(

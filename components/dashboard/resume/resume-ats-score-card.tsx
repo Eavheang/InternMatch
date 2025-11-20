@@ -58,7 +58,8 @@ export function ResumeAtsScoreCard({
           </Button>
         </div>
         <p className="text-sm text-zinc-600">
-          Get your resume analyzed for ATS compatibility and receive personalized improvement suggestions.
+          Get your resume analyzed for ATS compatibility and receive
+          personalized improvement suggestions.
         </p>
       </div>
 
@@ -98,7 +99,13 @@ function ScoreOverview({ analysis }: { analysis: ResumeAnalysis }) {
               endAngle={-270}
               dataKey="value"
             >
-              <Cell fill={analysis.atsScore !== null && analysis.atsScore >= 70 ? "#22c55e" : "#ef4444"} />
+              <Cell
+                fill={
+                  analysis.atsScore !== null && analysis.atsScore >= 70
+                    ? "#22c55e"
+                    : "#ef4444"
+                }
+              />
               <Cell fill="#e5e7eb" />
             </Pie>
           </PieChart>
@@ -107,12 +114,16 @@ function ScoreOverview({ analysis }: { analysis: ResumeAnalysis }) {
           <span
             className={cn(
               "text-3xl font-bold",
-              analysis.atsScore !== null && analysis.atsScore >= 70 ? "text-green-600" : "text-red-600",
+              analysis.atsScore !== null && analysis.atsScore >= 70
+                ? "text-green-600"
+                : "text-red-600"
             )}
           >
             {analysis.atsScore}
           </span>
-          <span className="text-xs text-zinc-500 font-medium uppercase mt-1">ATS Score</span>
+          <span className="text-xs text-zinc-500 font-medium uppercase mt-1">
+            ATS Score
+          </span>
         </div>
       </div>
       <h3 className="text-lg font-semibold text-zinc-900 mb-2">
@@ -148,14 +159,20 @@ function Suggestions({ analysis }: { analysis: ResumeAnalysis }) {
     return (
       <div className="bg-white border rounded-xl p-6">
         <h4 className="font-semibold flex items-center gap-2 mb-4 text-zinc-900">
-          <span className="text-yellow-500">💡</span> Suggestions for Improvement
+          <span className="text-yellow-500">💡</span> Suggestions for
+          Improvement
         </h4>
         <ul className="space-y-3">
           {analysis.suggestions.map((suggestion, idx) => (
-            <li key={idx} className="flex items-start gap-3 text-zinc-600 text-sm">
+            <li
+              key={idx}
+              className="flex items-start gap-3 text-zinc-600 text-sm"
+            >
               <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
               <div>
-                <span className="font-medium text-zinc-800">{suggestion.field}:</span>{" "}
+                <span className="font-medium text-zinc-800">
+                  {suggestion.field}:
+                </span>{" "}
                 {suggestion.advice}
               </div>
             </li>
@@ -181,9 +198,12 @@ function EmptyState() {
       <div className="w-24 h-24 mx-auto mb-4 rounded-full border-8 border-zinc-200 flex items-center justify-center bg-white">
         <span className="text-3xl font-bold text-zinc-300">?</span>
       </div>
-      <h3 className="text-lg font-semibold text-zinc-900 mb-2">Not Analyzed Yet</h3>
+      <h3 className="text-lg font-semibold text-zinc-900 mb-2">
+        Not Analyzed Yet
+      </h3>
       <p className="text-sm text-zinc-600 mb-6">
-        Click "Analyze Resume" to get your ATS score and personalized improvement suggestions.
+        Click <span className="font-medium">Analyze Resume</span> to get your ATS score and personalized
+        improvement suggestions.
       </p>
     </div>
   );
@@ -211,7 +231,7 @@ function MetricCard({
                 ? "text-green-600"
                 : value >= 50
                   ? "text-yellow-600"
-                  : "text-red-600",
+                  : "text-red-600"
           )}
         >
           {isLength ? `${value} words` : `${value}%`}
@@ -221,4 +241,3 @@ function MetricCard({
     </div>
   );
 }
-

@@ -64,38 +64,52 @@ export async function POST(req: NextRequest) {
           Accept: "application/pdf, application/octet-stream, */*",
         },
       });
-      
+
       if (!pdfResponse.ok) {
-        throw new Error(`Failed to fetch resume PDF: ${pdfResponse.status} ${pdfResponse.statusText}`);
+        throw new Error(
+          `Failed to fetch resume PDF: ${pdfResponse.status} ${pdfResponse.statusText}`
+        );
       }
-      
+
       // Log content type for debugging
       const contentType = pdfResponse.headers.get("content-type") || "";
       console.log("PDF Content-Type from Cloudinary:", contentType);
-      
+
       // Get the response as array buffer
       const arrayBuffer = await pdfResponse.arrayBuffer();
       pdfBuffer = Buffer.from(arrayBuffer);
-      
+
       // Validate PDF by checking magic number (%PDF)
       if (pdfBuffer.length < 4) {
         throw new Error("File is too small to be a valid PDF");
       }
-      
+
       const pdfHeader = pdfBuffer.slice(0, 4).toString("ascii");
       if (pdfHeader !== "%PDF") {
-        console.error("Invalid PDF header:", pdfHeader, "First 20 bytes:", pdfBuffer.slice(0, 20).toString("hex"));
+        console.error(
+          "Invalid PDF header:",
+          pdfHeader,
+          "First 20 bytes:",
+          pdfBuffer.slice(0, 20).toString("hex")
+        );
         return NextResponse.json(
-          { error: "The file does not appear to be a valid PDF. Please ensure the resume was uploaded correctly." },
+          {
+            error:
+              "The file does not appear to be a valid PDF. Please ensure the resume was uploaded correctly.",
+          },
           { status: 400 }
         );
       }
-      
-      console.log(`Successfully fetched PDF (${pdfBuffer.length} bytes, header: ${pdfHeader})`);
+
+      console.log(
+        `Successfully fetched PDF (${pdfBuffer.length} bytes, header: ${pdfHeader})`
+      );
     } catch (error) {
       console.error("Error fetching PDF:", error);
       return NextResponse.json(
-        { error: `Failed to fetch resume PDF: ${error instanceof Error ? error.message : "Unknown error"}` },
+        {
+          error: `Failed to fetch resume PDF: ${error instanceof Error ? error.message : "Unknown error"}`,
+        },
         { status: 500 }
       );
     }
@@ -106,67 +120,86 @@ export async function POST(req: NextRequest) {
       // Use pdf2json for Node.js environment (no browser dependencies)
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const PDFParser = require("pdf2json");
-      
+
       // Create parser instance
       const pdfParser = new PDFParser(null, 1);
-      
+
       // Parse PDF buffer
       const parsePromise = new Promise<string>((resolve, reject) => {
-        pdfParser.on("pdfParser_dataError", (errData: { parserError: Error }) => {
-          reject(new Error(`PDF parsing error: ${errData.parserError.message}`));
-        });
-        
-        pdfParser.on("pdfParser_dataReady", (pdfData: { Pages: Array<{ Texts: Array<{ R: Array<{ T: string }> }> }> }) => {
-          try {
-            // Extract text from all pages
-            const textParts: string[] = [];
-            
-            if (pdfData && pdfData.Pages) {
-              for (const page of pdfData.Pages) {
-                if (page.Texts) {
-                  const pageTexts: string[] = [];
-                  for (const textObj of page.Texts) {
-                    if (textObj.R && Array.isArray(textObj.R)) {
-                      for (const run of textObj.R) {
-                        if (run.T) {
-                          // Decode URI component if needed
-                          try {
-                            pageTexts.push(decodeURIComponent(run.T));
-                          } catch {
-                            pageTexts.push(run.T);
+        pdfParser.on(
+          "pdfParser_dataError",
+          (errData: { parserError: Error }) => {
+            reject(
+              new Error(`PDF parsing error: ${errData.parserError.message}`)
+            );
+          }
+        );
+
+        pdfParser.on(
+          "pdfParser_dataReady",
+          (pdfData: {
+            Pages: Array<{ Texts: Array<{ R: Array<{ T: string }> }> }>;
+          }) => {
+            try {
+              // Extract text from all pages
+              const textParts: string[] = [];
+
+              if (pdfData && pdfData.Pages) {
+                for (const page of pdfData.Pages) {
+                  if (page.Texts) {
+                    const pageTexts: string[] = [];
+                    for (const textObj of page.Texts) {
+                      if (textObj.R && Array.isArray(textObj.R)) {
+                        for (const run of textObj.R) {
+                          if (run.T) {
+                            // Decode URI component if needed
+                            try {
+                              pageTexts.push(decodeURIComponent(run.T));
+                            } catch {
+                              pageTexts.push(run.T);
+                            }
                           }
                         }
                       }
                     }
+                    textParts.push(pageTexts.join(" "));
                   }
-                  textParts.push(pageTexts.join(" "));
                 }
               }
+
+              const extractedText = textParts.join("\n\n");
+              resolve(extractedText);
+            } catch (err) {
+              reject(
+                err instanceof Error
+                  ? err
+                  : new Error("Failed to extract text from parsed PDF")
+              );
             }
-            
-            const extractedText = textParts.join("\n\n");
-            resolve(extractedText);
-          } catch (err) {
-            reject(err instanceof Error ? err : new Error("Failed to extract text from parsed PDF"));
           }
-        });
-        
+        );
+
         // Parse the buffer
         pdfParser.parseBuffer(pdfBuffer);
       });
-      
+
       resumeText = await parsePromise;
-      
+
       if (!resumeText || resumeText.trim().length === 0) {
         return NextResponse.json(
-          { error: "Could not extract text from PDF. Please ensure the PDF contains readable text." },
+          {
+            error:
+              "Could not extract text from PDF. Please ensure the PDF contains readable text.",
+          },
           { status: 400 }
         );
       }
     } catch (error) {
       console.error("PDF parsing error:", error);
       return NextResponse.json(
-        { error: `Failed to parse PDF: ${error instanceof Error ? error.message : "Unknown error"}. Please ensure it's a valid PDF file.` },
+        {
+          error: `Failed to parse PDF: ${error instanceof Error ? error.message : "Unknown error"}. Please ensure it's a valid PDF file.`,
+        },
         { status: 500 }
       );
     }
@@ -304,4 +337,3 @@ export async function GET(req: NextRequest) {
     );
   }
 }
-

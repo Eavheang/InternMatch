@@ -47,10 +47,14 @@ export function DashboardSidebar({ user, profileData }: DashboardSidebarProps) {
     user?.role === "company" ? companyMenuItems : studentMenuItems;
 
   const isActive = (href: string) => {
-    if (href === "/dashboard") {
-      return pathname === "/dashboard";
+    if (!pathname) return false;
+    if (href === "/dashboard") return pathname === "/dashboard";
+    if (href === "/dashboard/jobs/new") return pathname === href;
+    if (href === "/dashboard/jobs") {
+      if (pathname === "/dashboard/jobs/new") return false;
+      return pathname.startsWith("/dashboard/jobs");
     }
-    return pathname?.startsWith(href);
+    return pathname.startsWith(href);
   };
 
   const userInitials =

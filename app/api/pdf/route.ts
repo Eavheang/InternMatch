@@ -5,8 +5,8 @@ import { eq } from "drizzle-orm";
 import { verifyToken } from "@/lib/auth";
 
 // Force dynamic rendering
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
   try {
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     // Get token from Authorization header or query parameter (for iframe compatibility)
     const authHeader = req.headers.get("authorization");
     const tokenParam = req.nextUrl.searchParams.get("token");
-    
+
     const token = authHeader?.startsWith("Bearer ")
       ? authHeader.substring(7)
       : tokenParam;
@@ -77,7 +77,7 @@ export async function GET(req: NextRequest) {
     // Fetch PDF from Cloudinary
     console.log("Fetching PDF from Cloudinary URL:", student.resumeUrl);
     const res = await fetch(student.resumeUrl);
-    
+
     if (!res.ok) {
       const errorText = await res.text().catch(() => "Unknown error");
       console.error("Failed to fetch PDF from Cloudinary:", {
@@ -94,15 +94,12 @@ export async function GET(req: NextRequest) {
     // Handle range requests for PDF.js
     const rangeHeader = req.headers.get("range");
     const buffer = await res.arrayBuffer();
-    
+
     if (buffer.byteLength === 0) {
       console.error("PDF buffer is empty");
-      return NextResponse.json(
-        { error: "PDF file is empty" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "PDF file is empty" }, { status: 500 });
     }
-    
+
     console.log("PDF fetched successfully, size:", buffer.byteLength, "bytes");
 
     // Convert ArrayBuffer to Buffer for NextResponse
@@ -148,16 +145,16 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    console.log("Response headers:", Object.fromEntries(response.headers.entries()));
+    console.log(
+      "Response headers:",
+      Object.fromEntries(response.headers.entries())
+    );
     return response;
   } catch (e: unknown) {
     const errorMessage =
       e instanceof Error ? e.message : "Failed to fetch resume";
     console.error("PDF route error:", e);
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
@@ -171,7 +168,7 @@ export async function HEAD(req: NextRequest) {
 
     const authHeader = req.headers.get("authorization");
     const tokenParam = req.nextUrl.searchParams.get("token");
-    
+
     const token = authHeader?.startsWith("Bearer ")
       ? authHeader.substring(7)
       : tokenParam;
@@ -210,10 +207,10 @@ export async function HEAD(req: NextRequest) {
       if (!res.ok) {
         return new NextResponse(null, { status: 404 });
       }
-      
+
       // Get Content-Length from response headers, or fetch first chunk to determine size
       let contentLength = res.headers.get("content-length");
-      
+
       if (!contentLength) {
         // If Content-Length not available, fetch first chunk to determine size
         const buffer = await res.arrayBuffer();
@@ -255,4 +252,3 @@ export async function OPTIONS(req: NextRequest) {
     },
   });
 }
-

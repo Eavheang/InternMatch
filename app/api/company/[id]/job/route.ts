@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { jobPostings, companies } from "@/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { jobPostings, companies, applications } from "@/db/schema";
+import { eq, and, desc, count } from "drizzle-orm";
 import { getAuthenticatedUser } from "@/lib/auth-helpers";
 
 // POST - Create new job posting for a company
@@ -51,6 +51,7 @@ export async function POST(
       location,
       jobType,
       experienceLevel,
+      status,
       aiGenerated = false,
     } = body;
 
@@ -97,7 +98,7 @@ export async function POST(
         jobType: jobType || null,
         experienceLevel: experienceLevel || null,
         aiGenerated,
-        status: "draft", // New jobs start as draft
+        status: status || "draft", // Default to draft if not provided
       })
       .returning();
 

@@ -6,7 +6,9 @@ interface AiResumeBuilderCardProps {
   onBuildResume: () => void;
 }
 
-export function AiResumeBuilderCard({ onBuildResume }: AiResumeBuilderCardProps) {
+export function AiResumeBuilderCard({
+  onBuildResume,
+}: AiResumeBuilderCardProps) {
   return (
     <Card className="p-6 border-2 border-purple-200 hover:border-purple-400 transition-colors bg-gradient-to-br from-purple-50/50 to-white">
       <div className="flex items-start gap-4">
@@ -33,4 +35,3 @@ export function AiResumeBuilderCard({ onBuildResume }: AiResumeBuilderCardProps)
     </Card>
   );
 }
-

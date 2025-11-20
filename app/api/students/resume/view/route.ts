@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
       .from(students)
       .where(eq(students.userId, decoded.userId))
       .limit(1);
-    
+
     if (!student) {
       console.error("Student not found for userId:", decoded.userId);
       return NextResponse.json({ error: "Student not found" }, { status: 404 });
@@ -59,22 +59,27 @@ export async function GET(req: NextRequest) {
         { status: 404 }
       );
     }
-    
-    console.log("Found resumeUrl for student:", student.id, "URL:", student.resumeUrl);
+
+    console.log(
+      "Found resumeUrl for student:",
+      student.id,
+      "URL:",
+      student.resumeUrl
+    );
 
     // Fetch PDF from Cloudinary
     // Note: For raw files (PDFs), Cloudinary doesn't support fl_inline transformation
     // We'll use the original URL and set Content-Disposition: inline header ourselves
     const pdfUrl = student.resumeUrl;
-    
+
     console.log("Fetching PDF from Cloudinary URL:", pdfUrl);
-    
+
     const pdfResponse = await fetch(pdfUrl, {
       headers: {
         Accept: "application/pdf",
       },
     });
-    
+
     if (!pdfResponse.ok) {
       const errorText = await pdfResponse.text().catch(() => "Unknown error");
       console.error("Failed to fetch PDF from Cloudinary:", {
@@ -84,7 +89,9 @@ export async function GET(req: NextRequest) {
         error: errorText.substring(0, 200),
       });
       return NextResponse.json(
-        { error: `Failed to fetch resume PDF from Cloudinary: ${pdfResponse.status} ${pdfResponse.statusText}` },
+        {
+          error: `Failed to fetch resume PDF from Cloudinary: ${pdfResponse.status} ${pdfResponse.statusText}`,
+        },
         { status: pdfResponse.status >= 500 ? 500 : pdfResponse.status }
       );
     }
@@ -92,18 +99,18 @@ export async function GET(req: NextRequest) {
     // Get file buffer
     const arrayBuffer = await pdfResponse.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    
+
     // Detect file type from content
     const fileHeader = buffer.slice(0, 8).toString("ascii");
     const contentType = pdfResponse.headers.get("content-type") || "";
-    
+
     console.log("File header:", fileHeader);
     console.log("Content-Type from Cloudinary:", contentType);
-    
+
     // Determine file type
     let detectedType = "application/pdf";
     let detectedExtension = "pdf";
-    
+
     if (fileHeader.startsWith("%PDF")) {
       detectedType = "application/pdf";
       detectedExtension = "pdf";
@@ -113,7 +120,8 @@ export async function GET(req: NextRequest) {
       detectedExtension = "zip";
     } else if (fileHeader.startsWith("PK\x03\x04")) {
       // Office Open XML (DOCX, XLSX, PPTX)
-      detectedType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+      detectedType =
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
       detectedExtension = "docx";
     } else if (fileHeader.includes("Microsoft Office")) {
       detectedType = "application/msword";
@@ -131,8 +139,13 @@ export async function GET(req: NextRequest) {
         detectedExtension = contentType.split("/")[1]?.split(";")[0] || "file";
       }
     }
-    
-    console.log("Detected file type:", detectedType, "Extension:", detectedExtension);
+
+    console.log(
+      "Detected file type:",
+      detectedType,
+      "Extension:",
+      detectedExtension
+    );
 
     // Return file with proper headers to display inline
     return new NextResponse(buffer, {
@@ -154,4 +167,3 @@ export async function GET(req: NextRequest) {
     );
   }
 }
-

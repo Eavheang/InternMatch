@@ -218,7 +218,7 @@ export function Skills({ data, updateData }: SkillsProps) {
               Add
             </Button>
           </div>
-        </div>    
+        </div>
       </div>
     </div>
   );

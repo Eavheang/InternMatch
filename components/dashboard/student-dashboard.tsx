@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { type User, type ProfileData } from "./dashboard-context";
 
 type StudentDashboardProps = {
@@ -105,12 +106,12 @@ export function StudentDashboard({ user, profileData }: StudentDashboardProps) {
             AI-matched opportunities based on your profile
           </p>
         </div>
-        <a
+        <Link
           href="/dashboard/jobs"
           className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
         >
           Browse All Jobs
-        </a>
+        </Link>
       </div>
 
       {/* Recommended Jobs List */}
