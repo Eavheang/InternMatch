@@ -11,34 +11,52 @@ import { Experience } from "./steps/experience";
 import { Skills } from "./steps/skills";
 import { ATSScore } from "./steps/ats-score";
 import { ResumePreview } from "./resume-preview";
-import { 
-  User, 
-  FileText, 
-  GraduationCap, 
-  Briefcase, 
-  Wrench, 
-  Activity, 
-  ChevronLeft, 
-  ChevronRight, 
-  Save, 
+import {
+  User,
+  FileText,
+  GraduationCap,
+  Briefcase,
+  Wrench,
+  Activity,
+  ChevronLeft,
+  ChevronRight,
+  Save,
   Trash2,
-  Sparkles,
   Minus,
   Plus,
-  ArrowLeft
+  ArrowLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 
 const steps = [
-  { id: "personal", title: "Personal Information", icon: User, component: PersonalInfo },
-  { id: "summary", title: "Professional Summary", icon: FileText, component: Summary },
-  { id: "education", title: "Education", icon: GraduationCap, component: Education },
-  { id: "experience", title: "Work Experience", icon: Briefcase, component: Experience },
+  {
+    id: "personal",
+    title: "Personal Information",
+    icon: User,
+    component: PersonalInfo,
+  },
+  {
+    id: "summary",
+    title: "Professional Summary",
+    icon: FileText,
+    component: Summary,
+  },
+  {
+    id: "education",
+    title: "Education",
+    icon: GraduationCap,
+    component: Education,
+  },
+  {
+    id: "experience",
+    title: "Work Experience",
+    icon: Briefcase,
+    component: Experience,
+  },
   { id: "skills", title: "Skills", icon: Wrench, component: Skills },
   { id: "ats", title: "ATS Score", icon: Activity, component: ATSScore },
 ];
-
 
 const STORAGE_KEY = "internmatch_resume_draft";
 
@@ -47,7 +65,7 @@ export function ResumeBuilder() {
   const [activeStep, setActiveStep] = useState(0);
   const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData);
   const [previewScale, setPreviewScale] = useState(0.9);
-  const [aiDialogOpen, setAiDialogOpen] = useState(false);
+  const [_aiDialogOpen, setAiDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   // Load saved data from localStorage on mount
@@ -128,7 +146,7 @@ export function ResumeBuilder() {
         email: data.personalInfo.email || prev.personalInfo.email,
         phone: data.personalInfo.phone || prev.personalInfo.phone,
         fullName: data.personalInfo.fullName || prev.personalInfo.fullName,
-      }
+      },
     }));
   };
 
@@ -140,7 +158,9 @@ export function ResumeBuilder() {
     setIsSaving(true);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(resumeData));
-      toast.success("Progress saved! Your resume will be restored when you return.");
+      toast.success(
+        "Progress saved! Your resume will be restored when you return."
+      );
     } catch (error) {
       console.error("Failed to save progress:", error);
       toast.error("Failed to save progress. Please try again.");
@@ -182,11 +202,13 @@ export function ResumeBuilder() {
               <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
                 Resume Builder
               </h1>
-              <p className="text-xs text-zinc-500 mt-0.5">Step {activeStep + 1} of {steps.length}</p>
+              <p className="text-xs text-zinc-500 mt-0.5">
+                Step {activeStep + 1} of {steps.length}
+              </p>
             </div>
           </div>
         </div>
-        
+
         <nav className="flex-1 overflow-y-auto px-4 py-4">
           <ul className="space-y-1.5">
             {steps.map((step, index) => {
@@ -202,30 +224,46 @@ export function ResumeBuilder() {
                       isActive
                         ? "bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg shadow-purple-500/30"
                         : isCompleted
-                        ? "bg-purple-50/50 text-purple-700 hover:bg-purple-100/70 border border-purple-200/50"
-                        : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900"
+                          ? "bg-purple-50/50 text-purple-700 hover:bg-purple-100/70 border border-purple-200/50"
+                          : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900"
                     )}
                   >
-                    <span className={cn(
-                      "flex items-center justify-center w-7 h-7 rounded-lg text-xs font-semibold transition-all",
-                      isActive
-                        ? "bg-white/20 text-white border-0"
-                        : isCompleted
-                        ? "bg-purple-100 border-purple-300 text-purple-700"
-                        : "border-2 border-zinc-300 bg-white text-zinc-500 group-hover:border-zinc-400"
-                    )}>
+                    <span
+                      className={cn(
+                        "flex items-center justify-center w-7 h-7 rounded-lg text-xs font-semibold transition-all",
+                        isActive
+                          ? "bg-white/20 text-white border-0"
+                          : isCompleted
+                            ? "bg-purple-100 border-purple-300 text-purple-700"
+                            : "border-2 border-zinc-300 bg-white text-zinc-500 group-hover:border-zinc-400"
+                      )}
+                    >
                       {isCompleted ? (
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2.5}
+                            d="M5 13l4 4L19 7"
+                          />
                         </svg>
                       ) : (
                         index + 1
                       )}
                     </span>
-                    <Icon className={cn(
-                      "w-4 h-4 transition-colors",
-                      isActive ? "text-white" : "text-zinc-500 group-hover:text-zinc-700"
-                    )} />
+                    <Icon
+                      className={cn(
+                        "w-4 h-4 transition-colors",
+                        isActive
+                          ? "text-white"
+                          : "text-zinc-500 group-hover:text-zinc-700"
+                      )}
+                    />
                     <span className="flex-1 text-left">{step.title}</span>
                   </button>
                 </li>
@@ -235,15 +273,16 @@ export function ResumeBuilder() {
         </nav>
 
         <div className="p-4 border-t border-zinc-200/50 space-y-2 bg-zinc-50/50">
-          <Button 
+          <Button
             className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white gap-2 shadow-lg shadow-green-500/20 transition-all"
             onClick={handleSaveProgress}
             disabled={isSaving}
           >
-            <Save className="w-4 h-4" /> {isSaving ? "Saving..." : "Save Progress"}
+            <Save className="w-4 h-4" />{" "}
+            {isSaving ? "Saving..." : "Save Progress"}
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 gap-2 border-red-200 hover:border-red-300 transition-all"
             onClick={handleClearAll}
           >
@@ -259,26 +298,38 @@ export function ResumeBuilder() {
           <div className="max-w-3xl mx-auto">
             <div className="bg-white rounded-2xl shadow-sm border border-zinc-200/50 p-8 mb-6">
               <CurrentStepComponent
-                // @ts-ignore - dynamic props handling
+                // @ts-expect-error - dynamic props handling
                 data={
-                  activeStep === 0 ? resumeData.personalInfo :
-                  activeStep === 1 ? resumeData.summary :
-                  activeStep === 2 ? resumeData.education :
-                  activeStep === 3 ? resumeData.experience :
-                  activeStep === 4 ? resumeData.skills :
-                  undefined
+                  activeStep === 0
+                    ? resumeData.personalInfo
+                    : activeStep === 1
+                      ? resumeData.summary
+                      : activeStep === 2
+                        ? resumeData.education
+                        : activeStep === 3
+                          ? resumeData.experience
+                          : activeStep === 4
+                            ? resumeData.skills
+                            : undefined
                 }
                 resumeData={activeStep === 5 ? resumeData : initialResumeData}
-                // @ts-ignore
+                // @ts-expect-error - Dynamic prop assignment based on activeStep
                 updateData={
-                  activeStep === 0 ? updatePersonalData :
-                  activeStep === 1 ? updateSummary :
-                  activeStep === 2 ? updateEducation :
-                  activeStep === 3 ? updateExperience :
-                  activeStep === 4 ? updateSkills :
-                  undefined
+                  activeStep === 0
+                    ? updatePersonalData
+                    : activeStep === 1
+                      ? updateSummary
+                      : activeStep === 2
+                        ? updateEducation
+                        : activeStep === 3
+                          ? updateExperience
+                          : activeStep === 4
+                            ? updateSkills
+                            : undefined
                 }
-                onUpdateResume={activeStep === 5 ? handleUpdateResume : undefined}
+                onUpdateResume={
+                  activeStep === 5 ? handleUpdateResume : undefined
+                }
                 onAutoFill={activeStep === 0 ? handleAutoFill : undefined}
               />
             </div>
@@ -293,17 +344,20 @@ export function ResumeBuilder() {
                 <ChevronLeft className="w-4 h-4" />
                 Previous
               </Button>
-              
+
               {/* Progress Bar */}
               <div className="flex-1 mx-6">
                 <div className="h-2 bg-zinc-200 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-gradient-to-r from-purple-600 to-purple-700 transition-all duration-300 rounded-full"
-                    style={{ width: `${((activeStep + 1) / steps.length) * 100}%` }}
+                    style={{
+                      width: `${((activeStep + 1) / steps.length) * 100}%`,
+                    }}
                   />
                 </div>
                 <p className="text-xs text-zinc-500 text-center mt-1">
-                  {Math.round(((activeStep + 1) / steps.length) * 100)}% Complete
+                  {Math.round(((activeStep + 1) / steps.length) * 100)}%
+                  Complete
                 </p>
               </div>
 
@@ -324,14 +378,18 @@ export function ResumeBuilder() {
           <div className="h-16 border-b border-zinc-200/50 bg-white/80 backdrop-blur-sm flex items-center justify-between px-6 shadow-sm">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-sm font-semibold text-zinc-700">Live Preview</span>
+              <span className="text-sm font-semibold text-zinc-700">
+                Live Preview
+              </span>
             </div>
             <div className="flex items-center gap-3 bg-zinc-100 rounded-lg p-1">
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7"
-                onClick={() => setPreviewScale(Math.max(0.5, previewScale - 0.1))}
+                onClick={() =>
+                  setPreviewScale(Math.max(0.5, previewScale - 0.1))
+                }
               >
                 <Minus className="w-3.5 h-3.5" />
               </Button>
@@ -342,13 +400,15 @@ export function ResumeBuilder() {
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7"
-                onClick={() => setPreviewScale(Math.min(1.5, previewScale + 0.1))}
+                onClick={() =>
+                  setPreviewScale(Math.min(1.5, previewScale + 0.1))
+                }
               >
                 <Plus className="w-3.5 h-3.5" />
               </Button>
             </div>
           </div>
-          
+
           <div className="flex-1 overflow-auto p-8 flex justify-center bg-gradient-to-b from-transparent to-zinc-100/30">
             <div className="transition-transform duration-300">
               <ResumePreview data={resumeData} scale={previewScale} />
@@ -359,4 +419,3 @@ export function ResumeBuilder() {
     </div>
   );
 }
-

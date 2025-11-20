@@ -44,7 +44,8 @@ export function StudentDashboard({ user, profileData }: StudentDashboardProps) {
     <main className="p-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-zinc-900">
-          Welcome back, {profileData?.firstName || user?.email?.split("@")[0] || "User"}! 👋
+          Welcome back,{" "}
+          {profileData?.firstName || user?.email?.split("@")[0] || "User"}! 👋
         </h1>
         <p className="mt-2 text-zinc-600">
           Here&apos;s what&apos;s happening with your internship search
@@ -115,7 +116,8 @@ export function StudentDashboard({ user, profileData }: StudentDashboardProps) {
       {/* Recommended Jobs List */}
       <div className="space-y-4">
         <p className="text-zinc-500 text-sm">
-          No recommendations available yet. Complete your profile to get personalized job matches!
+          No recommendations available yet. Complete your profile to get
+          personalized job matches!
         </p>
       </div>
     </main>
@@ -149,7 +151,9 @@ function SummaryCard({
   return (
     <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
       <h3 className="text-sm font-medium text-zinc-600">{title}</h3>
-      <p className={`mt-2 text-3xl font-bold ${colorClasses[color]}`}>{value}</p>
+      <p className={`mt-2 text-3xl font-bold ${colorClasses[color]}`}>
+        {value}
+      </p>
       <p className="mt-1 text-sm text-zinc-500">{description}</p>
       {children}
       {linkText && linkHref && (
@@ -166,13 +170,8 @@ function SummaryCard({
 
 function StarIcon({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      className={className}
-    >
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
     </svg>
   );
 }
-

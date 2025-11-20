@@ -292,8 +292,8 @@ export function SignupCard() {
               {submitting
                 ? "Creating account..."
                 : audience === "student"
-                ? "Create Student Account"
-                : "Create Company Account"}
+                  ? "Create Student Account"
+                  : "Create Company Account"}
             </Button>
           </form>
         </Form>

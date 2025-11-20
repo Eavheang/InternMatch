@@ -66,7 +66,7 @@ export default function ResumePage() {
       }
 
       toast.success("Resume uploaded successfully!");
-      
+
       // Refresh the page to update the profile data
       window.location.reload();
     } catch (error) {
@@ -88,7 +88,9 @@ export default function ResumePage() {
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-zinc-900 mb-2">Resume</h1>
-          <p className="text-zinc-600">Manage your resume and build a new one with AI</p>
+          <p className="text-zinc-600">
+            Manage your resume and build a new one with AI
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

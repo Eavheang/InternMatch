@@ -15,11 +15,7 @@ const COMPANY_SIZES = [
   "1000+",
 ];
 
-export function CompanyStep1Info({
-  data,
-  onUpdate,
-  onNext,
-}: CompanyStepProps) {
+export function CompanyStep1Info({ data, onUpdate, onNext }: CompanyStepProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
@@ -94,7 +90,9 @@ export function CompanyStep1Info({
             </label>
             <select
               value={data.companySize}
-              onChange={(event) => onUpdate({ companySize: event.target.value })}
+              onChange={(event) =>
+                onUpdate({ companySize: event.target.value })
+              }
               className="h-11 w-full rounded-2xl border border-zinc-200 bg-transparent px-4 text-sm text-zinc-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
             >
               <option value="">Select a range</option>
@@ -233,4 +231,3 @@ function ChevronRightIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-

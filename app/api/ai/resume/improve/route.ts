@@ -1,16 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { generateJson } from '@/lib/openai';
-import { verifyToken } from '@/lib/auth';
+import { NextRequest, NextResponse } from "next/server";
+import { generateJson } from "@/lib/openai";
+import { verifyToken } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
     // Verify token
-    const authHeader = req.headers.get('authorization');
-    if (authHeader && authHeader.startsWith('Bearer ')) {
+    const authHeader = req.headers.get("authorization");
+    if (authHeader && authHeader.startsWith("Bearer ")) {
       const token = authHeader.substring(7);
       try {
         await verifyToken(token);
-      } catch (error) {
+      } catch {
         console.warn("Token invalid, but proceeding");
       }
     }
@@ -19,11 +19,21 @@ export async function POST(req: NextRequest) {
     const { resumeData, suggestions } = body;
 
     if (!resumeData) {
-      return NextResponse.json({ error: 'Resume data is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Resume data is required" },
+        { status: 400 }
+      );
     }
 
-    if (!suggestions || !Array.isArray(suggestions) || suggestions.length === 0) {
-      return NextResponse.json({ error: 'Suggestions are required' }, { status: 400 });
+    if (
+      !suggestions ||
+      !Array.isArray(suggestions) ||
+      suggestions.length === 0
+    ) {
+      return NextResponse.json(
+        { error: "Suggestions are required" },
+        { status: 400 }
+      );
     }
 
     const prompt = `
@@ -34,7 +44,7 @@ Current Resume Data:
 ${JSON.stringify(resumeData, null, 2)}
 
 Improvement Suggestions:
-${suggestions.map((s: string, i: number) => `${i + 1}. ${s}`).join('\n')}
+${suggestions.map((s: string, i: number) => `${i + 1}. ${s}`).join("\n")}
 
 Return the improved resume data in the EXACT same JSON structure as the input, with all improvements applied.
 Make sure to:
@@ -78,13 +88,16 @@ Return ONLY the improved ResumeData JSON object with no additional explanation o
       skills: string[];
     }>(prompt);
 
-    return NextResponse.json({ 
-      success: true, 
-      data: result 
+    return NextResponse.json({
+      success: true,
+      data: result,
     });
   } catch (e: unknown) {
-    console.error('Resume Improve API Error:', e);
-    const errorMessage = e instanceof Error ? e.message : 'Improvement failed';
-    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
+    console.error("Resume Improve API Error:", e);
+    const errorMessage = e instanceof Error ? e.message : "Improvement failed";
+    return NextResponse.json(
+      { success: false, error: errorMessage },
+      { status: 500 }
+    );
   }
 }

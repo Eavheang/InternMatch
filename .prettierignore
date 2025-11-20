@@ -1,0 +1,35 @@
+# Dependencies
+node_modules
+package-lock.json
+bun.lockb
+
+# Build outputs
+.next
+out
+build
+dist
+
+# Generated files
+next-env.d.ts
+*.min.js
+*.min.css
+
+# Database
+drizzle
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+.env*.local
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+

@@ -10,7 +10,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  
+
   /* Force hex colors for compatibility with Recharts/Polished */
   --color-purple-50: #faf5ff;
   --color-purple-200: #e9d5ff;

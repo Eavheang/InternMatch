@@ -1,8 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { jobPostings, companies, applications, students, users } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
-import { getAuthenticatedUser } from '@/lib/auth-helpers';
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/db";
+import {
+  jobPostings,
+  companies,
+  applications,
+  students,
+  users,
+} from "@/db/schema";
+import { eq, and } from "drizzle-orm";
+import { getAuthenticatedUser } from "@/lib/auth-helpers";
 
 // POST - Apply for a job
 export async function POST(
@@ -12,19 +18,19 @@ export async function POST(
   try {
     // Get authenticated user from middleware
     const user = getAuthenticatedUser(request);
-    
+
     // Verify user is authenticated
     if (!user.userId) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       );
     }
-    
+
     // Verify user is a student
-    if (user.role !== 'student') {
+    if (user.role !== "student") {
       return NextResponse.json(
-        { error: 'Only students can apply for jobs' },
+        { error: "Only students can apply for jobs" },
         { status: 403 }
       );
     }
@@ -32,18 +38,16 @@ export async function POST(
     const jobId = (await params).id;
     const body = await request.json();
 
-    const {
-      coverLetter,
-      aiGeneratedQuestions
-    } = body;
+    const { coverLetter, aiGeneratedQuestions } = body;
 
     // Validate job ID format (should be UUID)
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(jobId)) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Invalid job ID format' 
+        {
+          success: false,
+          error: "Invalid job ID format",
         },
         { status: 400 }
       );
@@ -57,8 +61,8 @@ export async function POST(
         jobTitle: jobPostings.jobTitle,
         companyId: jobPostings.companyId,
         company: {
-          companyName: companies.companyName
-        }
+          companyName: companies.companyName,
+        },
       })
       .from(jobPostings)
       .innerJoin(companies, eq(jobPostings.companyId, companies.id))
@@ -67,9 +71,9 @@ export async function POST(
 
     if (job.length === 0) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Job not found' 
+        {
+          success: false,
+          error: "Job not found",
         },
         { status: 404 }
       );
@@ -78,11 +82,11 @@ export async function POST(
     const jobData = job[0];
 
     // Check if job is open for applications
-    if (jobData.status !== 'open') {
+    if (jobData.status !== "open") {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'This job is not currently accepting applications' 
+        {
+          success: false,
+          error: "This job is not currently accepting applications",
         },
         { status: 403 }
       );
@@ -96,8 +100,8 @@ export async function POST(
         lastName: students.lastName,
         user: {
           email: users.email,
-          isVerified: users.isVerified
-        }
+          isVerified: users.isVerified,
+        },
       })
       .from(students)
       .innerJoin(users, eq(users.id, students.userId))
@@ -106,9 +110,9 @@ export async function POST(
 
     if (student.length === 0) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Student not found' 
+        {
+          success: false,
+          error: "Student not found",
         },
         { status: 404 }
       );
@@ -119,9 +123,9 @@ export async function POST(
     // Check if student is verified
     if (!studentData.user.isVerified) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Student account must be verified to apply for jobs' 
+        {
+          success: false,
+          error: "Student account must be verified to apply for jobs",
         },
         { status: 403 }
       );
@@ -141,9 +145,9 @@ export async function POST(
 
     if (existingApplication.length > 0) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'You have already applied for this job' 
+        {
+          success: false,
+          error: "You have already applied for this job",
         },
         { status: 409 }
       );
@@ -155,11 +159,11 @@ export async function POST(
       .values({
         studentId: studentData.id,
         jobId,
-        status: 'applied', // Default status
+        status: "applied", // Default status
         coverLetter: coverLetter || null,
         aiGeneratedQuestions: aiGeneratedQuestions || null,
         appliedAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
       .returning();
 
@@ -170,26 +174,25 @@ export async function POST(
         job: {
           id: jobData.id,
           jobTitle: jobData.jobTitle,
-          companyName: jobData.company.companyName
+          companyName: jobData.company.companyName,
         },
         student: {
           id: studentData.id,
           userId: user.userId,
           firstName: studentData.firstName,
           lastName: studentData.lastName,
-          email: studentData.user.email
-        }
+          email: studentData.user.email,
+        },
       },
-      message: 'Application submitted successfully'
+      message: "Application submitted successfully",
     });
-
   } catch (error) {
-    console.error('Error submitting job application:', error);
+    console.error("Error submitting job application:", error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to submit application',
-        message: error instanceof Error ? error.message : 'Unknown error'
+      {
+        success: false,
+        error: "Failed to submit application",
+        message: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );
@@ -204,19 +207,19 @@ export async function GET(
   try {
     // Get authenticated user from middleware
     const user = getAuthenticatedUser(request);
-    
+
     // Verify user is authenticated
     if (!user.userId) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       );
     }
-    
+
     // Verify user is a student
-    if (user.role !== 'student') {
+    if (user.role !== "student") {
       return NextResponse.json(
-        { error: 'Only students can check application status' },
+        { error: "Only students can check application status" },
         { status: 403 }
       );
     }
@@ -232,9 +235,9 @@ export async function GET(
 
     if (student.length === 0) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Student profile not found' 
+        {
+          success: false,
+          error: "Student profile not found",
         },
         { status: 404 }
       );
@@ -249,7 +252,7 @@ export async function GET(
         status: applications.status,
         coverLetter: applications.coverLetter,
         appliedAt: applications.appliedAt,
-        updatedAt: applications.updatedAt
+        updatedAt: applications.updatedAt,
       })
       .from(applications)
       .where(
@@ -265,8 +268,8 @@ export async function GET(
         success: true,
         data: {
           hasApplied: false,
-          application: null
-        }
+          application: null,
+        },
       });
     }
 
@@ -274,17 +277,16 @@ export async function GET(
       success: true,
       data: {
         hasApplied: true,
-        application: application[0]
-      }
+        application: application[0],
+      },
     });
-
   } catch (error) {
-    console.error('Error checking application status:', error);
+    console.error("Error checking application status:", error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to check application status',
-        message: error instanceof Error ? error.message : 'Unknown error'
+      {
+        success: false,
+        error: "Failed to check application status",
+        message: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );

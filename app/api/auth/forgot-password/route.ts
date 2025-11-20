@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { users } from '@/db/schema';
-import { eq } from 'drizzle-orm';
-import { generateResetToken, validateEmail } from '@/lib/auth';
-import { sendPasswordResetEmail } from '@/lib/email';
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { generateResetToken, validateEmail } from "@/lib/auth";
+import { sendPasswordResetEmail } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,16 +12,13 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!email) {
-      return NextResponse.json(
-        { error: 'Email is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
     // Validate email format
     if (!validateEmail(email)) {
       return NextResponse.json(
-        { error: 'Invalid email format' },
+        { error: "Invalid email format" },
         { status: 400 }
       );
     }
@@ -51,24 +48,27 @@ export async function POST(request: NextRequest) {
 
       // Send reset email with link
       const emailSent = await sendPasswordResetEmail(email, resetToken);
-      
+
       if (!emailSent) {
         return NextResponse.json(
-          { error: 'Failed to send password reset email' },
+          { error: "Failed to send password reset email" },
           { status: 500 }
         );
       }
     }
 
     // Always return success message (security best practice)
-    return NextResponse.json({
-      message: 'If an account with that email exists, a password reset link has been sent.',
-    }, { status: 200 });
-
-  } catch (error) {
-    console.error('Password reset request error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      {
+        message:
+          "If an account with that email exists, a password reset link has been sent.",
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Password reset request error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

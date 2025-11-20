@@ -102,6 +102,7 @@ export function Step4ProjectsExperience({
   });
 
   // Watch isPresent to clear endDate when checked and trigger validation
+  // eslint-disable-next-line react-hooks/incompatible-library
   const isPresent = experienceForm.watch("isPresent");
   useEffect(() => {
     if (isPresent) {
@@ -147,7 +148,10 @@ export function Step4ProjectsExperience({
       return;
     }
 
-    if (!values.isPresent && (!values.endDate || values.endDate.trim() === "")) {
+    if (
+      !values.isPresent &&
+      (!values.endDate || values.endDate.trim() === "")
+    ) {
       setShowExperienceDialog(true);
       return;
     }
@@ -524,7 +528,8 @@ export function Step4ProjectsExperience({
           <AlertDialogHeader>
             <AlertDialogTitle>Missing Information</AlertDialogTitle>
             <AlertDialogDescription>
-              Please fill in the project title before adding a project. The project title is required.
+              Please fill in the project title before adding a project. The
+              project title is required.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -536,12 +541,16 @@ export function Step4ProjectsExperience({
       </AlertDialog>
 
       {/* Experience Validation Dialog */}
-      <AlertDialog open={showExperienceDialog} onOpenChange={setShowExperienceDialog}>
+      <AlertDialog
+        open={showExperienceDialog}
+        onOpenChange={setShowExperienceDialog}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Missing Information</AlertDialogTitle>
             <AlertDialogDescription>
-              Please fill in all required fields (Company, Role, Start Date, and End Date if not currently working) before adding an experience.
+              Please fill in all required fields (Company, Role, Start Date, and
+              End Date if not currently working) before adding an experience.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

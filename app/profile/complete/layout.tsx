@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { DashboardProvider, type User, type ProfileData } from "@/components/dashboard/dashboard-context";
+import {
+  DashboardProvider,
+  type User,
+  type ProfileData,
+} from "@/components/dashboard/dashboard-context";
 
 export default function CompleteProfileLayout({
   children,
@@ -18,8 +22,8 @@ export default function CompleteProfileLayout({
     const checkAuth = async () => {
       try {
         // Wait a bit longer to ensure token is stored after verification
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
         const token = localStorage.getItem("internmatch_token");
         if (!token) {
           console.warn("No token found in localStorage");
@@ -27,7 +31,10 @@ export default function CompleteProfileLayout({
           return;
         }
 
-        console.log("Checking auth with token:", token.substring(0, 20) + "...");
+        console.log(
+          "Checking auth with token:",
+          token.substring(0, 20) + "..."
+        );
 
         const response = await fetch("/api/auth/me", {
           headers: {
@@ -46,7 +53,10 @@ export default function CompleteProfileLayout({
             return;
           }
           // For other errors, log but don't redirect - let the page component handle it
-          console.warn("Auth check failed but not unauthorized:", response.status);
+          console.warn(
+            "Auth check failed but not unauthorized:",
+            response.status
+          );
           const errorText = await response.text().catch(() => "Unknown error");
           console.warn("Error response:", errorText);
           setLoading(false);
@@ -64,7 +74,9 @@ export default function CompleteProfileLayout({
         } else {
           // If no user data but response was OK, might be a response format issue
           // Log but don't redirect - let the page handle it
-          console.warn("No user data returned from auth check, but response was OK");
+          console.warn(
+            "No user data returned from auth check, but response was OK"
+          );
           console.warn("Response data:", data);
           // Still set loading to false so page can render
         }
@@ -72,7 +84,10 @@ export default function CompleteProfileLayout({
         // Network errors or other issues - don't redirect immediately
         // The token might not be stored yet, or there might be a temporary network issue
         console.error("Auth check error:", error);
-        console.error("Error details:", error instanceof Error ? error.message : String(error));
+        console.error(
+          "Error details:",
+          error instanceof Error ? error.message : String(error)
+        );
         // Don't redirect on network errors - might be temporary
         // The page component will handle showing appropriate UI
       } finally {
@@ -102,4 +117,3 @@ export default function CompleteProfileLayout({
     </DashboardProvider>
   );
 }
-

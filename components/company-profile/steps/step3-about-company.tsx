@@ -37,7 +37,7 @@ export function CompanyStep3About({
             Company Culture (Optional)
           </label>
           <textarea
-            placeholder="Describe your work environment, values, and what it&apos;s like to work at your company..."
+            placeholder="Describe your work environment, values, and what it's like to work at your company..."
             value={data.companyCulture}
             onChange={(event) =>
               onUpdate({ companyCulture: event.target.value })
@@ -102,4 +102,3 @@ function ChevronRightIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-

@@ -1,7 +1,6 @@
 "use client";
 
 import { ResumeData } from "./types";
-import { cn } from "@/lib/utils";
 
 interface ResumePreviewProps {
   data: ResumeData;
@@ -10,13 +9,13 @@ interface ResumePreviewProps {
 
 export function ResumePreview({ data, scale = 1 }: ResumePreviewProps) {
   return (
-    <div 
+    <div
       className="resume-preview-container bg-white shadow-2xl mx-auto origin-top border border-zinc-200"
-      style={{ 
-        width: "210mm", 
-        minHeight: "297mm", 
+      style={{
+        width: "210mm",
+        minHeight: "297mm",
         padding: "20mm",
-        transform: `scale(${scale})`
+        transform: `scale(${scale})`,
       }}
     >
       {/* Header */}
@@ -25,21 +24,39 @@ export function ResumePreview({ data, scale = 1 }: ResumePreviewProps) {
           {data.personalInfo.fullName || "Your Name Here"}
         </h1>
         {data.personalInfo.title && (
-          <p className="text-lg text-zinc-700 font-medium mb-3">{data.personalInfo.title}</p>
+          <p className="text-lg text-zinc-700 font-medium mb-3">
+            {data.personalInfo.title}
+          </p>
         )}
         <div className="text-sm text-zinc-600 space-y-1">
-          {(data.personalInfo.location || data.personalInfo.phone || data.personalInfo.email) && (
+          {(data.personalInfo.location ||
+            data.personalInfo.phone ||
+            data.personalInfo.email) && (
             <div className="flex flex-wrap gap-x-3 gap-y-1">
-              {data.personalInfo.location && <span>{data.personalInfo.location}</span>}
-              {data.personalInfo.phone && <span>{data.personalInfo.phone}</span>}
-              {data.personalInfo.email && <span className="text-blue-600">{data.personalInfo.email}</span>}
+              {data.personalInfo.location && (
+                <span>{data.personalInfo.location}</span>
+              )}
+              {data.personalInfo.phone && (
+                <span>{data.personalInfo.phone}</span>
+              )}
+              {data.personalInfo.email && (
+                <span className="text-blue-600">{data.personalInfo.email}</span>
+              )}
             </div>
           )}
-          {(data.personalInfo.linkedin || data.personalInfo.github || data.personalInfo.website) && (
+          {(data.personalInfo.linkedin ||
+            data.personalInfo.github ||
+            data.personalInfo.website) && (
             <div className="flex flex-wrap gap-x-3 gap-y-1 text-blue-600">
-              {data.personalInfo.linkedin && <span>{data.personalInfo.linkedin}</span>}
-              {data.personalInfo.github && <span>{data.personalInfo.github}</span>}
-              {data.personalInfo.website && <span>{data.personalInfo.website}</span>}
+              {data.personalInfo.linkedin && (
+                <span>{data.personalInfo.linkedin}</span>
+              )}
+              {data.personalInfo.github && (
+                <span>{data.personalInfo.github}</span>
+              )}
+              {data.personalInfo.website && (
+                <span>{data.personalInfo.website}</span>
+              )}
             </div>
           )}
         </div>
@@ -78,12 +95,14 @@ export function ResumePreview({ data, scale = 1 }: ResumePreviewProps) {
                   {exp.company || "Company Name"}
                 </div>
                 <ul className="list-none text-sm text-zinc-700 space-y-1.5 ml-1">
-                  {exp.bullets.filter(b => b).map((bullet, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <span className="text-purple-600 mt-1.5">•</span>
-                      <span className="flex-1 leading-relaxed">{bullet}</span>
-                    </li>
-                  ))}
+                  {exp.bullets
+                    .filter((b) => b)
+                    .map((bullet, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <span className="text-purple-600 mt-1.5">•</span>
+                        <span className="flex-1 leading-relaxed">{bullet}</span>
+                      </li>
+                    ))}
                 </ul>
               </div>
             ))}
@@ -136,4 +155,3 @@ export function ResumePreview({ data, scale = 1 }: ResumePreviewProps) {
     </div>
   );
 }
-

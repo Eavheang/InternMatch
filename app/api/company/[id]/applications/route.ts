@@ -1,7 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { applications, students, users, jobPostings, companies } from '@/db/schema';
-import { eq, and, desc, count } from 'drizzle-orm';
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/db";
+import {
+  applications,
+  students,
+  users,
+  jobPostings,
+  companies,
+} from "@/db/schema";
+import { eq, and, desc, count } from "drizzle-orm";
 
 // GET - Fetch all applications for a company's jobs
 export async function GET(
@@ -11,18 +17,19 @@ export async function GET(
   try {
     const userId = (await params).id; // This is the company's userId
     const { searchParams } = new URL(request.url);
-    const jobId = searchParams.get('jobId');
-    const status = searchParams.get('status');
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const jobId = searchParams.get("jobId");
+    const status = searchParams.get("status");
+    const limit = parseInt(searchParams.get("limit") || "50");
+    const offset = parseInt(searchParams.get("offset") || "0");
 
     // Validate user ID format (should be UUID)
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(userId)) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Invalid user ID format' 
+        {
+          success: false,
+          error: "Invalid user ID format",
         },
         { status: 400 }
       );
@@ -37,9 +44,9 @@ export async function GET(
 
     if (company.length === 0) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Company not found' 
+        {
+          success: false,
+          error: "Company not found",
         },
         { status: 404 }
       );
@@ -49,13 +56,23 @@ export async function GET(
 
     // Build query conditions
     const conditions = [eq(jobPostings.companyId, companyData.id)];
-    
+
     if (jobId) {
       conditions.push(eq(jobPostings.id, jobId));
     }
 
     if (status) {
-      conditions.push(eq(applications.status, status as 'applied' | 'shortlisted' | 'rejected' | 'interviewed' | 'hired'));
+      conditions.push(
+        eq(
+          applications.status,
+          status as
+            | "applied"
+            | "shortlisted"
+            | "rejected"
+            | "interviewed"
+            | "hired"
+        )
+      );
     }
 
     // Fetch applications with student and job details
@@ -67,7 +84,7 @@ export async function GET(
           coverLetter: applications.coverLetter,
           aiGeneratedQuestions: applications.aiGeneratedQuestions,
           appliedAt: applications.appliedAt,
-          updatedAt: applications.updatedAt
+          updatedAt: applications.updatedAt,
         },
         student: {
           id: students.id,
@@ -83,11 +100,11 @@ export async function GET(
           resumeUrl: students.resumeUrl,
           careerInterest: students.careerInterest,
           aboutMe: students.aboutMe,
-          createdAt: students.createdAt
+          createdAt: students.createdAt,
         },
         user: {
           email: users.email,
-          isVerified: users.isVerified
+          isVerified: users.isVerified,
         },
         job: {
           id: jobPostings.id,
@@ -97,8 +114,8 @@ export async function GET(
           location: jobPostings.location,
           jobType: jobPostings.jobType,
           experienceLevel: jobPostings.experienceLevel,
-          createdAt: jobPostings.createdAt
-        }
+          createdAt: jobPostings.createdAt,
+        },
       })
       .from(applications)
       .innerJoin(students, eq(applications.studentId, students.id))
@@ -120,7 +137,7 @@ export async function GET(
     const stats = await db
       .select({
         status: applications.status,
-        count: count(applications.id)
+        count: count(applications.id),
       })
       .from(applications)
       .innerJoin(jobPostings, eq(applications.jobId, jobPostings.id))
@@ -132,7 +149,7 @@ export async function GET(
       data: {
         company: {
           id: companyData.id,
-          companyName: companyData.companyName
+          companyName: companyData.companyName,
         },
         applications: applicationsList,
         statistics: stats,
@@ -140,18 +157,17 @@ export async function GET(
           total: totalCount.length,
           limit,
           offset,
-          hasMore: totalCount.length > offset + limit
-        }
-      }
+          hasMore: totalCount.length > offset + limit,
+        },
+      },
     });
-
   } catch (error) {
-    console.error('Error fetching company applications:', error);
+    console.error("Error fetching company applications:", error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to fetch applications',
-        message: error instanceof Error ? error.message : 'Unknown error'
+      {
+        success: false,
+        error: "Failed to fetch applications",
+        message: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );

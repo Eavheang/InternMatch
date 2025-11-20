@@ -28,4 +28,3 @@ export default function CompleteProfilePage() {
   // Default to student profile flow
   return <CompleteProfileFlow />;
 }
-

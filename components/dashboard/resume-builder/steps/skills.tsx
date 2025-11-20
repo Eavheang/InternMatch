@@ -124,12 +124,17 @@ export function Skills({ data, updateData }: SkillsProps) {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-zinc-900">Skills</h2>
-        <p className="text-sm text-zinc-500 mt-1">List your technical and soft skills</p>
+        <p className="text-sm text-zinc-500 mt-1">
+          List your technical and soft skills
+        </p>
       </div>
-      
+
       <div className="space-y-5">
         <div className="space-y-2" ref={wrapperRef}>
-          <Label htmlFor="skills" className="text-sm font-semibold text-zinc-700">
+          <Label
+            htmlFor="skills"
+            className="text-sm font-semibold text-zinc-700"
+          >
             Add Skills
           </Label>
           <div className="relative flex gap-2">
@@ -166,14 +171,16 @@ export function Skills({ data, updateData }: SkillsProps) {
               )}
 
               {/* Suggestions Dropdown */}
-              {showSuggestions && newSkill.trim() && filteredSkills.length > 0 && (
-                <div className="absolute z-50 w-full mt-1 bg-white border border-zinc-200 rounded-xl shadow-lg max-h-60 overflow-auto">
-                  <ul className="py-1">
-                    {filteredSkills.map((skill, index) => (
-                      <li
-                        key={skill}
-                        onClick={() => addSkill(skill)}
-                        className={`
+              {showSuggestions &&
+                newSkill.trim() &&
+                filteredSkills.length > 0 && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-zinc-200 rounded-xl shadow-lg max-h-60 overflow-auto">
+                    <ul className="py-1">
+                      {filteredSkills.map((skill, index) => (
+                        <li
+                          key={skill}
+                          onClick={() => addSkill(skill)}
+                          className={`
                           px-4 py-2.5 cursor-pointer text-sm transition-colors
                           ${
                             index === highlightedIndex
@@ -181,16 +188,16 @@ export function Skills({ data, updateData }: SkillsProps) {
                               : "text-zinc-700 hover:bg-purple-50"
                           }
                         `}
-                        onMouseEnter={() => setHighlightedIndex(index)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span>{skill}</span>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+                          onMouseEnter={() => setHighlightedIndex(index)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span>{skill}</span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
               {/* No suggestions message */}
               {showSuggestions &&
@@ -198,7 +205,8 @@ export function Skills({ data, updateData }: SkillsProps) {
                 filteredSkills.length === 0 && (
                   <div className="absolute z-50 w-full mt-1 bg-white border border-zinc-200 rounded-xl shadow-lg p-4">
                     <p className="text-sm text-zinc-500 text-center">
-                      No matching skills found. Press Enter to add "{newSkill.trim()}" as a custom skill.
+                      No matching skills found. Press Enter to add &quot;
+                      {newSkill.trim()}&quot; as a custom skill.
                     </p>
                   </div>
                 )}
@@ -237,11 +245,12 @@ export function Skills({ data, updateData }: SkillsProps) {
           <div className="text-center p-12 border-2 border-dashed border-zinc-300 rounded-xl bg-zinc-50/50">
             <Wrench className="w-12 h-12 text-zinc-400 mx-auto mb-3" />
             <p className="text-zinc-500 font-medium">No skills added yet</p>
-            <p className="text-sm text-zinc-400 mt-1">Start adding your skills above</p>
+            <p className="text-sm text-zinc-400 mt-1">
+              Start adding your skills above
+            </p>
           </div>
         )}
       </div>
     </div>
   );
 }
-

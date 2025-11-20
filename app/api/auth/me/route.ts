@@ -11,7 +11,7 @@ import {
   experiences,
 } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { getAuthenticatedUser } from "@/lib/auth-helpers";
+// import { getAuthenticatedUser } from "@/lib/auth-helpers"; // Unused for now
 import { verifyToken } from "@/lib/auth";
 
 // GET - Fetch user profile
@@ -55,8 +55,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Remove sensitive data
-    const { password, verificationCode, verificationExpires, ...userInfo } =
-      userData;
+    const {
+      password: _password,
+      verificationCode: _verificationCode,
+      verificationExpires: _verificationExpires,
+      ...userInfo
+    } = userData;
 
     const profileData: {
       id: string;

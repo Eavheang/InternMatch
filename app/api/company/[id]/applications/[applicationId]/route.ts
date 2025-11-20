@@ -1,7 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { applications, students, users, jobPostings, companies } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/db";
+import {
+  applications,
+  students,
+  users,
+  jobPostings,
+  companies,
+} from "@/db/schema";
+import { eq, and } from "drizzle-orm";
 
 // GET - Fetch specific application details
 export async function GET(
@@ -21,9 +27,9 @@ export async function GET(
 
     if (company.length === 0) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Company not found' 
+        {
+          success: false,
+          error: "Company not found",
         },
         { status: 404 }
       );
@@ -36,12 +42,12 @@ export async function GET(
         student: students,
         user: {
           email: users.email,
-          isVerified: users.isVerified
+          isVerified: users.isVerified,
         },
         job: jobPostings,
         company: {
-          companyName: companies.companyName
-        }
+          companyName: companies.companyName,
+        },
       })
       .from(applications)
       .innerJoin(students, eq(applications.studentId, students.id))
@@ -49,18 +55,15 @@ export async function GET(
       .innerJoin(jobPostings, eq(applications.jobId, jobPostings.id))
       .innerJoin(companies, eq(jobPostings.companyId, companies.id))
       .where(
-        and(
-          eq(applications.id, applicationId),
-          eq(companies.id, company[0].id)
-        )
+        and(eq(applications.id, applicationId), eq(companies.id, company[0].id))
       )
       .limit(1);
 
     if (applicationDetails.length === 0) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Application not found or does not belong to this company' 
+        {
+          success: false,
+          error: "Application not found or does not belong to this company",
         },
         { status: 404 }
       );
@@ -68,16 +71,15 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      data: applicationDetails[0]
+      data: applicationDetails[0],
     });
-
   } catch (error) {
-    console.error('Error fetching application details:', error);
+    console.error("Error fetching application details:", error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to fetch application details',
-        message: error instanceof Error ? error.message : 'Unknown error'
+      {
+        success: false,
+        error: "Failed to fetch application details",
+        message: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );
@@ -94,15 +96,22 @@ export async function PUT(
     const applicationId = (await params).applicationId;
     const body = await request.json();
 
-    const { status, notes } = body;
+    const { status, notes: _notes } = body;
 
     // Validate status
-    const validStatuses = ['applied', 'shortlisted', 'rejected', 'interviewed', 'hired'];
+    const validStatuses = [
+      "applied",
+      "shortlisted",
+      "rejected",
+      "interviewed",
+      "hired",
+    ];
     if (!status || !validStatuses.includes(status)) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Invalid status. Must be one of: applied, shortlisted, rejected, interviewed, hired' 
+        {
+          success: false,
+          error:
+            "Invalid status. Must be one of: applied, shortlisted, rejected, interviewed, hired",
         },
         { status: 400 }
       );
@@ -117,9 +126,9 @@ export async function PUT(
 
     if (company.length === 0) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Company not found' 
+        {
+          success: false,
+          error: "Company not found",
         },
         { status: 404 }
       );
@@ -140,9 +149,9 @@ export async function PUT(
 
     if (existingApplication.length === 0) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Application not found or does not belong to this company' 
+        {
+          success: false,
+          error: "Application not found or does not belong to this company",
         },
         { status: 404 }
       );
@@ -153,7 +162,7 @@ export async function PUT(
       .update(applications)
       .set({
         status,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
       .where(eq(applications.id, applicationId))
       .returning();
@@ -161,16 +170,15 @@ export async function PUT(
     return NextResponse.json({
       success: true,
       data: updatedApplication[0],
-      message: `Application status updated to ${status}`
+      message: `Application status updated to ${status}`,
     });
-
   } catch (error) {
-    console.error('Error updating application status:', error);
+    console.error("Error updating application status:", error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to update application status',
-        message: error instanceof Error ? error.message : 'Unknown error'
+      {
+        success: false,
+        error: "Failed to update application status",
+        message: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );

@@ -2,9 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { ResumeData } from "../types";
-import { Sparkles } from "lucide-react";
 
 interface PersonalInfoProps {
   data: ResumeData["personalInfo"];
@@ -12,15 +10,22 @@ interface PersonalInfoProps {
   onAutoFill?: () => void;
 }
 
-export function PersonalInfo({ data, updateData, onAutoFill }: PersonalInfoProps) {
+export function PersonalInfo({
+  data,
+  updateData,
+  onAutoFill: _onAutoFill,
+}: PersonalInfoProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-2">
         <div>
-          <h2 className="text-2xl font-bold text-zinc-900">Personal Information</h2>
-          <p className="text-sm text-zinc-500 mt-1">Tell us about yourself to get started</p>
+          <h2 className="text-2xl font-bold text-zinc-900">
+            Personal Information
+          </h2>
+          <p className="text-sm text-zinc-500 mt-1">
+            Tell us about yourself to get started
+          </p>
         </div>
-       
       </div>
 
       <div className="grid gap-6">
@@ -110,4 +115,3 @@ export function PersonalInfo({ data, updateData, onAutoFill }: PersonalInfoProps
     </div>
   );
 }
-

@@ -1,20 +1,22 @@
-import { v2 as cloudinary } from 'cloudinary';
+import { v2 as cloudinary } from "cloudinary";
 
 // Parse CLOUDINARY_URL format: cloudinary://api_key:api_secret@cloud_name
 function parseCloudinaryUrl(url: string | undefined) {
   if (!url) {
-    throw new Error('CLOUDINARY_URL environment variable is not set');
+    throw new Error("CLOUDINARY_URL environment variable is not set");
   }
 
   // Format: cloudinary://api_key:api_secret@cloud_name
   const match = url.match(/^cloudinary:\/\/([^:]+):([^@]+)@(.+)$/);
-  
+
   if (!match) {
-    throw new Error('Invalid CLOUDINARY_URL format. Expected: cloudinary://api_key:api_secret@cloud_name');
+    throw new Error(
+      "Invalid CLOUDINARY_URL format. Expected: cloudinary://api_key:api_secret@cloud_name"
+    );
   }
 
   const [, api_key, api_secret, cloud_name] = match;
-  
+
   return {
     cloud_name,
     api_key,
@@ -40,10 +42,10 @@ export async function uploadResumeToCloudinary(
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: `resumes/${studentId}`,
-        resource_type: 'raw', // For PDF files
-        format: 'pdf',
+        resource_type: "raw", // For PDF files
+        format: "pdf",
         public_id: `${fileName}-${Date.now()}`,
-        allowed_formats: ['pdf'],
+        allowed_formats: ["pdf"],
       },
       (error, result) => {
         if (error) {
@@ -54,7 +56,7 @@ export async function uploadResumeToCloudinary(
             public_id: result.public_id,
           });
         } else {
-          reject(new Error('Upload failed: No result returned'));
+          reject(new Error("Upload failed: No result returned"));
         }
       }
     );
@@ -63,11 +65,12 @@ export async function uploadResumeToCloudinary(
   });
 }
 
-export async function deleteResumeFromCloudinary(publicId: string): Promise<void> {
+export async function deleteResumeFromCloudinary(
+  publicId: string
+): Promise<void> {
   await cloudinary.uploader.destroy(publicId, {
-    resource_type: 'raw',
+    resource_type: "raw",
   });
 }
 
 export { cloudinary };
-

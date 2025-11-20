@@ -28,7 +28,9 @@ export function CompanyStep4Contact({
             <Input
               placeholder="Jane Doe"
               value={data.contactName}
-              onChange={(event) => onUpdate({ contactName: event.target.value })}
+              onChange={(event) =>
+                onUpdate({ contactName: event.target.value })
+              }
             />
           </div>
           <div className="space-y-2">
@@ -133,4 +135,3 @@ function CheckIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-

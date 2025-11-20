@@ -12,13 +12,23 @@ export function Summary({ data, updateData }: SummaryProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-zinc-900">Professional Summary</h2>
-        <p className="text-sm text-zinc-500 mt-1">Write a compelling summary that highlights your key strengths</p>
+        <h2 className="text-2xl font-bold text-zinc-900">
+          Professional Summary
+        </h2>
+        <p className="text-sm text-zinc-500 mt-1">
+          Write a compelling summary that highlights your key strengths
+        </p>
       </div>
-      
+
       <div className="space-y-3">
-        <Label htmlFor="summary" className="text-sm font-semibold text-zinc-700">
-          Summary <span className="text-zinc-400 font-normal">({data.length} characters)</span>
+        <Label
+          htmlFor="summary"
+          className="text-sm font-semibold text-zinc-700"
+        >
+          Summary{" "}
+          <span className="text-zinc-400 font-normal">
+            ({data.length} characters)
+          </span>
         </Label>
         <Textarea
           id="summary"
@@ -34,4 +44,3 @@ export function Summary({ data, updateData }: SummaryProps) {
     </div>
   );
 }
-

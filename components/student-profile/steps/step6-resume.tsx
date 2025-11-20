@@ -226,8 +226,8 @@ export function Step6Resume({
       {/* Tip Box */}
       <div className="mb-6 rounded-lg bg-blue-50 p-4">
         <p className="text-sm text-blue-800">
-          <span className="font-semibold">Tip:</span> You can skip this step
-          and add your resume later from your dashboard.
+          <span className="font-semibold">Tip:</span> You can skip this step and
+          add your resume later from your dashboard.
         </p>
       </div>
 
@@ -337,4 +337,3 @@ function ArrowRightIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-

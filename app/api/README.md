@@ -3,6 +3,7 @@
 This document provides comprehensive documentation for the Intern Match API endpoints. The API is built with Next.js 15+ and uses Drizzle ORM with PostgreSQL.
 
 ## Base URL
+
 ```
 http://localhost:3000/api
 ```
@@ -27,6 +28,7 @@ Authorization: Bearer <your-jwt-token>
 ```
 
 **Example:**
+
 ```bash
 curl -X GET http://localhost:3000/api/company/user-id/job \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -43,12 +45,14 @@ curl -X GET http://localhost:3000/api/company/user-id/job \
 ### 🔒 Protected vs Public Routes
 
 #### **Protected Routes (Require Bearer Token):**
+
 - `/api/auth/me` - User profile
 - `/api/company/*` - Company operations
-- `/api/students/*` - Student operations  
+- `/api/students/*` - Student operations
 - `/api/job/*` - Job operations (except public GET)
 
 #### **Public Routes (No Token Required):**
+
 - `/api/auth/login` - Login
 - `/api/auth/register` - Registration
 - `/api/auth/verify-email` - Email verification
@@ -61,6 +65,7 @@ curl -X GET http://localhost:3000/api/company/user-id/job \
 ### ⚠️ Authentication Errors
 
 **401 Unauthorized:**
+
 ```json
 {
   "error": "Authorization token required"
@@ -68,6 +73,7 @@ curl -X GET http://localhost:3000/api/company/user-id/job \
 ```
 
 **401 Invalid Token:**
+
 ```json
 {
   "error": "Invalid or expired token"
@@ -75,6 +81,7 @@ curl -X GET http://localhost:3000/api/company/user-id/job \
 ```
 
 **403 Forbidden:**
+
 ```json
 {
   "error": "Only students can apply for jobs"
@@ -82,6 +89,7 @@ curl -X GET http://localhost:3000/api/company/user-id/job \
 ```
 
 **403 Access Denied:**
+
 ```json
 {
   "error": "Access denied: You can only manage your own company's jobs"
@@ -89,6 +97,7 @@ curl -X GET http://localhost:3000/api/company/user-id/job \
 ```
 
 ## Table of Contents
+
 - [Authentication Endpoints](#authentication-endpoints)
 - [Student Endpoints](#student-endpoints)
 - [Company Endpoints](#company-endpoints)
@@ -102,11 +111,13 @@ curl -X GET http://localhost:3000/api/company/user-id/job \
 ## Authentication Endpoints
 
 ### Register User
+
 **POST** `/api/auth/register`
 
 Register a new user (student or company).
 
 **Request Body:**
+
 ```json
 {
   "email": "user@example.com",
@@ -125,6 +136,7 @@ Register a new user (student or company).
 ```
 
 **Response:**
+
 ```json
 {
   "message": "Registration successful. Please check your email for verification code.",
@@ -139,11 +151,13 @@ Register a new user (student or company).
 ```
 
 ### Login User
+
 **POST** `/api/auth/login`
 
 Authenticate a user and receive a JWT token.
 
 **Request Body:**
+
 ```json
 {
   "email": "user@example.com",
@@ -152,6 +166,7 @@ Authenticate a user and receive a JWT token.
 ```
 
 **Response:**
+
 ```json
 {
   "message": "Login successful",
@@ -172,11 +187,13 @@ Authenticate a user and receive a JWT token.
 ```
 
 ### Verify Email
+
 **POST** `/api/auth/verify-email`
 
 Verify user email with verification code.
 
 **Request Body:**
+
 ```json
 {
   "email": "user@example.com",
@@ -185,11 +202,13 @@ Verify user email with verification code.
 ```
 
 ### Forgot Password
+
 **POST** `/api/auth/forgot-password`
 
 Request password reset.
 
 **Request Body:**
+
 ```json
 {
   "email": "user@example.com"
@@ -197,11 +216,13 @@ Request password reset.
 ```
 
 ### Reset Password
+
 **POST** `/api/auth/reset-password`
 
 Reset password with reset token.
 
 **Request Body:**
+
 ```json
 {
   "email": "user@example.com",
@@ -211,11 +232,13 @@ Reset password with reset token.
 ```
 
 ### Get Current User
+
 **GET** `/api/auth/me`
 
 Get current authenticated user's profile.
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt-token>
 ```
@@ -225,11 +248,13 @@ Authorization: Bearer <jwt-token>
 ## Student Endpoints
 
 ### Get All Students
+
 **GET** `/api/students`
 
 Get a list of verified students (for companies to browse).
 
 **Query Parameters:**
+
 - `page` (optional): Page number (default: 1)
 - `limit` (optional): Results per page (default: 10)
 - `university` (optional): Filter by university
@@ -237,11 +262,13 @@ Get a list of verified students (for companies to browse).
 - `skills` (optional): Filter by skills
 
 **Example:**
+
 ```
 GET /api/students?page=1&limit=20&university=Stanford&major=Computer Science
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -268,11 +295,13 @@ GET /api/students?page=1&limit=20&university=Stanford&major=Computer Science
 ```
 
 ### Get Student Profile
+
 **GET** `/api/students/{studentId}`
 
 Get detailed student profile by student ID.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -300,11 +329,13 @@ Get detailed student profile by student ID.
 ## Company Endpoints
 
 ### Get All Companies
+
 **GET** `/api/company`
 
 Get a list of verified companies (for students to browse).
 
 **Query Parameters:**
+
 - `page` (optional): Page number (default: 1)
 - `limit` (optional): Results per page (default: 10)
 - `industry` (optional): Filter by industry
@@ -313,11 +344,13 @@ Get a list of verified companies (for students to browse).
 - `keyword` (optional): Search keyword
 
 **Example:**
+
 ```
 GET /api/company?page=1&limit=20&industry=Technology&location=San Francisco
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -347,11 +380,13 @@ GET /api/company?page=1&limit=20&industry=Technology&location=San Francisco
 ```
 
 ### Get Company Profile
+
 **GET** `/api/company/{userId}`
 
 Get company profile by user ID.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -374,11 +409,13 @@ Get company profile by user ID.
 ```
 
 ### Create Job Posting
+
 **POST** `/api/company/{userId}/job`
 
 Create a new job posting for the company. **Requires company authentication and ownership verification.**
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt-token>
 ```
@@ -386,6 +423,7 @@ Authorization: Bearer <jwt-token>
 **Note:** The `userId` in the URL must match the authenticated user's ID. Companies can only create jobs for their own account.
 
 **Request Body:**
+
 ```json
 {
   "jobTitle": "Software Engineer Intern",
@@ -411,6 +449,7 @@ Authorization: Bearer <jwt-token>
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -435,11 +474,13 @@ Authorization: Bearer <jwt-token>
 ```
 
 ### Get Company Jobs
+
 **GET** `/api/company/{userId}/job`
 
 Get all job postings for a specific company. **Requires company authentication and ownership verification.**
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt-token>
 ```
@@ -447,11 +488,13 @@ Authorization: Bearer <jwt-token>
 **Note:** The `userId` in the URL must match the authenticated user's ID. Companies can only view their own jobs.
 
 **Query Parameters:**
+
 - `status` (optional): Filter by status (open, closed, draft)
 - `limit` (optional): Results per page (default: 50)
 - `offset` (optional): Pagination offset (default: 0)
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -489,11 +532,13 @@ Authorization: Bearer <jwt-token>
 ```
 
 ### Update Job Posting
+
 **PUT** `/api/company/{userId}/job/{jobId}`
 
 Update an existing job posting. **Requires company authentication and ownership verification.**
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt-token>
 ```
@@ -501,6 +546,7 @@ Authorization: Bearer <jwt-token>
 **Note:** The `userId` in the URL must match the authenticated user's ID. Companies can only update their own jobs.
 
 **Request Body:**
+
 ```json
 {
   "jobTitle": "Senior Software Engineer Intern",
@@ -510,11 +556,7 @@ Authorization: Bearer <jwt-token>
     "Bachelor's degree in Computer Science",
     "3+ years experience with JavaScript/TypeScript"
   ],
-  "benefits": [
-    "Competitive salary",
-    "Health insurance",
-    "401k matching"
-  ],
+  "benefits": ["Competitive salary", "Health insurance", "401k matching"],
   "salaryRange": "$30-35/hour",
   "location": "Remote",
   "jobType": "full-time",
@@ -524,11 +566,13 @@ Authorization: Bearer <jwt-token>
 ```
 
 ### Delete Job Posting
+
 **DELETE** `/api/company/{userId}/job/{jobId}`
 
 Delete a job posting. **Requires company authentication and ownership verification.**
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt-token>
 ```
@@ -536,6 +580,7 @@ Authorization: Bearer <jwt-token>
 **Note:** The `userId` in the URL must match the authenticated user's ID. Companies can only delete their own jobs.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -548,11 +593,13 @@ Authorization: Bearer <jwt-token>
 ## Job Endpoints
 
 ### Get All Jobs
+
 **GET** `/api/job`
 
 Get a list of open job postings (for students to browse).
 
 **Query Parameters:**
+
 - `status` (optional): Filter by status (default: open)
 - `jobType` (optional): Filter by job type (full-time, part-time, internship, contract)
 - `experienceLevel` (optional): Filter by experience level (entry, mid, senior, executive)
@@ -561,11 +608,13 @@ Get a list of open job postings (for students to browse).
 - `offset` (optional): Pagination offset (default: 0)
 
 **Example:**
+
 ```
 GET /api/job?jobType=internship&experienceLevel=entry&location=San Francisco
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -608,11 +657,13 @@ GET /api/job?jobType=internship&experienceLevel=entry&location=San Francisco
 ```
 
 ### Get Job Details
+
 **GET** `/api/job/{jobId}`
 
 Get detailed information about a specific job.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -648,16 +699,19 @@ Get detailed information about a specific job.
 ```
 
 ### Apply for Job
+
 **POST** `/api/job/{jobId}/apply`
 
 Apply for a specific job posting. **Requires student authentication.**
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt-token>
 ```
 
 **Request Body:**
+
 ```json
 {
   "coverLetter": "I am very interested in this position because...",
@@ -671,6 +725,7 @@ Authorization: Bearer <jwt-token>
 **Note:** The `studentId` is automatically resolved from the authenticated user's JWT token. No need to include `userId` in the request body.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -703,11 +758,13 @@ Authorization: Bearer <jwt-token>
 ```
 
 ### Check Application Status
+
 **GET** `/api/job/{jobId}/apply`
 
 Check if a student has applied for a specific job. **Requires student authentication.**
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt-token>
 ```
@@ -715,6 +772,7 @@ Authorization: Bearer <jwt-token>
 **Note:** The `studentId` is automatically resolved from the authenticated user's JWT token. No query parameters needed.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -736,11 +794,13 @@ Authorization: Bearer <jwt-token>
 ## Application Endpoints
 
 ### Get Company Applications
+
 **GET** `/api/company/{userId}/applications`
 
 Get all applications for a company's jobs. **Requires company authentication and ownership verification.**
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt-token>
 ```
@@ -748,17 +808,20 @@ Authorization: Bearer <jwt-token>
 **Note:** The `userId` in the URL must match the authenticated user's ID. Companies can only view applications for their own jobs.
 
 **Query Parameters:**
+
 - `jobId` (optional): Filter by specific job
 - `status` (optional): Filter by application status (applied, shortlisted, rejected, interviewed, hired)
 - `limit` (optional): Results per page (default: 50)
 - `offset` (optional): Pagination offset (default: 0)
 
 **Example:**
+
 ```
 GET /api/company/db47e167-47c0-4b41-bc84-d16b11b534d5/applications?jobId=job-uuid&status=applied
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -830,11 +893,13 @@ GET /api/company/db47e167-47c0-4b41-bc84-d16b11b534d5/applications?jobId=job-uui
 ```
 
 ### Get Application Details
+
 **GET** `/api/company/{userId}/applications/{applicationId}`
 
 Get detailed information about a specific application. **Requires company authentication and ownership verification.**
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt-token>
 ```
@@ -842,6 +907,7 @@ Authorization: Bearer <jwt-token>
 **Note:** The `userId` in the URL must match the authenticated user's ID. Companies can only view applications for their own jobs.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -894,11 +960,13 @@ Authorization: Bearer <jwt-token>
 ```
 
 ### Update Application Status
+
 **PUT** `/api/company/{userId}/applications/{applicationId}`
 
 Update the status of an application (shortlist, reject, interview, hire). **Requires company authentication and ownership verification.**
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt-token>
 ```
@@ -906,6 +974,7 @@ Authorization: Bearer <jwt-token>
 **Note:** The `userId` in the URL must match the authenticated user's ID. Companies can only update applications for their own jobs.
 
 **Request Body:**
+
 ```json
 {
   "status": "shortlisted"
@@ -913,6 +982,7 @@ Authorization: Bearer <jwt-token>
 ```
 
 **Available Status Values:**
+
 - `"applied"` - Initial status when student applies
 - `"shortlisted"` - Company has reviewed and shortlisted the candidate
 - `"rejected"` - Company has rejected the application
@@ -920,6 +990,7 @@ Authorization: Bearer <jwt-token>
 - `"hired"` - Candidate has been hired
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -946,6 +1017,7 @@ The API uses standard HTTP status codes and returns consistent error responses:
 ### Common Error Responses
 
 **400 Bad Request:**
+
 ```json
 {
   "success": false,
@@ -954,6 +1026,7 @@ The API uses standard HTTP status codes and returns consistent error responses:
 ```
 
 **401 Unauthorized:**
+
 ```json
 {
   "error": "Invalid email or password"
@@ -961,6 +1034,7 @@ The API uses standard HTTP status codes and returns consistent error responses:
 ```
 
 **403 Forbidden:**
+
 ```json
 {
   "error": "Please verify your email before logging in",
@@ -970,6 +1044,7 @@ The API uses standard HTTP status codes and returns consistent error responses:
 ```
 
 **404 Not Found:**
+
 ```json
 {
   "success": false,
@@ -978,6 +1053,7 @@ The API uses standard HTTP status codes and returns consistent error responses:
 ```
 
 **409 Conflict:**
+
 ```json
 {
   "success": false,
@@ -986,6 +1062,7 @@ The API uses standard HTTP status codes and returns consistent error responses:
 ```
 
 **500 Internal Server Error:**
+
 ```json
 {
   "success": false,
@@ -999,6 +1076,7 @@ The API uses standard HTTP status codes and returns consistent error responses:
 ## Data Models
 
 ### User
+
 ```typescript
 {
   id: string; // UUID
@@ -1013,6 +1091,7 @@ The API uses standard HTTP status codes and returns consistent error responses:
 ```
 
 ### Student
+
 ```typescript
 {
   id: string; // UUID
@@ -1034,6 +1113,7 @@ The API uses standard HTTP status codes and returns consistent error responses:
 ```
 
 ### Company
+
 ```typescript
 {
   id: string; // UUID
@@ -1052,6 +1132,7 @@ The API uses standard HTTP status codes and returns consistent error responses:
 ```
 
 ### Job Posting
+
 ```typescript
 {
   id: string; // UUID
@@ -1072,6 +1153,7 @@ The API uses standard HTTP status codes and returns consistent error responses:
 ```
 
 ### Application
+
 ```typescript
 {
   id: string; // UUID
@@ -1092,6 +1174,7 @@ The API uses standard HTTP status codes and returns consistent error responses:
 ### Complete Workflow Example
 
 1. **Register as a company:**
+
 ```bash
 curl -X POST http://localhost:3000/api/auth/register \
   -H "Content-Type: application/json" \
@@ -1108,6 +1191,7 @@ curl -X POST http://localhost:3000/api/auth/register \
 ```
 
 2. **Verify email:**
+
 ```bash
 curl -X POST http://localhost:3000/api/auth/verify-email \
   -H "Content-Type: application/json" \
@@ -1118,6 +1202,7 @@ curl -X POST http://localhost:3000/api/auth/verify-email \
 ```
 
 3. **Login:**
+
 ```bash
 curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
@@ -1128,6 +1213,7 @@ curl -X POST http://localhost:3000/api/auth/login \
 ```
 
 4. **Create a job posting:**
+
 ```bash
 curl -X POST http://localhost:3000/api/company/{userId}/job \
   -H "Content-Type: application/json" \
@@ -1145,6 +1231,7 @@ curl -X POST http://localhost:3000/api/company/{userId}/job \
 ```
 
 5. **Update job status to open:**
+
 ```bash
 curl -X PUT http://localhost:3000/api/company/{userId}/job/{jobId} \
   -H "Content-Type: application/json" \
@@ -1155,6 +1242,7 @@ curl -X PUT http://localhost:3000/api/company/{userId}/job/{jobId} \
 ```
 
 6. **Student applies for job:**
+
 ```bash
 curl -X POST http://localhost:3000/api/job/{jobId}/apply \
   -H "Content-Type: application/json" \
@@ -1166,18 +1254,21 @@ curl -X POST http://localhost:3000/api/job/{jobId}/apply \
 ```
 
 7. **Student checks application status:**
+
 ```bash
 curl -X GET http://localhost:3000/api/job/{jobId}/apply \
   -H "Authorization: Bearer {student-jwt-token}"
 ```
 
 8. **Company views applications:**
+
 ```bash
 curl -X GET "http://localhost:3000/api/company/{userId}/applications?jobId={jobId}" \
   -H "Authorization: Bearer {company-jwt-token}"
 ```
 
 9. **Company shortlists candidate:**
+
 ```bash
 curl -X PUT http://localhost:3000/api/company/{userId}/applications/{applicationId} \
   -H "Content-Type: application/json" \
@@ -1192,6 +1283,7 @@ curl -X PUT http://localhost:3000/api/company/{userId}/applications/{application
 ## Notes
 
 ### 🔐 Security Implementation
+
 - **Middleware-Based Authentication:** Global JWT token validation via Next.js middleware
 - **Automatic User Resolution:** User information automatically extracted from JWT tokens
 - **Role-Based Access Control:** Different permissions for `student` vs `company` roles
@@ -1199,6 +1291,7 @@ curl -X PUT http://localhost:3000/api/company/{userId}/applications/{application
 - **Stateless Architecture:** JWT tokens contain all necessary user information
 
 ### 📋 Technical Details
+
 - All timestamps are in ISO 8601 format (UTC)
 - UUIDs are used for all primary keys
 - Passwords are hashed using bcrypt
@@ -1207,6 +1300,7 @@ curl -X PUT http://localhost:3000/api/company/{userId}/applications/{application
 - Only verified users can perform most actions
 
 ### 🛡️ Security Rules
+
 - **Companies:** Can only manage their own jobs and applications
 - **Students:** Can only apply for open jobs and view their own applications
 - **Authentication:** Required for all protected endpoints
@@ -1214,6 +1308,7 @@ curl -X PUT http://localhost:3000/api/company/{userId}/applications/{application
 - **Ownership:** Users can only access resources they own
 
 ### 🔄 API Behavior
+
 - All endpoints return consistent response formats
 - Pagination is available for list endpoints
 - Filtering and searching capabilities are built-in
@@ -1221,6 +1316,7 @@ curl -X PUT http://localhost:3000/api/company/{userId}/applications/{application
 - Bearer token authentication is required for protected routes
 
 ### 🚀 Getting Started
+
 1. **Register** a user account (student or company)
 2. **Verify** your email address
 3. **Login** to get a JWT token
