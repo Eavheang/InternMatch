@@ -29,7 +29,6 @@ export function DashboardSidebar({ user, profileData }: DashboardSidebarProps) {
       icon: MessageIcon,
     },
     { name: "Analytics", href: "/dashboard/analytics", icon: ChartIcon },
-    { name: "Settings", href: "/dashboard/settings", icon: SettingsIcon },
   ];
 
   const studentMenuItems = [
@@ -41,9 +40,7 @@ export function DashboardSidebar({ user, profileData }: DashboardSidebarProps) {
       href: "/dashboard/applications",
       icon: BriefcaseIcon,
     },
-    { name: "Skills Analysis", href: "/dashboard/skills", icon: ChartIcon },
     { name: "Interview Prep", href: "/dashboard/interview", icon: MessageIcon },
-    { name: "Settings", href: "/dashboard/settings", icon: SettingsIcon },
   ];
 
   const menuItems =
@@ -220,21 +217,6 @@ function MessageIcon({ className }: { className?: string }) {
       className={className}
     >
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-    </svg>
-  );
-}
-
-function SettingsIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      className={className}
-    >
-      <circle cx="12" cy="12" r="3" />
-      <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3" />
     </svg>
   );
 }

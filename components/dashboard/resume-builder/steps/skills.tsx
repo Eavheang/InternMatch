@@ -218,38 +218,7 @@ export function Skills({ data, updateData }: SkillsProps) {
               Add
             </Button>
           </div>
-
-          <p className="text-xs text-zinc-500">
-            💡 Tip: Use arrow keys to navigate suggestions, Enter to add
-          </p>
-        </div>
-
-        {data.length > 0 ? (
-          <div className="flex flex-wrap gap-2.5">
-            {data.map((skill) => (
-              <div
-                key={skill}
-                className="group flex items-center gap-2 bg-gradient-to-r from-purple-50 to-purple-100/50 border border-purple-200 px-4 py-2 rounded-full text-sm font-medium text-purple-900 hover:from-purple-100 hover:to-purple-200 transition-all shadow-sm hover:shadow-md"
-              >
-                <span>{skill}</span>
-                <button
-                  onClick={() => removeSkill(skill)}
-                  className="text-purple-600 hover:text-purple-800 hover:bg-purple-200 rounded-full p-0.5 transition-colors"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center p-12 border-2 border-dashed border-zinc-300 rounded-xl bg-zinc-50/50">
-            <Wrench className="w-12 h-12 text-zinc-400 mx-auto mb-3" />
-            <p className="text-zinc-500 font-medium">No skills added yet</p>
-            <p className="text-sm text-zinc-400 mt-1">
-              Start adding your skills above
-            </p>
-          </div>
-        )}
+        </div>    
       </div>
     </div>
   );
