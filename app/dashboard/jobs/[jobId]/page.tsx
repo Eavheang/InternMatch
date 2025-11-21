@@ -53,12 +53,12 @@ type JobDetail = {
 
 const statusStyles: Record<
   JobDetail["status"],
-  { label: string; bg: string; text: string }
+  { label: string; bg: string; text: string; dot: string }
 > = {
-  open: { label: "Active", bg: "bg-emerald-100/80", text: "text-emerald-700" },
-  closed: { label: "Closed", bg: "bg-rose-100/80", text: "text-rose-700" },
-  draft: { label: "Draft", bg: "bg-zinc-100", text: "text-zinc-600" },
-  paused: { label: "Paused", bg: "bg-amber-100/80", text: "text-amber-700" },
+  open: { label: "Active", bg: "bg-emerald-100/80", text: "text-emerald-700", dot: "bg-emerald-500" },
+  closed: { label: "Closed", bg: "bg-rose-100/80", text: "text-rose-700", dot: "bg-rose-500" },
+  draft: { label: "Draft", bg: "bg-zinc-100", text: "text-zinc-600", dot: "bg-zinc-500" },
+  paused: { label: "Paused", bg: "bg-amber-100/80", text: "text-amber-700", dot: "bg-amber-500" },
 };
 
 export default function JobDetailPage() {
@@ -293,9 +293,9 @@ export default function JobDetailPage() {
                   <span
                     className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold border ${statusStyles[job.status].bg} ${statusStyles[job.status].text} shadow-sm`}
                   >
-                    <span
-                      className={`w-2 h-2 rounded-full ${statusStyles[job.status].text.replace("text-", "bg-")}`}
-                    />
+                  <span
+                    className={`w-2 h-2 rounded-full ${statusStyles[job.status].dot}`}
+                  />
                     {statusStyles[job.status].label}
                   </span>
                   {job.aiGenerated && (
