@@ -1,11 +1,5 @@
 import { Button } from "@/components/ui/button";
-import {
-  Loader2,
-  UserCheck,
-  XCircle,
-  CheckCircle2,
-  Award,
-} from "lucide-react";
+import { Loader2, UserCheck, XCircle, CheckCircle2, Award } from "lucide-react";
 import type { ApplicationStatus } from "./types";
 
 interface StatusUpdateCardProps {

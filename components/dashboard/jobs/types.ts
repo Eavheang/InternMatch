@@ -66,4 +66,3 @@ export const statusMeta: Record<
     dot: "bg-amber-500",
   },
 };
-

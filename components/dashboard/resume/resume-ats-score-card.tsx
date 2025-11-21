@@ -202,8 +202,8 @@ function EmptyState() {
         Not Analyzed Yet
       </h3>
       <p className="text-sm text-zinc-600 mb-6">
-        Click <span className="font-medium">Analyze Resume</span> to get your ATS score and personalized
-        improvement suggestions.
+        Click <span className="font-medium">Analyze Resume</span> to get your
+        ATS score and personalized improvement suggestions.
       </p>
     </div>
   );

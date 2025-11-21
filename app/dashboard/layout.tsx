@@ -100,7 +100,8 @@ export default function DashboardLayout({
           pathname.includes("/resume") ||
           pathname.includes("/skills") ||
           pathname.includes("/role-suggestions") ||
-          (pathname.includes("/interview") && !pathname.includes("/interviews")) || // /interview (singular) but not /interviews (plural)
+          (pathname.includes("/interview") &&
+            !pathname.includes("/interviews")) || // /interview (singular) but not /interviews (plural)
           (pathname.includes("/applications") &&
             !pathname.includes("/candidates"));
 

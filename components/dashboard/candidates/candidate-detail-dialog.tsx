@@ -14,7 +14,7 @@ import { ResumeViewerCard } from "./resume-viewer-card";
 import { statusConfig } from "./types";
 import type { Application, ApplicationStatus } from "./types";
 import { RoleSuggestions } from "@/components/dashboard/role-suggestions";
-import { X, Target } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
@@ -95,7 +95,6 @@ export function CandidateDetailDialog({
       {/* Main Content - Scrollable */}
       <div className="flex-1 overflow-y-auto p-6 sm:p-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-          
           {/* Left Column: Profile & Application Info (2/3 width) */}
           <div className="lg:col-span-2 space-y-8">
             {/* Status for Mobile */}
@@ -118,7 +117,9 @@ export function CandidateDetailDialog({
 
             {application.application.coverLetter && (
               <section className="bg-white rounded-xl border border-zinc-200 p-6 shadow-sm">
-                <CoverLetterCard coverLetter={application.application.coverLetter} />
+                <CoverLetterCard
+                  coverLetter={application.application.coverLetter}
+                />
               </section>
             )}
           </div>
@@ -133,35 +134,17 @@ export function CandidateDetailDialog({
               />
             </section>
 
-            <section className="bg-white rounded-xl border border-zinc-200 p-6 shadow-sm">
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-zinc-900 flex items-center gap-2">
-                  <Target className="w-5 h-5 text-indigo-600" />
-                  Alternative Roles
-                </h3>
-                <p className="text-sm text-zinc-600">
-                  AI-powered analysis of alternative career paths for this candidate
-                </p>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowRoleSuggestions(true)}
-                  className="w-full gap-2"
-                >
-                  <Target className="w-4 h-4" />
-                  Analyze Role Fit
-                </Button>
-              </div>
-            </section>
-
             <ResumeViewerCard resumeUrl={application.student.resumeUrl} />
           </div>
-
         </div>
       </div>
 
       {/* Role Suggestions Modal */}
       {showRoleSuggestions && (
-        <Dialog open={showRoleSuggestions} onOpenChange={setShowRoleSuggestions}>
+        <Dialog
+          open={showRoleSuggestions}
+          onOpenChange={setShowRoleSuggestions}
+        >
           <DialogContent className="max-w-7xl w-full max-h-[95vh] h-[95vh] overflow-hidden flex flex-col p-0 gap-0">
             <div className="flex-1 overflow-y-auto p-6">
               <RoleSuggestions

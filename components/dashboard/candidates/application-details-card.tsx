@@ -6,7 +6,9 @@ interface ApplicationDetailsCardProps {
   application: Application;
 }
 
-export function ApplicationDetailsCard({ application }: ApplicationDetailsCardProps) {
+export function ApplicationDetailsCard({
+  application,
+}: ApplicationDetailsCardProps) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       month: "long",

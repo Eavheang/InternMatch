@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Building2, MapPin, Phone, GraduationCap } from "lucide-react";
+import { Building2, MapPin, Phone } from "lucide-react";
 
 export default function CompanyProfilePage() {
   const { user, profileData } = useDashboard();
@@ -48,28 +48,74 @@ export default function CompanyProfilePage() {
 
   // Program Info
   const [hasInternshipProgram, setHasInternshipProgram] = useState(false);
-  
+
   // Company Logo
   const [companyLogo, setCompanyLogo] = useState("");
 
   useEffect(() => {
     if (profileData) {
-      setCompanyName(typeof profileData.companyName === 'string' ? profileData.companyName : "");
-      setIndustry(typeof profileData.industry === 'string' ? profileData.industry : "");
-      setCompanySize(typeof profileData.companySize === 'string' ? profileData.companySize : "");
-      setWebsite(typeof profileData.website === 'string' ? profileData.website : "");
-      setCompanyLogo(typeof profileData.companyLogo === 'string' ? profileData.companyLogo : "");
-      setDescription(typeof profileData.description === 'string' ? profileData.description : "");
-      setCompanyCulture(typeof profileData.companyCulture === 'string' ? profileData.companyCulture : "");
-      
-      setLocation(typeof profileData.location === 'string' ? profileData.location : "");
-      setHeadquarters(typeof profileData.headquarters === 'string' ? profileData.headquarters : "");
-      setOtherLocations(typeof profileData.otherLocations === 'string' ? profileData.otherLocations : "");
-      
-      setContactName(typeof profileData.contactName === 'string' ? profileData.contactName : "");
-      setContactEmail(typeof profileData.contactEmail === 'string' ? profileData.contactEmail : (user?.email || ""));
-      setContactPhone(typeof profileData.contactPhone === 'string' ? profileData.contactPhone : "");
-      
+      setCompanyName(
+        typeof profileData.companyName === "string"
+          ? profileData.companyName
+          : ""
+      );
+      setIndustry(
+        typeof profileData.industry === "string" ? profileData.industry : ""
+      );
+      setCompanySize(
+        typeof profileData.companySize === "string"
+          ? profileData.companySize
+          : ""
+      );
+      setWebsite(
+        typeof profileData.website === "string" ? profileData.website : ""
+      );
+      setCompanyLogo(
+        typeof profileData.companyLogo === "string"
+          ? profileData.companyLogo
+          : ""
+      );
+      setDescription(
+        typeof profileData.description === "string"
+          ? profileData.description
+          : ""
+      );
+      setCompanyCulture(
+        typeof profileData.companyCulture === "string"
+          ? profileData.companyCulture
+          : ""
+      );
+
+      setLocation(
+        typeof profileData.location === "string" ? profileData.location : ""
+      );
+      setHeadquarters(
+        typeof profileData.headquarters === "string"
+          ? profileData.headquarters
+          : ""
+      );
+      setOtherLocations(
+        typeof profileData.otherLocations === "string"
+          ? profileData.otherLocations
+          : ""
+      );
+
+      setContactName(
+        typeof profileData.contactName === "string"
+          ? profileData.contactName
+          : ""
+      );
+      setContactEmail(
+        typeof profileData.contactEmail === "string"
+          ? profileData.contactEmail
+          : user?.email || ""
+      );
+      setContactPhone(
+        typeof profileData.contactPhone === "string"
+          ? profileData.contactPhone
+          : ""
+      );
+
       setHasInternshipProgram(Boolean(profileData.hasInternshipProgram));
     }
   }, [profileData, user]);
@@ -153,7 +199,12 @@ export default function CompanyProfilePage() {
               <div className="h-32 w-32 rounded-full bg-zinc-100 border-4 border-white shadow-md flex items-center justify-center text-3xl font-bold text-zinc-400 relative overflow-hidden">
                 {companyName ? (
                   <span>
-                    {companyName.split(' ').map(word => word[0]).join('').slice(0, 2).toUpperCase()}
+                    {companyName
+                      .split(" ")
+                      .map((word) => word[0])
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase()}
                   </span>
                 ) : (
                   <Building2 className="h-12 w-12 text-zinc-300" />
@@ -213,7 +264,9 @@ export default function CompanyProfilePage() {
           <CardTitle className="text-lg font-semibold text-zinc-900">
             Company Details
           </CardTitle>
-          <p className="text-sm text-zinc-500">Basic information about your company</p>
+          <p className="text-sm text-zinc-500">
+            Basic information about your company
+          </p>
         </CardHeader>
         <CardContent className="px-8 pb-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div className="space-y-2.5">
@@ -274,7 +327,9 @@ export default function CompanyProfilePage() {
             <MapPin className="w-5 h-5 text-indigo-600" />
             Location Information
           </CardTitle>
-          <p className="text-sm text-zinc-500">Where is your company located?</p>
+          <p className="text-sm text-zinc-500">
+            Where is your company located?
+          </p>
         </CardHeader>
         <CardContent className="px-8 pb-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div className="space-y-2.5">

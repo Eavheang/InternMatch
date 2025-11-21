@@ -341,7 +341,7 @@ function isProfileComplete(profile: CompanyProfileRecord | null | undefined) {
     !!profile.companySize &&
     !!profile.website &&
     !!(profile.headquarters || profile.location) &&
-    !!profile.description &&
+    !!profile.companyDescription &&
     !!profile.contactName &&
     !!profile.contactEmail
   );

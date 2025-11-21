@@ -6,4 +6,3 @@ export { StatusUpdateCard } from "./status-update-card";
 export { ResumeViewerCard } from "./resume-viewer-card";
 export { InfoRow } from "./info-row";
 export * from "./types";
-

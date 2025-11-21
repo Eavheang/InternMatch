@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
           { error: "Resume not found" },
           { status: 404 }
         );
-      resumeContent = resume.structuredContent;
+      resumeContent = resume.structuredContent as Record<string, unknown>;
       studentId = resume.studentId;
     } else {
       return NextResponse.json(
@@ -122,12 +122,12 @@ ${JSON.stringify(job || {}, null, 2)}
       resumeId: string;
       applicationId: string | null;
       jobId: string | null;
-      atsScore: number;
-      keywordMatch: number;
-      readability: number;
-      length: number;
-      suggestions: Array<{ field: string; advice: string }>;
-      missingKeywords: string[];
+      atsScore: number | null;
+      keywordMatch: number | null;
+      readability: number | null;
+      length: number | null;
+      suggestions: unknown;
+      missingKeywords: unknown;
       analyzedAt: Date;
     } | null = null;
     if (resumeId) {
@@ -146,7 +146,7 @@ ${JSON.stringify(job || {}, null, 2)}
           analyzedAt: new Date(),
         })
         .returning();
-      analysisRecord = inserted[0];
+      analysisRecord = inserted.length > 0 ? inserted[0] : null;
     }
 
     // Log AI usage - only if we identified a student ID (optional)

@@ -36,7 +36,8 @@ export function JobCard({ job, onEdit, onDelete, isDeleting }: JobCardProps) {
                   <JobStatusBadge status={job.status} />
                 </div>
                 <p className="text-sm text-zinc-500">
-                  {job.jobType || "Internship"} • {job.location || "Remote"} • Posted{" "}
+                  {job.jobType || "Internship"} • {job.location || "Remote"} •
+                  Posted{" "}
                   {job.createdAt
                     ? new Date(job.createdAt).toLocaleDateString()
                     : "—"}
@@ -108,4 +109,3 @@ export function JobCard({ job, onEdit, onDelete, isDeleting }: JobCardProps) {
     </Card>
   );
 }
-

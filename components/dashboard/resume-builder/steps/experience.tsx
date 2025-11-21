@@ -35,7 +35,7 @@ export function Experience({ data, updateData }: ExperienceProps) {
   const updateExperienceItem = (
     id: string,
     field: keyof ResumeData["experience"][0],
-    value: string | boolean
+    value: string | boolean | string[]
   ) => {
     updateData(
       data.map((exp) => (exp.id === id ? { ...exp, [field]: value } : exp))

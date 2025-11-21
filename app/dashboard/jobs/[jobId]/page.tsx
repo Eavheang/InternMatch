@@ -17,7 +17,6 @@ import {
   Clock3,
   Edit3,
   Share2,
-  FileText,
   Award,
   Sparkles,
   TrendingUp,
@@ -55,10 +54,30 @@ const statusStyles: Record<
   JobDetail["status"],
   { label: string; bg: string; text: string; dot: string }
 > = {
-  open: { label: "Active", bg: "bg-emerald-100/80", text: "text-emerald-700", dot: "bg-emerald-500" },
-  closed: { label: "Closed", bg: "bg-rose-100/80", text: "text-rose-700", dot: "bg-rose-500" },
-  draft: { label: "Draft", bg: "bg-zinc-100", text: "text-zinc-600", dot: "bg-zinc-500" },
-  paused: { label: "Paused", bg: "bg-amber-100/80", text: "text-amber-700", dot: "bg-amber-500" },
+  open: {
+    label: "Active",
+    bg: "bg-emerald-100/80",
+    text: "text-emerald-700",
+    dot: "bg-emerald-500",
+  },
+  closed: {
+    label: "Closed",
+    bg: "bg-rose-100/80",
+    text: "text-rose-700",
+    dot: "bg-rose-500",
+  },
+  draft: {
+    label: "Draft",
+    bg: "bg-zinc-100",
+    text: "text-zinc-600",
+    dot: "bg-zinc-500",
+  },
+  paused: {
+    label: "Paused",
+    bg: "bg-amber-100/80",
+    text: "text-amber-700",
+    dot: "bg-amber-500",
+  },
 };
 
 export default function JobDetailPage() {
@@ -148,35 +167,34 @@ export default function JobDetailPage() {
     setIsSavingEdit(true);
     try {
       const token = localStorage.getItem("internmatch_token");
-      const response = await fetch(
-        `/api/company/${user.id}/job/${job.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+      const response = await fetch(`/api/company/${user.id}/job/${job.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          jobTitle: editForm.jobTitle,
+          jobDescription: editForm.jobDescription,
+          requirements: {
+            qualifications: editForm.qualifications.split("\n").filter(Boolean),
+            skills: editForm.skills,
+            responsibilities: editForm.responsibilities
+              .split("\n")
+              .filter(Boolean),
+            programType: editForm.programType,
+            duration: editForm.duration,
+            startDate: editForm.startDate,
+            deadline: editForm.deadline,
           },
-          body: JSON.stringify({
-            jobTitle: editForm.jobTitle,
-            jobDescription: editForm.jobDescription,
-            requirements: {
-              qualifications: editForm.qualifications.split("\n").filter(Boolean),
-              skills: editForm.skills,
-              responsibilities: editForm.responsibilities.split("\n").filter(Boolean),
-              programType: editForm.programType,
-              duration: editForm.duration,
-              startDate: editForm.startDate,
-              deadline: editForm.deadline,
-            },
-            benefits: editForm.benefits.split("\n").filter(Boolean),
-            salaryRange: editForm.salaryRange,
-            location: editForm.location,
-            jobType: "internship",
-            status: editForm.status,
-            department: editForm.department,
-          }),
-        }
-      );
+          benefits: editForm.benefits.split("\n").filter(Boolean),
+          salaryRange: editForm.salaryRange,
+          location: editForm.location,
+          jobType: "internship",
+          status: editForm.status,
+          department: editForm.department,
+        }),
+      });
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || "Failed to update job");
@@ -293,9 +311,9 @@ export default function JobDetailPage() {
                   <span
                     className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold border ${statusStyles[job.status].bg} ${statusStyles[job.status].text} shadow-sm`}
                   >
-                  <span
-                    className={`w-2 h-2 rounded-full ${statusStyles[job.status].dot}`}
-                  />
+                    <span
+                      className={`w-2 h-2 rounded-full ${statusStyles[job.status].dot}`}
+                    />
                     {statusStyles[job.status].label}
                   </span>
                   {job.aiGenerated && (
@@ -577,7 +595,7 @@ function ListCard({
   title,
   items,
   emptyText,
-  icon,
+  icon: _icon,
   color = "indigo",
 }: {
   title: string;

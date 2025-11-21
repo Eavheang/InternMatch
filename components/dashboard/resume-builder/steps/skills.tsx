@@ -3,7 +3,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { X, Wrench } from "lucide-react";
+import { X } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { skills as skillsConstant } from "@/constants/skills";
 
@@ -93,7 +93,7 @@ export function Skills({ data, updateData }: SkillsProps) {
     }
   };
 
-  const removeSkill = (skillToRemove: string) => {
+  const _removeSkill = (skillToRemove: string) => {
     updateData(data.filter((skill) => skill !== skillToRemove));
   };
 

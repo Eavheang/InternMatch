@@ -240,7 +240,7 @@ export async function HEAD(req: NextRequest) {
   }
 }
 
-export async function OPTIONS(req: NextRequest) {
+export async function OPTIONS(_req: NextRequest) {
   // Handle CORS preflight requests
   return new NextResponse(null, {
     status: 200,

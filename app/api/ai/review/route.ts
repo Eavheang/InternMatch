@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     }
     const token = authHeader.split(" ")[1];
     const decoded = await verifyToken(token);
-    
+
     if (!decoded.userId || decoded.role !== "company") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -98,10 +98,7 @@ export async function POST(req: NextRequest) {
           .from(studentSkills)
           .innerJoin(skills, eq(studentSkills.skillId, skills.id))
           .where(eq(studentSkills.studentId, student.id)),
-        db
-          .select()
-          .from(projects)
-          .where(eq(projects.studentId, student.id)),
+        db.select().from(projects).where(eq(projects.studentId, student.id)),
         db
           .select()
           .from(experiences)

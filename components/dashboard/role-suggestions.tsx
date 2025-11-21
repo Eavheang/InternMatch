@@ -87,7 +87,9 @@ export function RoleSuggestions({
     } catch (error) {
       console.error("Failed to generate role suggestions:", error);
       toast.error(
-        error instanceof Error ? error.message : "Failed to generate suggestions"
+        error instanceof Error
+          ? error.message
+          : "Failed to generate suggestions"
       );
     } finally {
       setLoading(false);
@@ -96,7 +98,7 @@ export function RoleSuggestions({
 
   useEffect(() => {
     generateSuggestions();
-  }, [studentId, resumeId]);
+  }, [studentId, resumeId, generateSuggestions]);
 
   const getPercentageColor = (percentage: number) => {
     if (percentage >= 15) return "bg-emerald-500";
@@ -196,7 +198,9 @@ export function RoleSuggestions({
                     <TrendingUp className="w-5 h-5 text-emerald-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-zinc-500">Top Match</p>
+                    <p className="text-sm font-medium text-zinc-500">
+                      Top Match
+                    </p>
                     <p className="text-lg font-bold text-zinc-900">
                       {data.suggestions[0]?.role}
                     </p>
@@ -272,7 +276,9 @@ export function RoleSuggestions({
                     className="flex items-center justify-between cursor-pointer"
                     onClick={() =>
                       setExpandedRole(
-                        expandedRole === suggestion.role ? null : suggestion.role
+                        expandedRole === suggestion.role
+                          ? null
+                          : suggestion.role
                       )
                     }
                   >
@@ -391,7 +397,9 @@ export function RoleSuggestions({
                       className="flex items-center gap-2 p-2 bg-emerald-50 rounded-lg"
                     >
                       <div className="w-2 h-2 bg-emerald-500 rounded-full" />
-                      <span className="text-sm text-emerald-800">{strength}</span>
+                      <span className="text-sm text-emerald-800">
+                        {strength}
+                      </span>
                     </div>
                   ))}
                 </div>

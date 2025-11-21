@@ -80,7 +80,10 @@ export function ApplicationsSidebar({
 
   const filteredApplications = applications.filter((app) => {
     // Exclude hired and rejected candidates from Interview Tools
-    if (app.application.status === "hired" || app.application.status === "rejected") {
+    if (
+      app.application.status === "hired" ||
+      app.application.status === "rejected"
+    ) {
       return false;
     }
 
@@ -103,7 +106,7 @@ export function ApplicationsSidebar({
 
   const handleDeleteConfirm = async () => {
     if (!candidateToDelete || !onDeleteInterviewData) return;
-    
+
     setIsDeleting(true);
     try {
       await onDeleteInterviewData(candidateToDelete.applicationId);
@@ -154,7 +157,7 @@ export function ApplicationsSidebar({
                 {selectedApplicationId === app.application.id && (
                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-600 z-10" />
                 )}
-                
+
                 {/* Main clickable area */}
                 <div
                   onClick={() => onSelectApplication(app.application.id)}
@@ -172,33 +175,42 @@ export function ApplicationsSidebar({
                     </h3>
                     <div className="flex items-center gap-1">
                       <span className="text-[10px] text-zinc-400 whitespace-nowrap">
-                        {new Date(app.application.appliedAt).toLocaleDateString(undefined, { 
-                          month: 'short', 
-                          day: 'numeric' 
-                        })}
+                        {new Date(app.application.appliedAt).toLocaleDateString(
+                          undefined,
+                          {
+                            month: "short",
+                            day: "numeric",
+                          }
+                        )}
                       </span>
                     </div>
                   </div>
-                  
+
                   <p className="text-xs text-zinc-500 truncate mb-2.5 font-medium">
                     {app.job.jobTitle}
                   </p>
 
                   <div className="flex items-center justify-between">
-                    <Badge 
-                      variant="outline" 
+                    <Badge
+                      variant="outline"
                       className={`text-[10px] px-1.5 py-0 h-5 font-medium border capitalize ${
-                        statusStyles[app.application.status] || "bg-zinc-50 text-zinc-600 border-zinc-200"
+                        statusStyles[app.application.status] ||
+                        "bg-zinc-50 text-zinc-600 border-zinc-200"
                       }`}
                     >
                       {app.application.status}
                     </Badge>
-                    
+
                     {reviews[app.application.id] && (
-                      <div className={`text-[10px] font-bold ${
-                        reviews[app.application.id].matchScore >= 70 ? "text-emerald-600" : 
-                        reviews[app.application.id].matchScore >= 50 ? "text-amber-600" : "text-rose-600"
-                      }`}>
+                      <div
+                        className={`text-[10px] font-bold ${
+                          reviews[app.application.id].matchScore >= 70
+                            ? "text-emerald-600"
+                            : reviews[app.application.id].matchScore >= 50
+                              ? "text-amber-600"
+                              : "text-rose-600"
+                        }`}
+                      >
                         {reviews[app.application.id].matchScore}% Match
                       </div>
                     )}
@@ -206,32 +218,35 @@ export function ApplicationsSidebar({
                 </div>
 
                 {/* Delete button - positioned absolutely to avoid nesting */}
-                {(reviews[app.application.id] || 
-                  app.application.status === "interviewed") && onDeleteInterviewData && (
-                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreVertical className="h-3 w-3" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem
-                          onClick={(e: React.MouseEvent) => handleDeleteClick(app, e)}
-                          className="text-red-600 focus:text-red-600 focus:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete Interview Data
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                )}
+                {(reviews[app.application.id] ||
+                  app.application.status === "interviewed") &&
+                  onDeleteInterviewData && (
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MoreVertical className="h-3 w-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem
+                            onClick={(e: React.MouseEvent) =>
+                              handleDeleteClick(app, e)
+                            }
+                            className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete Interview Data
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  )}
               </div>
             ))}
           </div>

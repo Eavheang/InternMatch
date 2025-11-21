@@ -61,11 +61,6 @@ export default function JobsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [jobToDelete, setJobToDelete] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!user?.id || user.role !== "company") return;
-    fetchJobs(user);
-  }, [user]);
-
   const fetchJobs = async (currentUser: User) => {
     try {
       setLoading(true);
@@ -92,7 +87,12 @@ export default function JobsPage() {
     }
   };
 
-  const statusCounts = useMemo(() => {
+  useEffect(() => {
+    if (!user?.id || user.role !== "company") return;
+    fetchJobs(user);
+  }, [user, fetchJobs]);
+
+  const _statusCounts = useMemo(() => {
     return jobs.reduce(
       (acc, job) => {
         acc[job.status] = (acc[job.status] || 0) + 1;
@@ -151,9 +151,13 @@ export default function JobsPage() {
             jobTitle: editForm.jobTitle,
             jobDescription: editForm.jobDescription,
             requirements: {
-              qualifications: editForm.qualifications.split("\n").filter(Boolean),
+              qualifications: editForm.qualifications
+                .split("\n")
+                .filter(Boolean),
               skills: editForm.skills,
-              responsibilities: editForm.responsibilities.split("\n").filter(Boolean),
+              responsibilities: editForm.responsibilities
+                .split("\n")
+                .filter(Boolean),
               programType: editForm.programType,
               duration: editForm.duration,
               startDate: editForm.startDate,
@@ -199,12 +203,15 @@ export default function JobsPage() {
     try {
       setDeletingJobId(jobToDelete);
       const token = localStorage.getItem("internmatch_token");
-      const response = await fetch(`/api/company/${user.id}/job/${jobToDelete}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `/api/company/${user.id}/job/${jobToDelete}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || "Failed to delete job");
@@ -303,7 +310,8 @@ export default function JobsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Job Posting</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this job posting? This action cannot be undone and all associated applications will be removed.
+              Are you sure you want to delete this job posting? This action
+              cannot be undone and all associated applications will be removed.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

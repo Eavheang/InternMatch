@@ -11,4 +11,3 @@ export function JobMeta({ label, value }: JobMetaProps) {
     </div>
   );
 }
-

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import {
   Dialog,
@@ -102,7 +101,9 @@ export function EditJobDialog({
                   />
                 </div>
                 <div>
-                  <Label className="text-sm font-semibold">Salary / Stipend</Label>
+                  <Label className="text-sm font-semibold">
+                    Salary / Stipend
+                  </Label>
                   <Input
                     value={formData.salaryRange}
                     onChange={(e) => updateField("salaryRange", e.target.value)}
@@ -133,11 +134,15 @@ export function EditJobDialog({
                 />
               </div>
               <div>
-                <Label className="text-sm font-semibold">Key Responsibilities</Label>
+                <Label className="text-sm font-semibold">
+                  Key Responsibilities
+                </Label>
                 <Textarea
                   rows={4}
                   value={formData.responsibilities}
-                  onChange={(e) => updateField("responsibilities", e.target.value)}
+                  onChange={(e) =>
+                    updateField("responsibilities", e.target.value)
+                  }
                   placeholder="• Develop new features...&#10;• Collaborate with designers..."
                   className="mt-1.5 resize-none font-mono text-sm"
                 />
@@ -147,7 +152,9 @@ export function EditJobDialog({
                 <Textarea
                   rows={4}
                   value={formData.qualifications}
-                  onChange={(e) => updateField("qualifications", e.target.value)}
+                  onChange={(e) =>
+                    updateField("qualifications", e.target.value)
+                  }
                   placeholder="• Currently pursuing a degree in...&#10;• Experience with..."
                   className="mt-1.5 resize-none font-mono text-sm"
                 />
@@ -173,7 +180,9 @@ export function EditJobDialog({
             </h3>
             <div className="grid gap-4">
               <div>
-                <Label className="text-sm font-semibold">Benefits & Perks</Label>
+                <Label className="text-sm font-semibold">
+                  Benefits & Perks
+                </Label>
                 <Textarea
                   rows={4}
                   value={formData.benefits}
@@ -193,7 +202,9 @@ export function EditJobDialog({
                   />
                 </div>
                 <div>
-                  <Label className="text-sm font-semibold">Application Deadline</Label>
+                  <Label className="text-sm font-semibold">
+                    Application Deadline
+                  </Label>
                   <Input
                     type="date"
                     value={formData.deadline}
@@ -245,4 +256,3 @@ export function EditJobDialog({
     </Dialog>
   );
 }
-

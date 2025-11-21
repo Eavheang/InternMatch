@@ -45,7 +45,9 @@ export function RoleSuggestionsCard({
       <div className="bg-zinc-50/50 py-4 px-6 border-b border-zinc-100 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Target className="w-4 h-4 text-indigo-500" />
-          <h3 className="font-semibold text-sm text-zinc-900">Alternative Role Suggestions</h3>
+          <h3 className="font-semibold text-sm text-zinc-900">
+            Alternative Role Suggestions
+          </h3>
         </div>
         {!roleSuggestions && (
           <Button
@@ -74,53 +76,78 @@ export function RoleSuggestionsCard({
             <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
               <Target className="w-5 h-5 text-indigo-500" />
             </div>
-            <h4 className="text-zinc-900 font-medium mb-1">Role Analysis Available</h4>
+            <h4 className="text-zinc-900 font-medium mb-1">
+              Role Analysis Available
+            </h4>
             <p className="text-sm text-zinc-500 max-w-md mx-auto">
-              Generate comprehensive alternative career role suggestions based on {studentName}'s complete profile analysis.
+              Generate comprehensive alternative career role suggestions based
+              on {studentName}&apos;s complete profile analysis.
             </p>
           </div>
         ) : (
           <div className="space-y-4 p-6">
             {/* Top 3 Role Suggestions */}
             <div className="grid gap-4 md:grid-cols-3">
-              {roleSuggestions.suggestions.slice(0, 3).map((suggestion, idx) => (
-                <div key={idx} className="p-4 bg-zinc-50 rounded-lg border border-zinc-200 hover:shadow-sm transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-zinc-400">#{idx + 1}</span>
-                    <Badge 
-                      variant="secondary" 
-                      className={`text-xs font-semibold ${
-                        suggestion.percentage >= 15 ? "bg-emerald-100 text-emerald-800" :
-                        suggestion.percentage >= 10 ? "bg-blue-100 text-blue-800" :
-                        "bg-purple-100 text-purple-800"
-                      }`}
+              {roleSuggestions.suggestions
+                .slice(0, 3)
+                .map((suggestion, idx) => (
+                  <div
+                    key={idx}
+                    className="p-4 bg-zinc-50 rounded-lg border border-zinc-200 hover:shadow-sm transition-shadow"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold text-zinc-400">
+                        #{idx + 1}
+                      </span>
+                      <Badge
+                        variant="secondary"
+                        className={`text-xs font-semibold ${
+                          suggestion.percentage >= 15
+                            ? "bg-emerald-100 text-emerald-800"
+                            : suggestion.percentage >= 10
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-purple-100 text-purple-800"
+                        }`}
+                      >
+                        {suggestion.percentage}%
+                      </Badge>
+                    </div>
+                    <h5
+                      className="font-semibold text-zinc-900 text-sm mb-2 line-clamp-1"
+                      title={suggestion.role}
                     >
-                      {suggestion.percentage}%
-                    </Badge>
-                  </div>
-                  <h5 className="font-semibold text-zinc-900 text-sm mb-2 line-clamp-1" title={suggestion.role}>
-                    {suggestion.role}
-                  </h5>
-                  <p className="text-xs text-zinc-600 line-clamp-3 leading-relaxed mb-3">
-                    {suggestion.reasoning}
-                  </p>
-                  <div className="space-y-2">
-                    <div>
-                      <p className="text-xs font-medium text-zinc-700 mb-1">Matched Skills:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {suggestion.matchedSkills.slice(0, 3).map((skill, skillIdx) => (
-                          <Badge key={skillIdx} variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">
-                            {skill}
-                          </Badge>
-                        ))}
-                        {suggestion.matchedSkills.length > 3 && (
-                          <span className="text-[10px] text-zinc-500">+{suggestion.matchedSkills.length - 3} more</span>
-                        )}
+                      {suggestion.role}
+                    </h5>
+                    <p className="text-xs text-zinc-600 line-clamp-3 leading-relaxed mb-3">
+                      {suggestion.reasoning}
+                    </p>
+                    <div className="space-y-2">
+                      <div>
+                        <p className="text-xs font-medium text-zinc-700 mb-1">
+                          Matched Skills:
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {suggestion.matchedSkills
+                            .slice(0, 3)
+                            .map((skill, skillIdx) => (
+                              <Badge
+                                key={skillIdx}
+                                variant="outline"
+                                className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200"
+                              >
+                                {skill}
+                              </Badge>
+                            ))}
+                          {suggestion.matchedSkills.length > 3 && (
+                            <span className="text-[10px] text-zinc-500">
+                              +{suggestion.matchedSkills.length - 3} more
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
 
             {/* Additional Suggestions */}
@@ -131,17 +158,26 @@ export function RoleSuggestionsCard({
                   Additional Career Paths
                 </h4>
                 <div className="grid gap-2 md:grid-cols-2">
-                  {roleSuggestions.suggestions.slice(3, 8).map((suggestion, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 bg-white rounded-lg border border-zinc-100">
-                      <div className="flex-1 min-w-0">
-                        <h6 className="font-medium text-zinc-900 text-sm truncate">{suggestion.role}</h6>
-                        <p className="text-xs text-zinc-500 truncate">{suggestion.reasoning}</p>
+                  {roleSuggestions.suggestions
+                    .slice(3, 8)
+                    .map((suggestion, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-3 bg-white rounded-lg border border-zinc-100"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <h6 className="font-medium text-zinc-900 text-sm truncate">
+                            {suggestion.role}
+                          </h6>
+                          <p className="text-xs text-zinc-500 truncate">
+                            {suggestion.reasoning}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className="ml-2 text-xs">
+                          {suggestion.percentage}%
+                        </Badge>
                       </div>
-                      <Badge variant="outline" className="ml-2 text-xs">
-                        {suggestion.percentage}%
-                      </Badge>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </div>
             )}
@@ -154,12 +190,17 @@ export function RoleSuggestionsCard({
                   Profile Strengths
                 </h4>
                 <div className="space-y-1">
-                  {roleSuggestions.profileStrengths.slice(0, 3).map((strength, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-xs text-emerald-700">
-                      <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-                      <span>{strength}</span>
-                    </div>
-                  ))}
+                  {roleSuggestions.profileStrengths
+                    .slice(0, 3)
+                    .map((strength, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-2 text-xs text-emerald-700"
+                      >
+                        <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                        <span>{strength}</span>
+                      </div>
+                    ))}
                 </div>
               </div>
               <div>
@@ -168,18 +209,24 @@ export function RoleSuggestionsCard({
                   Skill Development
                 </h4>
                 <div className="space-y-1">
-                  {roleSuggestions.recommendedSkillDevelopment.slice(0, 3).map((skill, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-xs text-blue-700">
-                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
-                      <span>{skill}</span>
-                    </div>
-                  ))}
+                  {roleSuggestions.recommendedSkillDevelopment
+                    .slice(0, 3)
+                    .map((skill, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-2 text-xs text-blue-700"
+                      >
+                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+                        <span>{skill}</span>
+                      </div>
+                    ))}
                 </div>
               </div>
             </div>
 
             <div className="text-xs text-zinc-400 text-center pt-2 border-t border-zinc-100">
-              Analysis generated on {new Date(roleSuggestions.analysisDate).toLocaleDateString()}
+              Analysis generated on{" "}
+              {new Date(roleSuggestions.analysisDate).toLocaleDateString()}
             </div>
           </div>
         )}

@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     const { studentId, resumeId } = (await req.json()) as RoleSuggestionInput;
 
     let targetStudentId = studentId;
-    
+
     // If no studentId provided, use the current user's student profile
     if (!targetStudentId && decoded.role === "student") {
       const [student] = await db
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
       .from(students)
       .where(eq(students.id, targetStudentId))
       .limit(1);
-    
+
     if (!student) {
       return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
@@ -91,10 +91,7 @@ export async function POST(req: NextRequest) {
           .from(studentSkills)
           .innerJoin(skills, eq(studentSkills.skillId, skills.id))
           .where(eq(studentSkills.studentId, student.id)),
-        db
-          .select()
-          .from(projects)
-          .where(eq(projects.studentId, student.id)),
+        db.select().from(projects).where(eq(projects.studentId, student.id)),
         db
           .select()
           .from(experiences)
@@ -219,7 +216,8 @@ Ensure the percentages are realistic and the total equals exactly 100%.
       // If percentages don't add up, normalize them
       const normalizedSuggestions = result.suggestions.map((suggestion) => ({
         ...suggestion,
-        percentage: Math.round((suggestion.percentage / totalPercentage) * 100 * 10) / 10,
+        percentage:
+          Math.round((suggestion.percentage / totalPercentage) * 100 * 10) / 10,
       }));
       result.suggestions = normalizedSuggestions;
       result.totalPercentage = 100;
@@ -231,7 +229,7 @@ Ensure the percentages are realistic and the total equals exactly 100%.
     // Save to AI generated content for tracking
     try {
       await db.insert(aiGeneratedContent).values({
-        type: "role_suggestions",
+        type: "resume_suggestions",
         studentId: student.id,
         companyId: null,
         jobId: null,
@@ -290,7 +288,7 @@ export async function GET(req: NextRequest) {
     const studentId = searchParams.get("studentId");
 
     let targetStudentId = studentId;
-    
+
     // If no studentId provided, use the current user's student profile
     if (!targetStudentId && decoded.role === "student") {
       const [student] = await db
@@ -319,7 +317,7 @@ export async function GET(req: NextRequest) {
       .limit(10);
 
     const roleSuggestions = previousSuggestions.filter(
-      (content) => content.type === "role_suggestions"
+      (content) => content.type === "resume_suggestions"
     );
 
     return NextResponse.json({

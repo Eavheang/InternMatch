@@ -10,7 +10,7 @@ export type Application = {
     id: string;
     status: ApplicationStatus;
     coverLetter: string | null;
-    aiGeneratedQuestions: any;
+    aiGeneratedQuestions: Record<string, unknown> | null;
     appliedAt: string;
     updatedAt: string;
   };
@@ -46,17 +46,16 @@ export type Application = {
   };
 };
 
-import {
-  Clock,
-  UserCheck,
-  XCircle,
-  CheckCircle2,
-  Award,
-} from "lucide-react";
+import { Clock, UserCheck, XCircle, CheckCircle2, Award } from "lucide-react";
 
 export const statusConfig: Record<
   ApplicationStatus,
-  { label: string; bg: string; text: string; icon: any }
+  {
+    label: string;
+    bg: string;
+    text: string;
+    icon: React.ComponentType<{ className?: string }>;
+  }
 > = {
   applied: {
     label: "Applied",
@@ -89,4 +88,3 @@ export const statusConfig: Record<
     icon: Award,
   },
 };
-

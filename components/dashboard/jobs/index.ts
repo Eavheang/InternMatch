@@ -6,4 +6,3 @@ export { JobCard } from "./job-card";
 export { EditJobDialog } from "./edit-job-dialog";
 export { SkillsInput } from "./skills-input";
 export * from "./types";
-

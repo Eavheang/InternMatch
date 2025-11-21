@@ -14,7 +14,7 @@ export function ResumeViewerCard({ resumeUrl }: ResumeViewerCardProps) {
           Resume
         </div>
       </div>
-      
+
       <div className="p-8">
         {resumeUrl ? (
           <div className="flex flex-col items-center justify-center text-center space-y-4">
@@ -22,12 +22,15 @@ export function ResumeViewerCard({ resumeUrl }: ResumeViewerCardProps) {
               <FileText className="w-8 h-8 text-indigo-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-zinc-900">Candidate Resume Available</h3>
+              <h3 className="text-lg font-semibold text-zinc-900">
+                Candidate Resume Available
+              </h3>
               <p className="text-sm text-zinc-500 mt-1 max-w-xs mx-auto">
-                Review the candidate's qualifications and experience by downloading their resume.
+                Review the candidate&apos;s qualifications and experience by
+                downloading their resume.
               </p>
             </div>
-            <Button 
+            <Button
               onClick={() => window.open(resumeUrl, "_blank")}
               className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200"
             >
@@ -41,9 +44,11 @@ export function ResumeViewerCard({ resumeUrl }: ResumeViewerCardProps) {
               <AlertCircle className="w-8 h-8 text-zinc-400" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-zinc-900">No Resume Uploaded</h3>
+              <h3 className="text-lg font-semibold text-zinc-900">
+                No Resume Uploaded
+              </h3>
               <p className="text-sm text-zinc-500 mt-1">
-                The candidate hasn't uploaded a resume yet.
+                The candidate hasn&apos;t uploaded a resume yet.
               </p>
             </div>
           </div>

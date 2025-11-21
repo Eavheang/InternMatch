@@ -17,4 +17,3 @@ export function JobStatusBadge({ status }: JobStatusBadgeProps) {
     </span>
   );
 }
-

@@ -23,4 +23,3 @@ export function InfoRow({ icon, label, value }: InfoRowProps) {
     </div>
   );
 }
-

@@ -89,7 +89,7 @@ FormDescription.displayName = "FormDescription";
 
 const FormMessage = React.forwardRef<
   HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
+  React.HTMLAttributes<HTMLParagraphElement> & { "data-message"?: string }
 >(({ className, children, ...props }, ref) => {
   const body = children ?? props["data-message"];
   return (

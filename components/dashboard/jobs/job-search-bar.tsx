@@ -26,4 +26,3 @@ export function JobSearchBar({ search, onSearchChange }: JobSearchBarProps) {
     </section>
   );
 }
-

@@ -77,7 +77,12 @@ type InterviewQuestions = {
   createdAt: string;
 };
 
-type ApplicationStatus = "applied" | "shortlisted" | "interviewed" | "hired" | "rejected";
+type _ApplicationStatus =
+  | "applied"
+  | "shortlisted"
+  | "interviewed"
+  | "hired"
+  | "rejected";
 
 export default function InterviewToolsPage() {
   const router = useRouter();
@@ -95,16 +100,17 @@ export default function InterviewToolsPage() {
   const [roleSuggestions, setRoleSuggestions] = useState<
     Record<string, RoleSuggestionsData>
   >({});
-  const [generatingRoleSuggestionsId, setGeneratingRoleSuggestionsId] = useState<
-    string | null
-  >(null);
+  const [generatingRoleSuggestionsId, setGeneratingRoleSuggestionsId] =
+    useState<string | null>(null);
   const [selectedApplicationId, setSelectedApplicationId] = useState<
     string | null
   >(null);
 
   // Filter out hired and rejected applications from Interview Tools
   const activeApplications = applications.filter(
-    (app) => app.application.status !== "hired" && app.application.status !== "rejected"
+    (app) =>
+      app.application.status !== "hired" &&
+      app.application.status !== "rejected"
   );
 
   const selectedApplication = activeApplications.find(
@@ -113,7 +119,11 @@ export default function InterviewToolsPage() {
 
   // If selected application is no longer active (hired/rejected), select the first active one
   useEffect(() => {
-    if (selectedApplicationId && !selectedApplication && activeApplications.length > 0) {
+    if (
+      selectedApplicationId &&
+      !selectedApplication &&
+      activeApplications.length > 0
+    ) {
       setSelectedApplicationId(activeApplications[0].application.id);
     } else if (activeApplications.length === 0) {
       setSelectedApplicationId(null);
@@ -156,12 +166,14 @@ export default function InterviewToolsPage() {
       }
       const apps = data.data?.applications || [];
       setApplications(apps);
-      
+
       // Filter active applications for initial selection
       const activeApps = apps.filter(
-        (app: any) => app.application.status !== "hired" && app.application.status !== "rejected"
+        (app: { application: { status: string } }) =>
+          app.application.status !== "hired" &&
+          app.application.status !== "rejected"
       );
-      
+
       if (activeApps.length > 0 && !selectedApplicationId) {
         setSelectedApplicationId(activeApps[0].application.id);
       }
@@ -320,7 +332,7 @@ export default function InterviewToolsPage() {
     setGeneratingRoleSuggestionsId(applicationId);
     try {
       const token = localStorage.getItem("internmatch_token");
-      const app = applications.find(a => a.application.id === applicationId);
+      const app = applications.find((a) => a.application.id === applicationId);
       if (!app) return;
 
       const response = await fetch("/api/ai/role-suggestions", {
@@ -329,8 +341,8 @@ export default function InterviewToolsPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ 
-          studentId: app.student.id
+        body: JSON.stringify({
+          studentId: app.student.id,
         }),
       });
 
@@ -361,7 +373,7 @@ export default function InterviewToolsPage() {
     if (!user?.id || roleSuggestions[applicationId]) return;
     try {
       const token = localStorage.getItem("internmatch_token");
-      const app = applications.find(a => a.application.id === applicationId);
+      const app = applications.find((a) => a.application.id === applicationId);
       if (!app) return;
 
       const response = await fetch(
@@ -387,7 +399,7 @@ export default function InterviewToolsPage() {
 
   const deleteInterviewData = async (applicationId: string) => {
     if (!user?.id) return;
-    
+
     try {
       const token = localStorage.getItem("internmatch_token");
       const response = await fetch("/api/ai/interview/delete", {
@@ -427,16 +439,18 @@ export default function InterviewToolsPage() {
     } catch (error) {
       console.error("Failed to delete interview data:", error);
       toast.error(
-        error instanceof Error ? error.message : "Failed to delete interview data"
+        error instanceof Error
+          ? error.message
+          : "Failed to delete interview data"
       );
       throw error; // Re-throw to handle in the UI
     }
   };
 
   if (user?.role !== "company") {
-  return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6">Interview Tools</h1>
+    return (
+      <div className="p-8">
+        <h1 className="text-3xl font-bold mb-6">Interview Tools</h1>
         <p className="text-zinc-500">
           Company tools are not available for student accounts.
         </p>
@@ -472,24 +486,45 @@ export default function InterviewToolsPage() {
                 application={selectedApplication}
                 review={reviews[selectedApplication.application.id] || null}
                 isAnalyzing={analyzingId === selectedApplication.application.id}
-                onAnalyze={() => analyzeApplication(selectedApplication.application.id)}
+                onAnalyze={() =>
+                  analyzeApplication(selectedApplication.application.id)
+                }
               />
 
               {reviews[selectedApplication.application.id] && (
                 <>
                   <RoleSuggestionsCard
                     studentName={selectedApplication.student.firstName}
-                    roleSuggestions={roleSuggestions[selectedApplication.application.id] || null}
-                    isGenerating={generatingRoleSuggestionsId === selectedApplication.application.id}
-                    onGenerate={() => generateRoleSuggestions(selectedApplication.application.id)}
+                    roleSuggestions={
+                      roleSuggestions[selectedApplication.application.id] ||
+                      null
+                    }
+                    isGenerating={
+                      generatingRoleSuggestionsId ===
+                      selectedApplication.application.id
+                    }
+                    onGenerate={() =>
+                      generateRoleSuggestions(
+                        selectedApplication.application.id
+                      )
+                    }
                   />
 
                   <InterviewQuestionsCard
                     applicationStatus={selectedApplication.application.status}
                     studentName={selectedApplication.student.firstName}
-                    questions={questions[selectedApplication.application.id] || null}
-                    isGenerating={generatingQuestionsId === selectedApplication.application.id}
-                    onGenerate={() => generateInterviewQuestions(selectedApplication.application.id)}
+                    questions={
+                      questions[selectedApplication.application.id] || null
+                    }
+                    isGenerating={
+                      generatingQuestionsId ===
+                      selectedApplication.application.id
+                    }
+                    onGenerate={() =>
+                      generateInterviewQuestions(
+                        selectedApplication.application.id
+                      )
+                    }
                   />
                 </>
               )}
@@ -500,11 +535,15 @@ export default function InterviewToolsPage() {
                 <Briefcase className="w-16 h-16 mx-auto mb-4 opacity-20" />
                 {activeApplications.length === 0 ? (
                   <div>
-                    <p className="text-lg font-medium text-zinc-600 mb-2">No Active Candidates</p>
+                    <p className="text-lg font-medium text-zinc-600 mb-2">
+                      No Active Candidates
+                    </p>
                     <p className="text-sm text-zinc-500">
-                      Interview Tools shows candidates who are applied, shortlisted, or interviewed.
+                      Interview Tools shows candidates who are applied,
+                      shortlisted, or interviewed.
                       <br />
-                      Hired and rejected candidates are managed in the Candidates section.
+                      Hired and rejected candidates are managed in the
+                      Candidates section.
                     </p>
                   </div>
                 ) : (

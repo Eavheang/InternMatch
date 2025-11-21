@@ -41,7 +41,11 @@ export function DashboardSidebar({ user, profileData }: DashboardSidebarProps) {
       icon: BriefcaseIcon,
     },
     { name: "Interview Prep", href: "/dashboard/interview", icon: MessageIcon },
-    { name: "Role Suggestions", href: "/dashboard/role-suggestions", icon: TargetIcon },
+    {
+      name: "Role Suggestions",
+      href: "/dashboard/role-suggestions",
+      icon: TargetIcon,
+    },
   ];
 
   const menuItems =
@@ -195,7 +199,6 @@ function BriefcaseIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-
 
 function MessageIcon({ className }: { className?: string }) {
   return (

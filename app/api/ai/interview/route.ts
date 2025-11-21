@@ -97,10 +97,7 @@ export async function POST(req: NextRequest) {
           .from(studentSkills)
           .innerJoin(skills, eq(studentSkills.skillId, skills.id))
           .where(eq(studentSkills.studentId, student.id)),
-        db
-          .select()
-          .from(projects)
-          .where(eq(projects.studentId, student.id)),
+        db.select().from(projects).where(eq(projects.studentId, student.id)),
         db
           .select()
           .from(experiences)

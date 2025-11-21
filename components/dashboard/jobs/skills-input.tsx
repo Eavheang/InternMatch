@@ -56,9 +56,8 @@ export function SkillsInput({ skills, onSkillsChange }: SkillsInputProps) {
     }
 
     const exactSkill =
-      availableSkills.find(
-        (s) => s.toLowerCase() === value.toLowerCase()
-      ) || value;
+      availableSkills.find((s) => s.toLowerCase() === value.toLowerCase()) ||
+      value;
 
     onSkillsChange([...skills, exactSkill]);
     setSkillInput("");
@@ -140,4 +139,3 @@ export function SkillsInput({ skills, onSkillsChange }: SkillsInputProps) {
     </div>
   );
 }
-

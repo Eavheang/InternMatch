@@ -1,5 +1,4 @@
 import { FileText } from "lucide-react";
-import type { Application } from "./types";
 
 interface CoverLetterCardProps {
   coverLetter: string;

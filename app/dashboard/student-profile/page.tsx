@@ -198,7 +198,7 @@ export default function StudentProfilePage() {
     if (profileData) {
       setFirstName(profileData.firstName || "");
       setLastName(profileData.lastName || "");
-      setEmail((profileData.contactEmail as string) || user?.email || "");
+      setEmail(user?.email || "");
       setPhone((profileData.phoneNumber as string) || "");
       setLocation(profileData.location || "");
 

@@ -4,7 +4,9 @@ interface InterviewToolsHeaderProps {
   candidateCount: number;
 }
 
-export function InterviewToolsHeader({ candidateCount }: InterviewToolsHeaderProps) {
+export function InterviewToolsHeader({
+  candidateCount,
+}: InterviewToolsHeaderProps) {
   return (
     <div className="p-8 space-y-6">
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

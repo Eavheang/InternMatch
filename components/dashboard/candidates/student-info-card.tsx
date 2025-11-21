@@ -23,10 +23,14 @@ export function StudentInfoCard({ application }: StudentInfoCardProps) {
         <User className="w-4 h-4 text-indigo-500" />
         Student Information
       </div>
-      
+
       <div className="grid grid-cols-1 gap-4 pl-1">
-        <InfoRow icon={<Mail className="w-4 h-4" />} label="Email" value={user.email} />
-        
+        <InfoRow
+          icon={<Mail className="w-4 h-4" />}
+          label="Email"
+          value={user.email}
+        />
+
         {student.phoneNumber && (
           <InfoRow
             icon={<Phone className="w-4 h-4" />}
@@ -34,7 +38,7 @@ export function StudentInfoCard({ application }: StudentInfoCardProps) {
             value={student.phoneNumber}
           />
         )}
-        
+
         {student.location && (
           <InfoRow
             icon={<MapPin className="w-4 h-4" />}
@@ -42,7 +46,7 @@ export function StudentInfoCard({ application }: StudentInfoCardProps) {
             value={student.location}
           />
         )}
-        
+
         {student.university && (
           <InfoRow
             icon={<GraduationCap className="w-4 h-4" />}
@@ -50,7 +54,7 @@ export function StudentInfoCard({ application }: StudentInfoCardProps) {
             value={`${student.university}${student.major ? ` • ${student.major}` : ""}${student.graduationYear ? ` • Class of ${student.graduationYear}` : ""}`}
           />
         )}
-        
+
         {student.gpa && (
           <InfoRow
             icon={<Award className="w-4 h-4" />}
@@ -58,7 +62,7 @@ export function StudentInfoCard({ application }: StudentInfoCardProps) {
             value={student.gpa.toFixed(1)}
           />
         )}
-        
+
         {student.careerInterest && (
           <InfoRow
             icon={<Briefcase className="w-4 h-4" />}

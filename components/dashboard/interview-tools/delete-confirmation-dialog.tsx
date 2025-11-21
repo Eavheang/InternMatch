@@ -48,7 +48,8 @@ export function DeleteConfirmationDialog({
         <div className="py-4">
           <p className="text-sm text-zinc-600 leading-relaxed">
             Are you sure you want to delete all interview data for{" "}
-            <span className="font-semibold text-zinc-900">{candidateName}</span>?
+            <span className="font-semibold text-zinc-900">{candidateName}</span>
+            ?
           </p>
           <div className="mt-3 p-3 bg-red-50 rounded-lg border border-red-200">
             <p className="text-xs text-red-700 font-medium mb-2">
@@ -73,10 +74,10 @@ export function DeleteConfirmationDialog({
             Cancel
           </Button>
           <Button
-            variant="destructive"
+            variant="default"
             onClick={onConfirm}
             disabled={isDeleting}
-            className="flex-1"
+            className="flex-1 bg-red-600 hover:bg-red-500 text-white"
           >
             {isDeleting ? (
               <>

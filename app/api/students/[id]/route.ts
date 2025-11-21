@@ -29,8 +29,8 @@ export async function GET(
       );
     }
 
-    // Get student by user ID
-    const [studentWithUser] = await db
+    // Try to get student by student ID first, then by user ID
+    let studentWithUser = await db
       .select({
         student: students,
         user: {
@@ -43,15 +43,36 @@ export async function GET(
       })
       .from(students)
       .innerJoin(users, eq(users.id, students.userId))
-      .where(eq(students.userId, userId))
+      .where(eq(students.id, userId))
       .limit(1);
 
-    if (!studentWithUser?.student) {
+    // If not found by student ID, try by user ID
+    if (studentWithUser.length === 0) {
+      studentWithUser = await db
+        .select({
+          student: students,
+          user: {
+            id: users.id,
+            email: users.email,
+            role: users.role,
+            isVerified: users.isVerified,
+            createdAt: users.createdAt,
+          },
+        })
+        .from(students)
+        .innerJoin(users, eq(users.id, students.userId))
+        .where(eq(students.userId, userId))
+        .limit(1);
+    }
+
+    const studentData = studentWithUser[0];
+
+    if (!studentData?.student) {
       return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
 
-    const student = studentWithUser.student;
-    const user = studentWithUser.user;
+    const student = studentData.student;
+    const user = studentData.user;
 
     // Get related data in parallel
     const [socialLink, studentSkillsData, studentProjects, studentExperiences] =
@@ -81,6 +102,8 @@ export async function GET(
       userId: user.id,
       firstName: student.firstName,
       lastName: student.lastName,
+      email: user.email,
+      phoneNumber: student.phoneNumber,
       university: student.university,
       major: student.major,
       graduationYear: student.graduationYear,

@@ -133,7 +133,7 @@ export async function GET(
       .innerJoin(jobPostings, eq(applications.jobId, jobPostings.id))
       .where(and(...conditions));
 
-    // Get application statistics
+    // Get application statistics (filtered by the same conditions as applications)
     const stats = await db
       .select({
         status: applications.status,
@@ -141,7 +141,7 @@ export async function GET(
       })
       .from(applications)
       .innerJoin(jobPostings, eq(applications.jobId, jobPostings.id))
-      .where(eq(jobPostings.companyId, companyData.id))
+      .where(and(...conditions))
       .groupBy(applications.status);
 
     return NextResponse.json({
