@@ -99,15 +99,15 @@ export default function DashboardLayout({
         const isStudentRoute =
           pathname.includes("/resume") ||
           pathname.includes("/skills") ||
-          pathname.includes("/interview") ||
+          pathname.includes("/role-suggestions") ||
+          (pathname.includes("/interview") && !pathname.includes("/interviews")) || // /interview (singular) but not /interviews (plural)
           (pathname.includes("/applications") &&
             !pathname.includes("/candidates"));
 
         const isCompanyRoute =
           pathname.includes("/jobs/new") ||
           pathname.includes("/candidates") ||
-          pathname.includes("/interviews") ||
-          pathname.includes("/analytics");
+          pathname.includes("/interviews"); // /interviews (plural) for company
 
         // Redirect if role doesn't match route
         if (userData?.role === "student" && isCompanyRoute) {

@@ -20,6 +20,7 @@ export function DashboardSidebar({ user, profileData }: DashboardSidebarProps) {
 
   const companyMenuItems = [
     { name: "Overview", href: "/dashboard", icon: HomeIcon },
+    { name: "Profile", href: "/dashboard/company-profile", icon: UserIcon },
     { name: "Post Job", href: "/dashboard/jobs/new", icon: PlusIcon },
     { name: "Manage Jobs", href: "/dashboard/jobs", icon: BriefcaseIcon },
     { name: "Candidates", href: "/dashboard/candidates", icon: UserIcon },
@@ -28,12 +29,11 @@ export function DashboardSidebar({ user, profileData }: DashboardSidebarProps) {
       href: "/dashboard/interviews",
       icon: MessageIcon,
     },
-    { name: "Analytics", href: "/dashboard/analytics", icon: ChartIcon },
   ];
 
   const studentMenuItems = [
     { name: "Overview", href: "/dashboard", icon: HomeIcon },
-    { name: "Profile", href: "/dashboard/profile", icon: UserIcon },
+    { name: "Profile", href: "/dashboard/student-profile", icon: UserIcon },
     { name: "Resume", href: "/dashboard/resume", icon: FileIcon },
     {
       name: "Applications",
@@ -41,6 +41,7 @@ export function DashboardSidebar({ user, profileData }: DashboardSidebarProps) {
       icon: BriefcaseIcon,
     },
     { name: "Interview Prep", href: "/dashboard/interview", icon: MessageIcon },
+    { name: "Role Suggestions", href: "/dashboard/role-suggestions", icon: TargetIcon },
   ];
 
   const menuItems =
@@ -195,21 +196,6 @@ function BriefcaseIcon({ className }: { className?: string }) {
   );
 }
 
-function ChartIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      className={className}
-    >
-      <line x1="18" y1="20" x2="18" y2="10" />
-      <line x1="12" y1="20" x2="12" y2="4" />
-      <line x1="6" y1="20" x2="6" y2="14" />
-    </svg>
-  );
-}
 
 function MessageIcon({ className }: { className?: string }) {
   return (
@@ -254,6 +240,24 @@ function PlusIcon({ className }: { className?: string }) {
     >
       <line x1="12" y1="5" x2="12" y2="19" />
       <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  );
+}
+
+function TargetIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <circle cx="12" cy="12" r="10" />
+      <circle cx="12" cy="12" r="6" />
+      <circle cx="12" cy="12" r="2" />
     </svg>
   );
 }

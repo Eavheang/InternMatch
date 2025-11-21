@@ -8,10 +8,14 @@ import {
   companies,
   applicationAiReviews,
   aiGeneratedContent,
+  skills,
+  studentSkills,
+  projects,
+  experiences,
 } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and, ne } from "drizzle-orm";
 import { generateJson } from "@/lib/gemini";
-import { getAuthenticatedUser } from "@/lib/auth-helpers";
+import { verifyToken } from "@/lib/auth";
 
 type ReviewInput = {
   applicationId: string;
@@ -19,8 +23,14 @@ type ReviewInput = {
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = getAuthenticatedUser(req);
-    if (!auth.userId || auth.role !== "company") {
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const token = authHeader.split(" ")[1];
+    const decoded = await verifyToken(token);
+    
+    if (!decoded.userId || decoded.role !== "company") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -56,7 +66,7 @@ export async function POST(req: NextRequest) {
     const [meCompany] = await db
       .select()
       .from(companies)
-      .where(eq(companies.userId, auth.userId))
+      .where(eq(companies.userId, decoded.userId))
       .limit(1);
     if (!meCompany || meCompany.id !== company.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -77,34 +87,98 @@ export async function POST(req: NextRequest) {
       .where(eq(resumes.studentId, student.id))
       .orderBy(desc(resumes.isPrimary), desc(resumes.updatedAt))
       .limit(1);
-    if (!resume)
-      return NextResponse.json(
-        { error: "Resume not found for student" },
-        { status: 404 }
-      );
+
+    // Fetch student's complete profile: skills, projects, experiences
+    const [studentSkillsData, studentProjects, studentExperiences] =
+      await Promise.all([
+        db
+          .select({
+            skill: skills.name,
+          })
+          .from(studentSkills)
+          .innerJoin(skills, eq(studentSkills.skillId, skills.id))
+          .where(eq(studentSkills.studentId, student.id)),
+        db
+          .select()
+          .from(projects)
+          .where(eq(projects.studentId, student.id)),
+        db
+          .select()
+          .from(experiences)
+          .where(eq(experiences.studentId, student.id)),
+      ]);
+
+    // Fetch all open jobs from this company (excluding the current job) for alternative suggestions
+    const allCompanyJobs = await db
+      .select()
+      .from(jobPostings)
+      .where(
+        and(
+          eq(jobPostings.companyId, company.id),
+          eq(jobPostings.status, "open"),
+          ne(jobPostings.id, job.id)
+        )
+      )
+      .limit(20); // Limit to 20 jobs for AI processing
+
+    // Prepare comprehensive student profile
+    const studentProfile = {
+      ...student,
+      skills: studentSkillsData.map((item) => item.skill),
+      projects: studentProjects,
+      experiences: studentExperiences,
+      resume: resume?.structuredContent || {},
+    };
 
     const prompt = `
-You are an AI recruiter. Given the job and candidate resume, evaluate fit.
+You are an AI recruiter analyzing a student application. Evaluate how well the student matches the job they applied for, and suggest alternative jobs from the company that might be a better fit.
+
+Student Profile:
+- Name: ${student.firstName} ${student.lastName}
+- University: ${student.university || "Not specified"}
+- Major: ${student.major || "Not specified"}
+- Graduation Year: ${student.graduationYear || "Not specified"}
+- GPA: ${student.gpa || "Not specified"}
+- Location: ${student.location || "Not specified"}
+- Career Interest: ${student.careerInterest || "Not specified"}
+- About Me: ${student.aboutMe || "Not specified"}
+- Skills: ${JSON.stringify(studentProfile.skills)}
+- Projects: ${JSON.stringify(studentProjects)}
+- Experiences: ${JSON.stringify(studentExperiences)}
+- Resume Content: ${JSON.stringify(resume?.structuredContent || {}, null, 2)}
+
+Job Applied For:
+${JSON.stringify(job, null, 2)}
+
+Available Alternative Jobs at This Company:
+${JSON.stringify(allCompanyJobs, null, 2)}
+
+Analyze:
+1. Calculate a match score (0-100) for the current job application
+2. List matched skills (skills the student has that the job requires)
+3. List missing skills (skills the job requires but student doesn't have)
+4. From the available alternative jobs, suggest the TOP 3 most relevant jobs that would suit this student better, with reasons why
+5. Provide a comprehensive summary of the student's fit for the current job
+
 Return JSON: {
   matchScore: number (0-100),
   matchedSkills: string[],
   missingSkills: string[],
-  alternatives: Array<{ jobTitle: string; reason: string }>,
+  alternatives: Array<{ jobId: string; jobTitle: string; reason: string; matchScore: number }>,
   summary: string
 }
-
-Job:
-${JSON.stringify(job, null, 2)}
-
-Resume:
-${JSON.stringify(resume.structuredContent || {}, null, 2)}
 `;
 
     const result = await generateJson<{
       matchScore: number;
       matchedSkills: string[];
       missingSkills: string[];
-      alternatives: Array<{ jobTitle: string; reason: string }>;
+      alternatives: Array<{
+        jobId: string;
+        jobTitle: string;
+        reason: string;
+        matchScore: number;
+      }>;
       summary: string;
     }>(prompt);
 
@@ -128,7 +202,14 @@ ${JSON.stringify(resume.structuredContent || {}, null, 2)}
         studentId: student.id,
         companyId: company.id,
         jobId: job.id,
-        content: JSON.stringify(result),
+        content: JSON.stringify({
+          ...result,
+          studentProfile: {
+            skills: studentProfile.skills,
+            projects: studentProjects,
+            experiences: studentExperiences,
+          },
+        }),
         prompt,
         createdAt: new Date(),
       });
@@ -145,8 +226,14 @@ ${JSON.stringify(resume.structuredContent || {}, null, 2)}
 }
 export async function GET(req: NextRequest) {
   try {
-    const auth = getAuthenticatedUser(req);
-    if (!auth.userId || auth.role !== "company") {
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const token = authHeader.split(" ")[1];
+    const decoded = await verifyToken(token);
+
+    if (!decoded.userId || decoded.role !== "company") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -174,7 +261,7 @@ export async function GET(req: NextRequest) {
     const [meCompany] = await db
       .select()
       .from(companies)
-      .where(eq(companies.userId, auth.userId))
+      .where(eq(companies.userId, decoded.userId))
       .limit(1);
     if (!meCompany || meCompany.id !== row.companyId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
