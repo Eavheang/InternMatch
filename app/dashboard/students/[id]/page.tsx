@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useDashboard } from "@/components/dashboard/dashboard-context";
 import { Button } from "@/components/ui/button";
@@ -68,12 +68,7 @@ export default function StudentProfilePage() {
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!user?.id || user.role !== "company" || !studentId) return;
-    fetchStudentProfile();
-  }, [user, studentId]);
-
-  const fetchStudentProfile = async () => {
+  const fetchStudentProfile = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("internmatch_token");
@@ -100,7 +95,12 @@ export default function StudentProfilePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router, studentId]);
+
+  useEffect(() => {
+    if (!user?.id || user.role !== "company" || !studentId) return;
+    fetchStudentProfile();
+  }, [user, studentId, fetchStudentProfile]);
 
   if (user?.role !== "company") {
     return (

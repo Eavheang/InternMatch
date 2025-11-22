@@ -2,18 +2,17 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Loader2, 
-  Lightbulb, 
-  Brain, 
-  Users, 
-  Code, 
-  MessageCircle, 
+import {
+  Loader2,
+  Lightbulb,
+  Brain,
+  Users,
+  Code,
+  MessageCircle,
   Building2,
   CheckCircle2,
   Clock,
-  Target
+  Target,
 } from "lucide-react";
 
 type InterviewTips = {
@@ -42,36 +41,36 @@ export function InterviewTipsCard({
 }: InterviewTipsCardProps) {
   const tipCategories = [
     {
-      key: 'general' as keyof InterviewTips,
-      title: 'General Interview Tips',
+      key: "general" as keyof InterviewTips,
+      title: "General Interview Tips",
       icon: Target,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      borderColor: 'border-blue-200',
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
+      borderColor: "border-blue-200",
     },
     {
-      key: 'behavioral' as keyof InterviewTips,
-      title: 'Behavioral Questions',
+      key: "behavioral" as keyof InterviewTips,
+      title: "Behavioral Questions",
       icon: Users,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      borderColor: 'border-green-200',
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+      borderColor: "border-green-200",
     },
     {
-      key: 'technical' as keyof InterviewTips,
-      title: 'Technical Preparation',
+      key: "technical" as keyof InterviewTips,
+      title: "Technical Preparation",
       icon: Code,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
-      borderColor: 'border-purple-200',
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
+      borderColor: "border-purple-200",
     },
     {
-      key: 'companySpecific' as keyof InterviewTips,
+      key: "companySpecific" as keyof InterviewTips,
       title: `${companyName} Specific`,
       icon: Building2,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
-      borderColor: 'border-orange-200',
+      color: "text-orange-600",
+      bgColor: "bg-orange-50",
+      borderColor: "border-orange-200",
     },
   ];
 
@@ -113,7 +112,8 @@ export function InterviewTipsCard({
           <div className="text-center py-8">
             <Lightbulb className="w-12 h-12 mx-auto mb-4 text-zinc-300" />
             <p className="text-zinc-500 mb-4">
-              Get personalized interview tips and strategies for this specific role and company
+              Get personalized interview tips and strategies for this specific
+              role and company
             </p>
             <Button
               onClick={onGenerate}
@@ -129,7 +129,8 @@ export function InterviewTipsCard({
           <div className="text-center py-8">
             <Loader2 className="w-8 h-8 mx-auto mb-4 text-indigo-600 animate-spin" />
             <p className="text-zinc-600">
-              Analyzing company culture and role requirements to generate personalized tips...
+              Analyzing company culture and role requirements to generate
+              personalized tips...
             </p>
           </div>
         )}
@@ -141,21 +142,27 @@ export function InterviewTipsCard({
               if (!categoryTips || categoryTips.length === 0) return null;
 
               const Icon = category.icon;
-              
+
               return (
                 <div
                   key={category.key}
                   className={`p-4 rounded-lg border ${category.bgColor} ${category.borderColor}`}
                 >
-                  <h4 className={`font-semibold mb-3 flex items-center gap-2 ${category.color}`}>
+                  <h4
+                    className={`font-semibold mb-3 flex items-center gap-2 ${category.color}`}
+                  >
                     <Icon className="w-4 h-4" />
                     {category.title}
                   </h4>
                   <ul className="space-y-2">
                     {categoryTips.map((tip, index) => (
                       <li key={index} className="flex items-start gap-3">
-                        <CheckCircle2 className={`w-4 h-4 mt-0.5 flex-shrink-0 ${category.color}`} />
-                        <span className="text-sm text-zinc-700 leading-relaxed">{tip}</span>
+                        <CheckCircle2
+                          className={`w-4 h-4 mt-0.5 flex-shrink-0 ${category.color}`}
+                        />
+                        <span className="text-sm text-zinc-700 leading-relaxed">
+                          {tip}
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -175,8 +182,13 @@ export function InterviewTipsCard({
                     1
                   </div>
                   <div>
-                    <p className="font-medium text-indigo-900">Before the Interview (1-2 hours)</p>
-                    <p className="text-sm text-indigo-800">Review your notes, practice key answers, and prepare questions to ask</p>
+                    <p className="font-medium text-indigo-900">
+                      Before the Interview (1-2 hours)
+                    </p>
+                    <p className="text-sm text-indigo-800">
+                      Review your notes, practice key answers, and prepare
+                      questions to ask
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -184,8 +196,13 @@ export function InterviewTipsCard({
                     2
                   </div>
                   <div>
-                    <p className="font-medium text-indigo-900">Arrival (15 minutes early)</p>
-                    <p className="text-sm text-indigo-800">Arrive early, check in, and use the time to calm nerves and review</p>
+                    <p className="font-medium text-indigo-900">
+                      Arrival (15 minutes early)
+                    </p>
+                    <p className="text-sm text-indigo-800">
+                      Arrive early, check in, and use the time to calm nerves
+                      and review
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -193,8 +210,13 @@ export function InterviewTipsCard({
                     3
                   </div>
                   <div>
-                    <p className="font-medium text-indigo-900">During the Interview</p>
-                    <p className="text-sm text-indigo-800">Listen actively, provide specific examples, and ask thoughtful questions</p>
+                    <p className="font-medium text-indigo-900">
+                      During the Interview
+                    </p>
+                    <p className="text-sm text-indigo-800">
+                      Listen actively, provide specific examples, and ask
+                      thoughtful questions
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -202,8 +224,13 @@ export function InterviewTipsCard({
                     4
                   </div>
                   <div>
-                    <p className="font-medium text-indigo-900">After the Interview</p>
-                    <p className="text-sm text-indigo-800">Send a thank-you email within 24 hours, reiterating your interest</p>
+                    <p className="font-medium text-indigo-900">
+                      After the Interview
+                    </p>
+                    <p className="text-sm text-indigo-800">
+                      Send a thank-you email within 24 hours, reiterating your
+                      interest
+                    </p>
                   </div>
                 </div>
               </div>
@@ -216,11 +243,24 @@ export function InterviewTipsCard({
                 Good Questions to Ask
               </h4>
               <ul className="space-y-2 text-sm text-yellow-800">
-                <li>• "What does a typical day look like in this role?"</li>
-                <li>• "What are the biggest challenges facing the team right now?"</li>
-                <li>• "How do you measure success in this position?"</li>
-                <li>• "What opportunities are there for professional development?"</li>
-                <li>• "What do you enjoy most about working at {companyName}?"</li>
+                <li>
+                  • &quot;What does a typical day look like in this role?&quot;
+                </li>
+                <li>
+                  • &quot;What are the biggest challenges facing the team right
+                  now?&quot;
+                </li>
+                <li>
+                  • &quot;How do you measure success in this position?&quot;
+                </li>
+                <li>
+                  • &quot;What opportunities are there for professional
+                  development?&quot;
+                </li>
+                <li>
+                  • &quot;What do you enjoy most about working at {companyName}
+                  ?&quot;
+                </li>
               </ul>
             </div>
           </div>

@@ -38,12 +38,12 @@ interface JobHeaderProps {
   getApplicationStatusColor: (status: string) => string;
 }
 
-export function JobHeader({ 
-  job, 
-  hasApplied, 
-  applicationStatus, 
-  onApplyClick, 
-  getApplicationStatusColor 
+export function JobHeader({
+  job,
+  hasApplied,
+  applicationStatus,
+  onApplyClick,
+  getApplicationStatusColor,
 }: JobHeaderProps) {
   return (
     <Card className="border-zinc-200/80 shadow-lg">
@@ -100,9 +100,12 @@ export function JobHeader({
 
               {/* Application Status */}
               {hasApplied && applicationStatus && (
-                <div className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${getApplicationStatusColor(applicationStatus)}`}>
+                <div
+                  className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${getApplicationStatusColor(applicationStatus)}`}
+                >
                   <CheckCircle2 className="w-4 h-4 mr-1.5" />
-                  {applicationStatus.charAt(0).toUpperCase() + applicationStatus.slice(1)}
+                  {applicationStatus.charAt(0).toUpperCase() +
+                    applicationStatus.slice(1)}
                 </div>
               )}
             </div>

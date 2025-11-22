@@ -18,6 +18,7 @@ type AuthShellProps = {
   helperHref: string;
   helperCta: string;
   children: ReactNode;
+  onHelperClick?: () => void;
 };
 
 export function AuthShell({
@@ -27,6 +28,7 @@ export function AuthShell({
   helperHref,
   helperCta,
   children,
+  onHelperClick,
 }: AuthShellProps) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-indigo-50 via-white to-white px-4 py-12">
@@ -44,9 +46,18 @@ export function AuthShell({
         <CardContent>{children}</CardContent>
         <CardFooter className="mt-10">
           {helperText}{" "}
-          <Link href={helperHref} className="font-semibold text-indigo-600">
-            {helperCta}
-          </Link>
+          {onHelperClick ? (
+            <button
+              onClick={onHelperClick}
+              className="font-semibold text-indigo-600 hover:text-indigo-500"
+            >
+              {helperCta}
+            </button>
+          ) : (
+            <Link href={helperHref} className="font-semibold text-indigo-600">
+              {helperCta}
+            </Link>
+          )}
         </CardFooter>
       </Card>
     </div>

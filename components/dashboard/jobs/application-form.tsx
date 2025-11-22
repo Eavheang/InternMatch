@@ -23,7 +23,9 @@ export function ApplicationForm({
   return (
     <Card className="border-indigo-200 shadow-lg">
       <CardHeader className="pb-4 p-6">
-        <CardTitle className="text-xl text-indigo-900">Apply for {jobTitle}</CardTitle>
+        <CardTitle className="text-xl text-indigo-900">
+          Apply for {jobTitle}
+        </CardTitle>
       </CardHeader>
       <CardContent className="p-6 space-y-4">
         <div>
@@ -56,11 +58,7 @@ export function ApplicationForm({
               </>
             )}
           </Button>
-          <Button
-            variant="outline"
-            onClick={onCancel}
-            disabled={isSubmitting}
-          >
+          <Button variant="outline" onClick={onCancel} disabled={isSubmitting}>
             Cancel
           </Button>
         </div>

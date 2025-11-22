@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import {
-  applications,
-  students,
-  users,
-  jobPostings,
-  companies,
-} from "@/db/schema";
+import { applications, students, jobPostings, companies } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { getAuthenticatedUser } from "@/lib/auth-helpers";
 
@@ -82,7 +76,7 @@ export async function GET(request: NextRequest) {
         coverLetter: applications.coverLetter,
         appliedAt: applications.appliedAt,
         updatedAt: applications.updatedAt,
-        
+
         // Job details
         jobId: jobPostings.id,
         jobTitle: jobPostings.jobTitle,
@@ -96,7 +90,7 @@ export async function GET(request: NextRequest) {
         experienceLevel: jobPostings.experienceLevel,
         aiGenerated: jobPostings.aiGenerated,
         jobCreatedAt: jobPostings.createdAt,
-        
+
         // Company details
         companyId: companies.id,
         companyName: companies.companyName,
@@ -156,10 +150,13 @@ export async function GET(request: NextRequest) {
 
     // Get statistics
     const totalApplications = applicationsList.length;
-    const statusCounts = applicationsList.reduce((acc, app) => {
-      acc[app.status] = (acc[app.status] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const statusCounts = applicationsList.reduce(
+      (acc, app) => {
+        acc[app.status] = (acc[app.status] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
     return NextResponse.json({
       success: true,

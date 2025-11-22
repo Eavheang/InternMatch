@@ -9,18 +9,16 @@ CREATE TABLE "ai_generated_content" (
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "analytics" (
+CREATE TABLE "application_ai_reviews" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"company_id" uuid,
-	"total_jobs" integer DEFAULT 0,
-	"total_applications" integer DEFAULT 0,
-	"shortlisted" integer DEFAULT 0,
-	"rejected" integer DEFAULT 0,
-	"hired" integer DEFAULT 0,
-	"top_universities" json,
-	"popular_skills" json,
-	"avg_response_time" text,
-	"last_updated" timestamp DEFAULT now() NOT NULL
+	"application_id" uuid NOT NULL,
+	"company_id" uuid NOT NULL,
+	"match_score" integer,
+	"matched_skills" json,
+	"missing_skills" json,
+	"alternatives" json,
+	"summary" text,
+	"analyzed_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "applications" (
@@ -43,9 +41,14 @@ CREATE TABLE "companies" (
 	"website" text,
 	"company_logo" text,
 	"location" text,
+	"headquarters" text,
+	"other_locations" text,
 	"description" text,
+	"company_culture" text,
 	"contact_name" text,
 	"contact_email" text,
+	"contact_phone" text,
+	"has_internship_program" boolean DEFAULT false,
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
@@ -54,6 +57,15 @@ CREATE TABLE "experiences" (
 	"student_id" uuid NOT NULL,
 	"experience_title" text NOT NULL,
 	"experience_description" text
+);
+--> statement-breakpoint
+CREATE TABLE "interview_questions" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"application_id" uuid NOT NULL,
+	"company_id" uuid NOT NULL,
+	"questions" json NOT NULL,
+	"generated_from" text,
+	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "job_postings" (
@@ -80,15 +92,30 @@ CREATE TABLE "projects" (
 	"project_description" text
 );
 --> statement-breakpoint
-CREATE TABLE "resume_analysis" (
+CREATE TABLE "resume_ats_analysis" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"student_id" uuid NOT NULL,
+	"resume_id" uuid NOT NULL,
+	"application_id" uuid,
+	"job_id" uuid,
 	"ats_score" integer,
 	"keyword_match" integer,
 	"readability" integer,
 	"length" integer,
 	"suggestions" json,
+	"missing_keywords" json,
 	"analyzed_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "resumes" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"student_id" uuid NOT NULL,
+	"title" text,
+	"structured_content" json,
+	"public_url" text,
+	"file_url" text,
+	"is_primary" boolean DEFAULT false NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "skills" (
@@ -105,18 +132,27 @@ CREATE TABLE "social_links" (
 	"website" text
 );
 --> statement-breakpoint
-CREATE TABLE "student_analytics" (
+CREATE TABLE "student_interview_tips" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"application_id" uuid NOT NULL,
 	"student_id" uuid NOT NULL,
-	"total_applications" integer DEFAULT 0,
-	"shortlisted" integer DEFAULT 0,
-	"interviewed" integer DEFAULT 0,
-	"hired" integer DEFAULT 0,
-	"rejected" integer DEFAULT 0,
-	"avg_response_time" text,
-	"skill_demand" json,
-	"market_insights" json,
-	"last_updated" timestamp DEFAULT now() NOT NULL
+	"tips" json NOT NULL,
+	"job_title" text NOT NULL,
+	"company_name" text NOT NULL,
+	"industry" text,
+	"generated_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "student_practice_questions" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"application_id" uuid NOT NULL,
+	"student_id" uuid NOT NULL,
+	"questions" json NOT NULL,
+	"job_title" text NOT NULL,
+	"company_name" text NOT NULL,
+	"generated_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "student_skills" (
@@ -158,16 +194,25 @@ CREATE TABLE "users" (
 ALTER TABLE "ai_generated_content" ADD CONSTRAINT "ai_generated_content_student_id_students_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."students"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ai_generated_content" ADD CONSTRAINT "ai_generated_content_company_id_companies_id_fk" FOREIGN KEY ("company_id") REFERENCES "public"."companies"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ai_generated_content" ADD CONSTRAINT "ai_generated_content_job_id_job_postings_id_fk" FOREIGN KEY ("job_id") REFERENCES "public"."job_postings"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "analytics" ADD CONSTRAINT "analytics_company_id_companies_id_fk" FOREIGN KEY ("company_id") REFERENCES "public"."companies"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "application_ai_reviews" ADD CONSTRAINT "application_ai_reviews_application_id_applications_id_fk" FOREIGN KEY ("application_id") REFERENCES "public"."applications"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "application_ai_reviews" ADD CONSTRAINT "application_ai_reviews_company_id_companies_id_fk" FOREIGN KEY ("company_id") REFERENCES "public"."companies"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "applications" ADD CONSTRAINT "applications_student_id_students_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."students"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "applications" ADD CONSTRAINT "applications_job_id_job_postings_id_fk" FOREIGN KEY ("job_id") REFERENCES "public"."job_postings"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "companies" ADD CONSTRAINT "companies_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "experiences" ADD CONSTRAINT "experiences_student_id_students_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."students"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "interview_questions" ADD CONSTRAINT "interview_questions_application_id_applications_id_fk" FOREIGN KEY ("application_id") REFERENCES "public"."applications"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "interview_questions" ADD CONSTRAINT "interview_questions_company_id_companies_id_fk" FOREIGN KEY ("company_id") REFERENCES "public"."companies"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "job_postings" ADD CONSTRAINT "job_postings_company_id_companies_id_fk" FOREIGN KEY ("company_id") REFERENCES "public"."companies"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "projects" ADD CONSTRAINT "projects_student_id_students_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."students"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "resume_analysis" ADD CONSTRAINT "resume_analysis_student_id_students_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."students"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "resume_ats_analysis" ADD CONSTRAINT "resume_ats_analysis_resume_id_resumes_id_fk" FOREIGN KEY ("resume_id") REFERENCES "public"."resumes"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "resume_ats_analysis" ADD CONSTRAINT "resume_ats_analysis_application_id_applications_id_fk" FOREIGN KEY ("application_id") REFERENCES "public"."applications"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "resume_ats_analysis" ADD CONSTRAINT "resume_ats_analysis_job_id_job_postings_id_fk" FOREIGN KEY ("job_id") REFERENCES "public"."job_postings"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "resumes" ADD CONSTRAINT "resumes_student_id_students_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."students"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "social_links" ADD CONSTRAINT "social_links_student_id_students_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."students"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "student_analytics" ADD CONSTRAINT "student_analytics_student_id_students_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."students"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "student_interview_tips" ADD CONSTRAINT "student_interview_tips_application_id_applications_id_fk" FOREIGN KEY ("application_id") REFERENCES "public"."applications"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "student_interview_tips" ADD CONSTRAINT "student_interview_tips_student_id_students_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."students"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "student_practice_questions" ADD CONSTRAINT "student_practice_questions_application_id_applications_id_fk" FOREIGN KEY ("application_id") REFERENCES "public"."applications"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "student_practice_questions" ADD CONSTRAINT "student_practice_questions_student_id_students_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."students"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "student_skills" ADD CONSTRAINT "student_skills_student_id_students_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."students"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "student_skills" ADD CONSTRAINT "student_skills_skill_id_skills_id_fk" FOREIGN KEY ("skill_id") REFERENCES "public"."skills"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "students" ADD CONSTRAINT "students_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;

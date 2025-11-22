@@ -205,22 +205,26 @@ export function CompleteProfileFlow() {
         if (tokenParts.length === 3) {
           tokenPayload = JSON.parse(atob(tokenParts[1]));
           if (tokenPayload) {
-          console.log("Token payload:", {
-            userId: tokenPayload.userId,
-            email: tokenPayload.email,
-            role: tokenPayload.role,
-            isVerified: tokenPayload.isVerified,
-            exp: tokenPayload.exp
-              ? new Date(tokenPayload.exp * 1000).toISOString()
-              : "No expiration",
-            isExpired: tokenPayload.exp
-              ? Date.now() > tokenPayload.exp * 1000
-              : false,
-          });
+            console.log("Token payload:", {
+              userId: tokenPayload.userId,
+              email: tokenPayload.email,
+              role: tokenPayload.role,
+              isVerified: tokenPayload.isVerified,
+              exp: tokenPayload.exp
+                ? new Date(tokenPayload.exp * 1000).toISOString()
+                : "No expiration",
+              isExpired: tokenPayload.exp
+                ? Date.now() > tokenPayload.exp * 1000
+                : false,
+            });
           }
 
           // Check if token is expired
-          if (tokenPayload && tokenPayload.exp && Date.now() > tokenPayload.exp * 1000) {
+          if (
+            tokenPayload &&
+            tokenPayload.exp &&
+            Date.now() > tokenPayload.exp * 1000
+          ) {
             console.warn("Token is expired, redirecting to login");
             localStorage.removeItem("internmatch_token");
             alert("Your session has expired. Please log in again.");

@@ -43,12 +43,21 @@ export default function ResumePage() {
         },
       });
 
+      if (!response.ok) {
+        // If 404 or other error, just set analysis to null
+        setAnalysis(null);
+        return;
+      }
+
       const data = await response.json();
       if (data.success && data.analysis) {
         setAnalysis(data.analysis);
+      } else {
+        setAnalysis(null);
       }
     } catch (error) {
       console.error("Error fetching analysis:", error);
+      setAnalysis(null);
     } finally {
       setIsLoadingAnalysis(false);
     }

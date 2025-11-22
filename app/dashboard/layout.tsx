@@ -46,29 +46,27 @@ export default function DashboardLayout({
           response.status
         );
         if (!response.ok) {
-          if (response.status === 401) {
+          // Handle authentication/authorization errors - redirect to login
+          if (
+            response.status === 401 ||
+            response.status === 403 ||
+            response.status === 404
+          ) {
             console.log(
-              "[Dashboard Layout] 401 Unauthorized, redirecting to login"
+              `[Dashboard Layout] ${response.status} error, redirecting to login`
             );
             localStorage.removeItem("internmatch_token");
             router.push("/login");
             return;
           }
-          // For other errors, log and retry once, or redirect to login if no token
+          // For other errors (5xx), log and redirect to login as well
           console.warn(
             "[Dashboard Layout] Failed to load user data:",
             response.status
           );
-          const existingToken = localStorage.getItem("internmatch_token");
-          if (!existingToken) {
-            console.log(
-              "[Dashboard Layout] Token removed, redirecting to login"
-            );
-            router.push("/login");
-            return;
-          }
-          // If we have a token but got an error, it might be temporary - throw to retry
-          throw new Error(`Failed to load user: ${response.status}`);
+          localStorage.removeItem("internmatch_token");
+          router.push("/login");
+          return;
         }
 
         const data = await response.json();
@@ -162,21 +160,12 @@ export default function DashboardLayout({
         );
       } catch (error) {
         console.error("[Dashboard Layout] Auth check error:", error);
-        // Only redirect to login if it's an authentication error
-        // For network errors or other issues, don't redirect immediately
-        if (error instanceof Error && error.message.includes("401")) {
-          console.log(
-            "[Dashboard Layout] 401 error detected, redirecting to login"
-          );
-          localStorage.removeItem("internmatch_token");
-          router.push("/login");
-        } else {
-          // For other errors, log but don't redirect - might be temporary
-          console.warn(
-            "[Dashboard Layout] Non-auth error, allowing page to load"
-          );
-          setLoading(false);
-        }
+        // Redirect to login on any error - if auth fails, user should re-authenticate
+        console.log(
+          "[Dashboard Layout] Error during auth check, redirecting to login"
+        );
+        localStorage.removeItem("internmatch_token");
+        router.push("/login");
       } finally {
         setLoading(false);
       }

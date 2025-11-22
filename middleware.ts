@@ -19,11 +19,14 @@ export async function middleware(request: NextRequest) {
   });
 
   // Special case: Allow GET requests to browse jobs, companies, and students
-  const isBrowsingRoute = (
-    (pathname === "/api/job" || pathname.startsWith("/api/job?")) ||
-    (pathname === "/api/company" || pathname.startsWith("/api/company?")) ||
-    (pathname === "/api/students" || pathname.startsWith("/api/students?"))
-  ) && request.method === "GET";
+  const isBrowsingRoute =
+    (pathname === "/api/job" ||
+      pathname.startsWith("/api/job?") ||
+      pathname === "/api/company" ||
+      pathname.startsWith("/api/company?") ||
+      pathname === "/api/students" ||
+      pathname.startsWith("/api/students?")) &&
+    request.method === "GET";
 
   if (isPublicRoute || isBrowsingRoute) {
     return NextResponse.next();

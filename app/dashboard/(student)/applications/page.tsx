@@ -12,18 +12,21 @@ import {
   XCircle,
   CheckCircle2,
   Award,
-  ChevronDown,
   Calendar,
   MapPin,
-  GraduationCap,
-  ExternalLink,
   Building2,
   DollarSign,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-type ApplicationStatus = "all" | "applied" | "shortlisted" | "rejected" | "interviewed" | "hired";
+type ApplicationStatus =
+  | "all"
+  | "applied"
+  | "shortlisted"
+  | "rejected"
+  | "interviewed"
+  | "hired";
 
 type StudentApplication = {
   application: {
@@ -58,7 +61,7 @@ export default function StudentApplicationsPage() {
   const [applications, setApplications] = useState<StudentApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeStatus, setActiveStatus] = useState<ApplicationStatus>("all");
+  const [activeStatus] = useState<ApplicationStatus>("all");
   const [statistics, setStatistics] = useState({
     total: 0,
     applied: 0,
@@ -76,7 +79,7 @@ export default function StudentApplicationsPage() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const token = localStorage.getItem("internmatch_token");
       if (!token) {
         throw new Error("Authentication required");
@@ -88,35 +91,42 @@ export default function StudentApplicationsPage() {
         params.append("status", activeStatus);
       }
       params.append("limit", "50");
-      
-      const response = await fetch(`/api/student/applications?${params.toString()}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      
+
+      const response = await fetch(
+        `/api/student/applications?${params.toString()}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || "Failed to load applications");
       }
-      
+
       if (data.success) {
         setApplications(data.data.applications || []);
-        setStatistics(data.data.statistics || {
-          total: 0,
-          applied: 0,
-          shortlisted: 0,
-          interviewed: 0,
-          hired: 0,
-          rejected: 0,
-        });
+        setStatistics(
+          data.data.statistics || {
+            total: 0,
+            applied: 0,
+            shortlisted: 0,
+            interviewed: 0,
+            hired: 0,
+            rejected: 0,
+          }
+        );
       } else {
         setApplications([]);
       }
     } catch (err) {
       console.error("Error fetching applications:", err);
-      setError(err instanceof Error ? err.message : "Failed to load applications");
+      setError(
+        err instanceof Error ? err.message : "Failed to load applications"
+      );
       toast.error("Failed to load applications. Please try again.");
     } finally {
       setLoading(false);
@@ -198,8 +208,6 @@ export default function StudentApplicationsPage() {
         />
       </div>
 
-
-
       {/* Applications List */}
       <section className="space-y-4">
         {loading ? (
@@ -217,7 +225,7 @@ export default function StudentApplicationsPage() {
           <div className="rounded-2xl border border-dashed border-zinc-200 bg-white p-10 text-center">
             <Users className="w-12 h-12 text-zinc-300 mx-auto mb-4" />
             <p className="text-zinc-600 font-medium">
-              {activeStatus === "all" 
+              {activeStatus === "all"
                 ? "No applications found. Start applying to jobs to see them here!"
                 : `No ${activeStatus} applications found.`}
             </p>
@@ -347,7 +355,7 @@ function ApplicationCard({ application }: { application: StudentApplication }) {
                     </div>
                   )}
                 </div>
-                
+
                 <div>
                   <h3 className="text-xl font-bold text-zinc-900">
                     {job.jobTitle}
@@ -359,7 +367,7 @@ function ApplicationCard({ application }: { application: StudentApplication }) {
                   </p>
                 </div>
               </div>
-              
+
               <span
                 className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${status.bg} ${status.text}`}
               >
@@ -434,7 +442,6 @@ function ApplicationCard({ application }: { application: StudentApplication }) {
             >
               <FileText className="w-4 h-4" />
               View Job Details
-              <ExternalLink className="w-3 h-3 ml-auto" />
             </Button>
 
             <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-200">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import {
   useDashboard,
@@ -67,57 +67,60 @@ export default function JobCandidatesPage() {
     useState<Application | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  const fetchJobCandidates = useCallback(
+    async (currentUser: User) => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem("internmatch_token");
+        if (!token) {
+          router.push("/login");
+          return;
+        }
+
+        const params = new URLSearchParams();
+        params.append("jobId", jobId);
+        if (selectedStatus !== "all") {
+          params.append("status", selectedStatus);
+        }
+
+        const response = await fetch(
+          `/api/company/${currentUser.id}/applications?${params.toString()}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to load applications");
+        }
+
+        const applicationsList = data.data?.applications || [];
+        setApplications(applicationsList);
+        setStatistics(data.data?.statistics || []);
+
+        // Set job details from the first application (if any)
+        if (applicationsList.length > 0) {
+          setJobDetails(applicationsList[0].job);
+        } else {
+          // Fetch job details separately if no applications
+          fetchJobDetails(currentUser, jobId);
+        }
+      } catch (error) {
+        console.error("Failed to load applications:", error);
+        toast.error("Failed to load candidates. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [router, jobId, selectedStatus]
+  );
+
   useEffect(() => {
     if (!user?.id || user.role !== "company" || !jobId) return;
     fetchJobCandidates(user);
-  }, [user, jobId, selectedStatus]);
-
-  const fetchJobCandidates = async (currentUser: User) => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("internmatch_token");
-      if (!token) {
-        router.push("/login");
-        return;
-      }
-
-      const params = new URLSearchParams();
-      params.append("jobId", jobId);
-      if (selectedStatus !== "all") {
-        params.append("status", selectedStatus);
-      }
-
-      const response = await fetch(
-        `/api/company/${currentUser.id}/applications?${params.toString()}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to load applications");
-      }
-
-      const applicationsList = data.data?.applications || [];
-      setApplications(applicationsList);
-      setStatistics(data.data?.statistics || []);
-
-      // Set job details from the first application (if any)
-      if (applicationsList.length > 0) {
-        setJobDetails(applicationsList[0].job);
-      } else {
-        // Fetch job details separately if no applications
-        fetchJobDetails(currentUser, jobId);
-      }
-    } catch (error) {
-      console.error("Failed to load applications:", error);
-      toast.error("Failed to load candidates. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [user, jobId, selectedStatus, fetchJobCandidates]);
 
   const fetchJobDetails = async (currentUser: User, jobId: string) => {
     try {

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { type User, type ProfileData } from "./dashboard-context";
 
@@ -9,9 +10,24 @@ type StudentDashboardProps = {
   profileData: ProfileData | null;
 };
 
+type Job = {
+  id: string;
+  jobTitle: string;
+  jobDescription?: string;
+  companyName?: string;
+  companyLogo?: string;
+  location?: string;
+  industry?: string;
+  salaryRange?: string;
+  jobType?: string;
+  experienceLevel?: string;
+  status?: string;
+  createdAt?: string;
+  [key: string]: unknown;
+};
 
 export function StudentDashboard({ user, profileData }: StudentDashboardProps) {
-  const [recentJobs, setRecentJobs] = useState<any[]>([]);
+  const [recentJobs, setRecentJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState({
@@ -20,7 +36,7 @@ export function StudentDashboard({ user, profileData }: StudentDashboardProps) {
     totalApplications: 0,
     applicationsChange: "+0 from last week",
     interviewsScheduled: 0,
-    interviewsChange: "+0 from last week"
+    interviewsChange: "+0 from last week",
   });
 
   useEffect(() => {
@@ -28,39 +44,71 @@ export function StudentDashboard({ user, profileData }: StudentDashboardProps) {
       try {
         setLoading(true);
         setError(null);
-        
+
         // Fetch the 5 most recent open jobs
         const jobsResponse = await fetch(`/api/job?status=open&limit=5`);
 
         if (jobsResponse.ok) {
           const jobsData = await jobsResponse.json();
-          
+
           if (jobsData?.success && jobsData.data?.jobs) {
             const jobs = jobsData.data.jobs;
-            
+
             // Transform the job data for easier use
-            const transformedJobs = jobs.map((job: any) => ({
-              id: job.id,
-              jobTitle: job.jobTitle,
-              jobDescription: job.jobDescription,
-              requirements: typeof job.requirements === 'string' ? job.requirements : JSON.stringify(job.requirements),
-              benefits: typeof job.benefits === 'string' ? job.benefits : JSON.stringify(job.benefits),
-              salaryRange: job.salaryRange,
-              location: job.location,
-              jobType: job.jobType,
-              experienceLevel: job.experienceLevel,
-              createdAt: job.createdAt,
-              status: job.status,
-              companyId: job.company?.id,
-              companyName: job.company?.companyName,
-              companyLogo: job.company?.companyLogo,
-              industry: job.company?.industry,
-              companySize: job.company?.companySize,
-              website: job.company?.website
-            }));
+            const transformedJobs = jobs.map(
+              (job: {
+                id: string;
+                jobTitle: string;
+                jobDescription: string;
+                requirements?: unknown;
+                benefits?: unknown;
+                company?: {
+                  id?: string;
+                  companyName?: string;
+                  companyLogo?: string;
+                  industry?: string;
+                  companySize?: string;
+                  website?: string;
+                };
+                [key: string]: unknown;
+              }) => ({
+                id: job.id,
+                jobTitle: job.jobTitle,
+                jobDescription: job.jobDescription,
+                requirements:
+                  typeof job.requirements === "string"
+                    ? job.requirements
+                    : JSON.stringify(job.requirements),
+                benefits:
+                  typeof job.benefits === "string"
+                    ? job.benefits
+                    : JSON.stringify(job.benefits),
+                salaryRange:
+                  typeof job.salaryRange === "string"
+                    ? job.salaryRange
+                    : undefined,
+                location:
+                  typeof job.location === "string" ? job.location : undefined,
+                jobType:
+                  typeof job.jobType === "string" ? job.jobType : undefined,
+                experienceLevel:
+                  typeof job.experienceLevel === "string"
+                    ? job.experienceLevel
+                    : undefined,
+                createdAt:
+                  typeof job.createdAt === "string" ? job.createdAt : undefined,
+                status: typeof job.status === "string" ? job.status : undefined,
+                companyId: job.company?.id,
+                companyName: job.company?.companyName,
+                companyLogo: job.company?.companyLogo,
+                industry: job.company?.industry,
+                companySize: job.company?.companySize,
+                website: job.company?.website,
+              })
+            );
 
             setRecentJobs(transformedJobs);
-            
+
             // Update stats based on recent jobs
             setStats({
               activePostings: transformedJobs.length,
@@ -68,7 +116,7 @@ export function StudentDashboard({ user, profileData }: StudentDashboardProps) {
               totalApplications: 0,
               applicationsChange: "+0 from last week",
               interviewsScheduled: 0,
-              interviewsChange: "+0 from last week"
+              interviewsChange: "+0 from last week",
             });
           } else {
             setError("No jobs available at the moment");
@@ -225,13 +273,13 @@ function StatsCard({
   );
 }
 
-function RecentJobCard({ job }: { job: any }) {
+function RecentJobCard({ job }: { job: Job }) {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 1) return "1 day ago";
     if (diffDays < 7) return `${diffDays} days ago`;
     if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
@@ -240,31 +288,31 @@ function RecentJobCard({ job }: { job: any }) {
 
   const getJobTypeColor = (jobType: string | null) => {
     switch (jobType) {
-      case 'internship':
-        return 'bg-blue-100 text-blue-800';
-      case 'full-time':
-        return 'bg-green-100 text-green-800';
-      case 'part-time':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'contract':
-        return 'bg-purple-100 text-purple-800';
+      case "internship":
+        return "bg-blue-100 text-blue-800";
+      case "full-time":
+        return "bg-green-100 text-green-800";
+      case "part-time":
+        return "bg-yellow-100 text-yellow-800";
+      case "contract":
+        return "bg-purple-100 text-purple-800";
       default:
-        return 'bg-zinc-100 text-zinc-800';
+        return "bg-zinc-100 text-zinc-800";
     }
   };
 
   const getExperienceLevelColor = (level: string | null) => {
     switch (level) {
-      case 'entry':
-        return 'bg-emerald-100 text-emerald-800';
-      case 'mid':
-        return 'bg-orange-100 text-orange-800';
-      case 'senior':
-        return 'bg-red-100 text-red-800';
-      case 'executive':
-        return 'bg-indigo-100 text-indigo-800';
+      case "entry":
+        return "bg-emerald-100 text-emerald-800";
+      case "mid":
+        return "bg-orange-100 text-orange-800";
+      case "senior":
+        return "bg-red-100 text-red-800";
+      case "executive":
+        return "bg-indigo-100 text-indigo-800";
       default:
-        return 'bg-zinc-100 text-zinc-800';
+        return "bg-zinc-100 text-zinc-800";
     }
   };
 
@@ -272,101 +320,114 @@ function RecentJobCard({ job }: { job: any }) {
     <Link href={`/dashboard/jobs/${job.id}`} className="block">
       <div className="group rounded-xl border border-zinc-200 bg-white p-6 shadow-sm hover:shadow-lg hover:border-indigo-200 transition-all duration-200 cursor-pointer">
         <div className="flex items-start gap-4">
-        {/* Company Logo */}
-        <div className="flex-shrink-0">
-          {job.companyLogo ? (
-            <img
-              src={job.companyLogo}
-              alt={`${job.companyName} logo`}
-              className="w-12 h-12 rounded-lg object-cover border border-zinc-200"
-            />
-          ) : (
-            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-              <span className="text-lg font-bold text-white">
-                {job.companyName.charAt(0).toUpperCase()}
+          {/* Company Logo */}
+          <div className="flex-shrink-0">
+            {job.companyLogo ? (
+              <Image
+                src={job.companyLogo}
+                alt={`${job.companyName || "Company"} logo`}
+                width={48}
+                height={48}
+                className="w-12 h-12 rounded-lg object-cover border border-zinc-200"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                <span className="text-lg font-bold text-white">
+                  {job.companyName?.charAt(0).toUpperCase() || "?"}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Job Details */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between mb-2">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-semibold text-zinc-900 group-hover:text-indigo-600 transition-colors truncate">
+                  {job.jobTitle}
+                </h3>
+                <p className="text-sm font-medium text-zinc-600 truncate">
+                  {job.companyName}
+                </p>
+              </div>
+              <span className="text-xs text-zinc-500 ml-4 flex-shrink-0">
+                {job.createdAt && typeof job.createdAt === "string"
+                  ? formatDate(job.createdAt)
+                  : "Recently"}
               </span>
             </div>
-          )}
-        </div>
 
-        {/* Job Details */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between mb-2">
-            <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-semibold text-zinc-900 group-hover:text-indigo-600 transition-colors truncate">
-                {job.jobTitle}
-              </h3>
-              <p className="text-sm font-medium text-zinc-600 truncate">
-                {job.companyName}
-              </p>
+            {/* Job Meta Info */}
+            <div className="flex items-center gap-3 mb-3 text-sm text-zinc-500">
+              {job.location && (
+                <span className="flex items-center gap-1">
+                  <LocationIcon className="w-4 h-4" />
+                  {job.location}
+                </span>
+              )}
+              {job.industry && typeof job.industry === "string" && (
+                <span className="flex items-center gap-1">
+                  <BuildingIcon className="w-4 h-4" />
+                  {job.industry}
+                </span>
+              )}
+              {job.salaryRange && typeof job.salaryRange === "string" && (
+                <span className="flex items-center gap-1">
+                  <DollarIcon className="w-4 h-4" />
+                  {job.salaryRange}
+                </span>
+              )}
             </div>
-            <span className="text-xs text-zinc-500 ml-4 flex-shrink-0">
-              {formatDate(job.createdAt)}
-            </span>
-          </div>
 
-          {/* Job Meta Info */}
-          <div className="flex items-center gap-3 mb-3 text-sm text-zinc-500">
-            {job.location && (
-              <span className="flex items-center gap-1">
-                <LocationIcon className="w-4 h-4" />
-                {job.location}
-              </span>
-            )}
-            {job.industry && (
-              <span className="flex items-center gap-1">
-                <BuildingIcon className="w-4 h-4" />
-                {job.industry}
-              </span>
-            )}
-            {job.salaryRange && (
-              <span className="flex items-center gap-1">
-                <DollarIcon className="w-4 h-4" />
-                {job.salaryRange}
-              </span>
-            )}
-          </div>
+            {/* Job Description */}
+            <p className="text-sm text-zinc-700 mb-4 line-clamp-2 leading-relaxed">
+              {job.jobDescription || "No description available."}
+            </p>
 
-          {/* Job Description */}
-          <p className="text-sm text-zinc-700 mb-4 line-clamp-2 leading-relaxed">
-            {job.jobDescription || "No description available."}
-          </p>
+            {/* Tags */}
+            <div className="flex items-center gap-2 mb-4">
+              {job.status && typeof job.status === "string" && (
+                <span
+                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium capitalize ${
+                    job.status === "open"
+                      ? "bg-green-100 text-green-800"
+                      : job.status === "draft"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : "bg-red-100 text-red-800"
+                  }`}
+                >
+                  {job.status}
+                </span>
+              )}
+              {job.jobType && typeof job.jobType === "string" && (
+                <span
+                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium capitalize ${getJobTypeColor(job.jobType)}`}
+                >
+                  {job.jobType}
+                </span>
+              )}
+              {job.experienceLevel &&
+                typeof job.experienceLevel === "string" && (
+                  <span
+                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium capitalize ${getExperienceLevelColor(job.experienceLevel)}`}
+                  >
+                    {job.experienceLevel} Level
+                  </span>
+                )}
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">
+                <ClockIcon className="w-3 h-3 mr-1" />
+                New
+              </span>
+            </div>
 
-          {/* Tags */}
-          <div className="flex items-center gap-2 mb-4">
-            {job.status && (
-              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium capitalize ${
-                job.status === 'open' ? 'bg-green-100 text-green-800' :
-                job.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
-                'bg-red-100 text-red-800'
-              }`}>
-                {job.status}
+            {/* Action Indicator */}
+            <div className="flex items-center gap-3">
+              <span className="inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg group-hover:bg-indigo-100 transition-colors">
+                View Details & Apply
+                <ArrowRightIcon className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </span>
-            )}
-            {job.jobType && (
-              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium capitalize ${getJobTypeColor(job.jobType)}`}>
-                {job.jobType}
-              </span>
-            )}
-            {job.experienceLevel && (
-              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium capitalize ${getExperienceLevelColor(job.experienceLevel)}`}>
-                {job.experienceLevel} Level
-              </span>
-            )}
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">
-              <ClockIcon className="w-3 h-3 mr-1" />
-              New
-            </span>
+            </div>
           </div>
-
-          {/* Action Indicator */}
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg group-hover:bg-indigo-100 transition-colors">
-              View Details & Apply
-              <ArrowRightIcon className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-            </span>
-          </div>
-        </div>
         </div>
       </div>
     </Link>
@@ -376,14 +437,20 @@ function RecentJobCard({ job }: { job: any }) {
 function LocationIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
     </svg>
   );
 }
 
 function BriefcaseIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      className={className}
+    >
       <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
       <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
     </svg>
@@ -392,7 +459,13 @@ function BriefcaseIcon({ className }: { className?: string }) {
 
 function BuildingIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      className={className}
+    >
       <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
       <path d="M6 12h4v4h-4v-4Z" />
       <path d="M14 12h4v4h-4v-4Z" />
@@ -404,7 +477,13 @@ function BuildingIcon({ className }: { className?: string }) {
 
 function DollarIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      className={className}
+    >
       <line x1="12" y1="1" x2="12" y2="23" />
       <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
     </svg>
@@ -413,7 +492,13 @@ function DollarIcon({ className }: { className?: string }) {
 
 function ClockIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      className={className}
+    >
       <circle cx="12" cy="12" r="10" />
       <polyline points="12 6 12 12 16 14" />
     </svg>
@@ -422,11 +507,15 @@ function ClockIcon({ className }: { className?: string }) {
 
 function ArrowRightIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      className={className}
+    >
       <line x1="5" y1="12" x2="19" y2="12" />
       <polyline points="12 5 19 12 12 19" />
     </svg>
   );
 }
-
-

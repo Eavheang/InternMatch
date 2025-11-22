@@ -23,9 +23,10 @@ const generateMockQuestions = (jobTitle: string, companyName: string) => ({
         "Keep your answer to 2-3 minutes",
         "Focus on relevant experiences and skills",
         "Connect your background to the role requirements",
-        "End with why you're excited about this opportunity"
+        "End with why you're excited about this opportunity",
       ],
-      sampleAnswer: "Start with your current situation, highlight 2-3 relevant experiences, and explain why this role aligns with your career goals."
+      sampleAnswer:
+        "Start with your current situation, highlight 2-3 relevant experiences, and explain why this role aligns with your career goals.",
     },
     {
       question: `Describe a challenging project you worked on. How did you overcome the obstacles?`,
@@ -35,9 +36,10 @@ const generateMockQuestions = (jobTitle: string, companyName: string) => ({
         "Use the STAR method (Situation, Task, Action, Result)",
         "Choose a project relevant to the job requirements",
         "Focus on your specific contributions and problem-solving approach",
-        "Quantify the results if possible"
+        "Quantify the results if possible",
       ],
-      sampleAnswer: "Describe the situation and challenge, explain your approach and actions taken, then highlight the positive outcome and what you learned."
+      sampleAnswer:
+        "Describe the situation and challenge, explain your approach and actions taken, then highlight the positive outcome and what you learned.",
     },
     {
       question: `What do you know about ${companyName} and why do you want to work here?`,
@@ -47,9 +49,10 @@ const generateMockQuestions = (jobTitle: string, companyName: string) => ({
         "Research the company's mission, values, and recent news",
         "Mention specific aspects that appeal to you",
         "Connect your values and goals with the company's",
-        "Show genuine enthusiasm for their work"
+        "Show genuine enthusiasm for their work",
       ],
-      sampleAnswer: "Demonstrate your research by mentioning specific company initiatives, values, or achievements that resonate with you."
+      sampleAnswer:
+        "Demonstrate your research by mentioning specific company initiatives, values, or achievements that resonate with you.",
     },
     {
       question: `Where do you see yourself in 5 years?`,
@@ -59,9 +62,10 @@ const generateMockQuestions = (jobTitle: string, companyName: string) => ({
         "Show ambition but be realistic",
         "Align your goals with potential growth at the company",
         "Focus on skill development and increasing responsibility",
-        "Avoid mentioning other companies or unrelated career paths"
+        "Avoid mentioning other companies or unrelated career paths",
       ],
-      sampleAnswer: "Express desire for growth within the field, mention skills you want to develop, and show how this role fits your career trajectory."
+      sampleAnswer:
+        "Express desire for growth within the field, mention skills you want to develop, and show how this role fits your career trajectory.",
     },
     {
       question: `Describe a time when you had to work with a difficult team member. How did you handle it?`,
@@ -71,62 +75,76 @@ const generateMockQuestions = (jobTitle: string, companyName: string) => ({
         "Focus on your communication and conflict resolution skills",
         "Show empathy and understanding of different perspectives",
         "Emphasize the positive outcome and what you learned",
-        "Avoid speaking negatively about others"
+        "Avoid speaking negatively about others",
       ],
-      sampleAnswer: "Describe the situation objectively, explain your approach to understanding their perspective, and highlight how you found a collaborative solution."
-    }
+      sampleAnswer:
+        "Describe the situation objectively, explain your approach to understanding their perspective, and highlight how you found a collaborative solution.",
+    },
   ],
   createdAt: new Date().toISOString(),
 });
 
-const generateMockTips = (jobTitle: string, companyName: string, industry?: string) => ({
+const generateMockTips = (
+  jobTitle: string,
+  companyName: string,
+  industry?: string
+) => ({
   general: [
     "Research the company thoroughly, including recent news and achievements",
     "Prepare specific examples that demonstrate your skills and experience",
     "Practice your elevator pitch and key talking points out loud",
     "Prepare thoughtful questions about the role and company culture",
-    "Plan your outfit and route to the interview location in advance"
+    "Plan your outfit and route to the interview location in advance",
   ],
   behavioral: [
     "Use the STAR method (Situation, Task, Action, Result) for behavioral questions",
     "Prepare 3-5 specific examples from your experience that showcase different skills",
     "Practice telling your stories concisely while including important details",
     "Focus on your individual contributions and the impact of your actions",
-    "Be ready to discuss both successes and learning experiences"
+    "Be ready to discuss both successes and learning experiences",
   ],
   technical: [
     `Review the key technical skills mentioned in the ${jobTitle} job description`,
     "Be prepared to discuss your experience with relevant tools and technologies",
     "Practice explaining technical concepts in simple terms",
     "Prepare to walk through your problem-solving process",
-    "Be honest about your skill level and show enthusiasm for learning"
+    "Be honest about your skill level and show enthusiasm for learning",
   ],
   companySpecific: [
     `Research ${companyName}'s mission, values, and company culture`,
     `Look up recent news, projects, or achievements related to ${companyName}`,
-    `Understand ${companyName}'s position in the ${industry || 'industry'} and their competitors`,
+    `Understand ${companyName}'s position in the ${industry || "industry"} and their competitors`,
     `Prepare questions that show your genuine interest in ${companyName}'s work`,
-    `Think about how your values align with ${companyName}'s mission and culture`
-  ]
+    `Think about how your values align with ${companyName}'s mission and culture`,
+  ],
 });
 
 export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get("authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
     }
 
     const token = authHeader.split(" ")[1];
     const payload = await verifyToken(token);
     if (!payload || payload.role !== "student") {
-      return NextResponse.json({ error: "Invalid token or insufficient permissions" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Invalid token or insufficient permissions" },
+        { status: 401 }
+      );
     }
 
     const { applicationId, type } = await request.json();
 
     if (!applicationId || !type) {
-      return NextResponse.json({ error: "Application ID and type are required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Application ID and type are required" },
+        { status: 400 }
+      );
     }
 
     // Get student ID
@@ -160,7 +178,10 @@ export async function POST(request: NextRequest) {
       .limit(1);
 
     if (!application) {
-      return NextResponse.json({ error: "Application not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Application not found" },
+        { status: 404 }
+      );
     }
 
     let responseData;
@@ -221,7 +242,7 @@ export async function POST(request: NextRequest) {
         const generatedTips = generateMockTips(
           application.jobTitle,
           application.companyName,
-          application.industry
+          application.industry ?? undefined
         );
 
         // Store in database
@@ -240,7 +261,10 @@ export async function POST(request: NextRequest) {
         responseData = savedTips.tips;
       }
     } else {
-      return NextResponse.json({ error: "Invalid type. Must be 'questions' or 'tips'" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid type. Must be 'questions' or 'tips'" },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json({
@@ -260,13 +284,19 @@ export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get("authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
     }
 
     const token = authHeader.split(" ")[1];
     const payload = await verifyToken(token);
     if (!payload || payload.role !== "student") {
-      return NextResponse.json({ error: "Invalid token or insufficient permissions" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Invalid token or insufficient permissions" },
+        { status: 401 }
+      );
     }
 
     const { searchParams } = new URL(request.url);
@@ -274,7 +304,10 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get("type");
 
     if (!applicationId || !type) {
-      return NextResponse.json({ error: "Application ID and type are required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Application ID and type are required" },
+        { status: 400 }
+      );
     }
 
     // Get student ID
@@ -344,19 +377,28 @@ export async function DELETE(request: NextRequest) {
   try {
     const authHeader = request.headers.get("authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
     }
 
     const token = authHeader.split(" ")[1];
     const payload = await verifyToken(token);
     if (!payload || payload.role !== "student") {
-      return NextResponse.json({ error: "Invalid token or insufficient permissions" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Invalid token or insufficient permissions" },
+        { status: 401 }
+      );
     }
 
     const { applicationId, type } = await request.json();
 
     if (!applicationId || !type) {
-      return NextResponse.json({ error: "Application ID and type are required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Application ID and type are required" },
+        { status: 400 }
+      );
     }
 
     // Get student ID

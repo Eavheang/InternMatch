@@ -1,11 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { JobInfoRow } from "./job-info-row";
-import {
-  Briefcase,
-  CalendarDays,
-  Clock3,
-  Users,
-} from "lucide-react";
+import { Briefcase, CalendarDays, Clock3, Users } from "lucide-react";
 
 type JobDetail = {
   requirements?: {

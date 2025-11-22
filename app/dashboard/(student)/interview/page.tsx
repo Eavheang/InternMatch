@@ -61,11 +61,19 @@ export default function StudentInterviewPage() {
   const { user } = useDashboard();
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
-  const [generatingQuestionsId, setGeneratingQuestionsId] = useState<string | null>(null);
-  const [practiceQuestions, setPracticeQuestions] = useState<Record<string, PracticeQuestions>>({});
-  const [interviewTips, setInterviewTips] = useState<Record<string, InterviewTips>>({});
+  const [generatingQuestionsId, setGeneratingQuestionsId] = useState<
+    string | null
+  >(null);
+  const [practiceQuestions, setPracticeQuestions] = useState<
+    Record<string, PracticeQuestions>
+  >({});
+  const [interviewTips, setInterviewTips] = useState<
+    Record<string, InterviewTips>
+  >({});
   const [generatingTipsId, setGeneratingTipsId] = useState<string | null>(null);
-  const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
+  const [selectedApplicationId, setSelectedApplicationId] = useState<
+    string | null
+  >(null);
 
   // Filter applications that are likely to have interviews (shortlisted, interviewed)
   const interviewApplications = applications.filter(
@@ -81,62 +89,62 @@ export default function StudentInterviewPage() {
 
   // Auto-select first application if none selected
   useEffect(() => {
-    if (
-      !selectedApplicationId &&
-      interviewApplications.length > 0
-    ) {
+    if (!selectedApplicationId && interviewApplications.length > 0) {
       setSelectedApplicationId(interviewApplications[0].application.id);
     } else if (interviewApplications.length === 0) {
       setSelectedApplicationId(null);
     }
   }, [selectedApplicationId, interviewApplications]);
 
-  const fetchApplications = useCallback(async (currentUser: User) => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("internmatch_token");
-      if (!token) {
-        router.push("/login");
-        return;
-      }
+  const fetchApplications = useCallback(
+    async (_currentUser: User) => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem("internmatch_token");
+        if (!token) {
+          router.push("/login");
+          return;
+        }
 
-      const response = await fetch("/api/student/applications", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      
-      // Check if response is JSON
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("Server returned an invalid response");
-      }
-      
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to load applications");
-      }
-      const apps = data.data?.applications || [];
-      setApplications(apps);
+        const response = await fetch("/api/student/applications", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      // Filter for interview-relevant applications
-      const interviewApps = apps.filter(
-        (app: Application) =>
-          app.application.status === "shortlisted" ||
-          app.application.status === "interviewed" ||
-          app.application.status === "applied"
-      );
+        // Check if response is JSON
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("Server returned an invalid response");
+        }
 
-      if (interviewApps.length > 0 && !selectedApplicationId) {
-        setSelectedApplicationId(interviewApps[0].application.id);
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to load applications");
+        }
+        const apps = data.data?.applications || [];
+        setApplications(apps);
+
+        // Filter for interview-relevant applications
+        const interviewApps = apps.filter(
+          (app: Application) =>
+            app.application.status === "shortlisted" ||
+            app.application.status === "interviewed" ||
+            app.application.status === "applied"
+        );
+
+        if (interviewApps.length > 0 && !selectedApplicationId) {
+          setSelectedApplicationId(interviewApps[0].application.id);
+        }
+      } catch (error) {
+        console.error("Failed to load applications:", error);
+        toast.error("Failed to load applications. Please try again.");
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Failed to load applications:", error);
-      toast.error("Failed to load applications. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }, [router, selectedApplicationId]);
+    },
+    [router, selectedApplicationId]
+  );
 
   useEffect(() => {
     if (!user?.id || user.role !== "student") {
@@ -148,21 +156,30 @@ export default function StudentInterviewPage() {
               id: "mock-app-1",
               status: "shortlisted",
               appliedAt: new Date().toISOString(),
-              coverLetter: "I am very interested in this position because it aligns perfectly with my career goals and technical skills. I have experience in React, Node.js, and database management which are directly relevant to this role."
+              coverLetter:
+                "I am very interested in this position because it aligns perfectly with my career goals and technical skills. I have experience in React, Node.js, and database management which are directly relevant to this role.",
             },
             job: {
               id: "mock-job-1",
               jobTitle: "Software Engineer Intern",
-              jobDescription: "Join our engineering team to build scalable web applications",
-              requirements: ["React", "JavaScript", "Node.js", "Database Management", "Problem Solving", "Team Collaboration"]
+              jobDescription:
+                "Join our engineering team to build scalable web applications",
+              requirements: [
+                "React",
+                "JavaScript",
+                "Node.js",
+                "Database Management",
+                "Problem Solving",
+                "Team Collaboration",
+              ],
             },
             company: {
               id: "mock-company-1",
               companyName: "TechCorp",
               industry: "Technology",
-              companyLogo: undefined
-            }
-          }
+              companyLogo: undefined,
+            },
+          },
         ]);
         setSelectedApplicationId("mock-app-1");
         setLoading(false);
@@ -263,57 +280,63 @@ export default function StudentInterviewPage() {
     }
   };
 
-  const loadPracticeQuestions = async (applicationId: string) => {
-    if (!user?.id || practiceQuestions[applicationId]) return;
-    try {
-      const token = localStorage.getItem("internmatch_token");
-      if (!token) return;
+  const loadPracticeQuestions = useCallback(
+    async (applicationId: string) => {
+      if (!user?.id || practiceQuestions[applicationId]) return;
+      try {
+        const token = localStorage.getItem("internmatch_token");
+        if (!token) return;
 
-      const response = await fetch(
-        `/api/ai/student-interview-prep?applicationId=${applicationId}&type=questions`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const response = await fetch(
+          `/api/ai/student-interview-prep?applicationId=${applicationId}&type=questions`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const data = await response.json();
+        if (data.success && data.data) {
+          setPracticeQuestions((prev) => ({
+            ...prev,
+            [applicationId]: data.data,
+          }));
         }
-      );
-      const data = await response.json();
-      if (data.success && data.data) {
-        setPracticeQuestions((prev) => ({
-          ...prev,
-          [applicationId]: data.data,
-        }));
+      } catch (error) {
+        console.error("Failed to load practice questions:", error);
       }
-    } catch (error) {
-      console.error("Failed to load practice questions:", error);
-    }
-  };
+    },
+    [user?.id, practiceQuestions]
+  );
 
-  const loadInterviewTips = async (applicationId: string) => {
-    if (!user?.id || interviewTips[applicationId]) return;
-    try {
-      const token = localStorage.getItem("internmatch_token");
-      if (!token) return;
+  const loadInterviewTips = useCallback(
+    async (applicationId: string) => {
+      if (!user?.id || interviewTips[applicationId]) return;
+      try {
+        const token = localStorage.getItem("internmatch_token");
+        if (!token) return;
 
-      const response = await fetch(
-        `/api/ai/student-interview-prep?applicationId=${applicationId}&type=tips`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const response = await fetch(
+          `/api/ai/student-interview-prep?applicationId=${applicationId}&type=tips`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const data = await response.json();
+        if (data.success && data.data) {
+          setInterviewTips((prev) => ({
+            ...prev,
+            [applicationId]: data.data,
+          }));
         }
-      );
-      const data = await response.json();
-      if (data.success && data.data) {
-        setInterviewTips((prev) => ({
-          ...prev,
-          [applicationId]: data.data,
-        }));
+      } catch (error) {
+        console.error("Failed to load interview tips:", error);
       }
-    } catch (error) {
-      console.error("Failed to load interview tips:", error);
-    }
-  };
+    },
+    [user?.id, interviewTips]
+  );
 
   if (user?.role !== "student") {
     return (
@@ -348,16 +371,20 @@ export default function StudentInterviewPage() {
         <section className="flex-1 overflow-y-auto bg-zinc-50/50 p-6 lg:p-8">
           {selectedApplication ? (
             <div className="space-y-6">
-              <InterviewPreparation
-                application={selectedApplication}
-              />
+              <InterviewPreparation application={selectedApplication} />
 
               <PracticeQuestionsCard
                 jobTitle={selectedApplication.job.jobTitle}
                 companyName={selectedApplication.company.companyName}
-                questions={practiceQuestions[selectedApplication.application.id] || null}
-                isGenerating={generatingQuestionsId === selectedApplication.application.id}
-                onGenerate={() => generatePracticeQuestions(selectedApplication.application.id)}
+                questions={
+                  practiceQuestions[selectedApplication.application.id] || null
+                }
+                isGenerating={
+                  generatingQuestionsId === selectedApplication.application.id
+                }
+                onGenerate={() =>
+                  generatePracticeQuestions(selectedApplication.application.id)
+                }
               />
 
               <InterviewTipsCard
@@ -365,8 +392,12 @@ export default function StudentInterviewPage() {
                 companyName={selectedApplication.company.companyName}
                 industry={selectedApplication.company.industry}
                 tips={interviewTips[selectedApplication.application.id] || null}
-                isGenerating={generatingTipsId === selectedApplication.application.id}
-                onGenerate={() => generateInterviewTips(selectedApplication.application.id)}
+                isGenerating={
+                  generatingTipsId === selectedApplication.application.id
+                }
+                onGenerate={() =>
+                  generateInterviewTips(selectedApplication.application.id)
+                }
               />
             </div>
           ) : (
@@ -381,7 +412,8 @@ export default function StudentInterviewPage() {
                     <p className="text-sm text-zinc-500">
                       Apply to jobs to access interview preparation tools.
                       <br />
-                      Practice questions and tips will be generated based on your applications.
+                      Practice questions and tips will be generated based on
+                      your applications.
                     </p>
                   </div>
                 ) : (

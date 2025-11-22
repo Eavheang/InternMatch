@@ -62,31 +62,34 @@ export default function JobsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [jobToDelete, setJobToDelete] = useState<string | null>(null);
 
-  const fetchJobs = useCallback(async (currentUser: User) => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("internmatch_token");
-      if (!token) {
-        router.push("/login");
-        return;
+  const fetchJobs = useCallback(
+    async (currentUser: User) => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem("internmatch_token");
+        if (!token) {
+          router.push("/login");
+          return;
+        }
+        const response = await fetch(`/api/company/${currentUser.id}/job`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to load jobs");
+        }
+        setJobs(data.data?.jobs || []);
+      } catch (error) {
+        console.error("Failed to load jobs:", error);
+        toast.error("Failed to load jobs. Please try again.");
+      } finally {
+        setLoading(false);
       }
-      const response = await fetch(`/api/company/${currentUser.id}/job`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to load jobs");
-      }
-      setJobs(data.data?.jobs || []);
-    } catch (error) {
-      console.error("Failed to load jobs:", error);
-      toast.error("Failed to load jobs. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }, [router]);
+    },
+    [router]
+  );
 
   useEffect(() => {
     if (!user?.id || user.role !== "company") return;
@@ -241,9 +244,7 @@ export default function JobsPage() {
     return (
       <div className="p-8">
         <h1 className="text-3xl font-bold mb-4">Browse Jobs</h1>
-        <p className="text-zinc-500">
-          Please log in to access job features.
-        </p>
+        <p className="text-zinc-500">Please log in to access job features.</p>
       </div>
     );
   }

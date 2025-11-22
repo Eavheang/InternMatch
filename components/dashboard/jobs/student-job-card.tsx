@@ -3,10 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   MapPin,
   DollarSign,
-  Briefcase,
   Building2,
   Clock3,
-  Award,
   Sparkles,
   ArrowRight,
 } from "lucide-react";
@@ -40,7 +38,7 @@ export function StudentJobCard({ job }: StudentJobCardProps) {
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 1) return "1 day ago";
     if (diffDays < 7) return `${diffDays} days ago`;
     if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
@@ -49,31 +47,31 @@ export function StudentJobCard({ job }: StudentJobCardProps) {
 
   const getJobTypeColor = (jobType: string | null) => {
     switch (jobType) {
-      case 'internship':
-        return 'bg-blue-100 text-blue-800';
-      case 'full-time':
-        return 'bg-green-100 text-green-800';
-      case 'part-time':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'contract':
-        return 'bg-purple-100 text-purple-800';
+      case "internship":
+        return "bg-blue-100 text-blue-800";
+      case "full-time":
+        return "bg-green-100 text-green-800";
+      case "part-time":
+        return "bg-yellow-100 text-yellow-800";
+      case "contract":
+        return "bg-purple-100 text-purple-800";
       default:
-        return 'bg-zinc-100 text-zinc-800';
+        return "bg-zinc-100 text-zinc-800";
     }
   };
 
   const getExperienceLevelColor = (level: string | null) => {
     switch (level) {
-      case 'entry':
-        return 'bg-emerald-100 text-emerald-800';
-      case 'mid':
-        return 'bg-orange-100 text-orange-800';
-      case 'senior':
-        return 'bg-red-100 text-red-800';
-      case 'executive':
-        return 'bg-indigo-100 text-indigo-800';
+      case "entry":
+        return "bg-emerald-100 text-emerald-800";
+      case "mid":
+        return "bg-orange-100 text-orange-800";
+      case "senior":
+        return "bg-red-100 text-red-800";
+      case "executive":
+        return "bg-indigo-100 text-indigo-800";
       default:
-        return 'bg-zinc-100 text-zinc-800';
+        return "bg-zinc-100 text-zinc-800";
     }
   };
 
@@ -145,21 +143,29 @@ export function StudentJobCard({ job }: StudentJobCardProps) {
               {/* Tags */}
               <div className="flex items-center gap-2 mb-4">
                 {job.status && (
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium capitalize ${
-                    job.status === 'open' ? 'bg-green-100 text-green-800' :
-                    job.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium capitalize ${
+                      job.status === "open"
+                        ? "bg-green-100 text-green-800"
+                        : job.status === "draft"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-red-100 text-red-800"
+                    }`}
+                  >
                     {job.status}
                   </span>
                 )}
                 {job.jobType && (
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium capitalize ${getJobTypeColor(job.jobType)}`}>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium capitalize ${getJobTypeColor(job.jobType)}`}
+                  >
                     {job.jobType}
                   </span>
                 )}
                 {job.experienceLevel && (
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium capitalize ${getExperienceLevelColor(job.experienceLevel)}`}>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium capitalize ${getExperienceLevelColor(job.experienceLevel)}`}
+                  >
                     {job.experienceLevel} Level
                   </span>
                 )}

@@ -1,12 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { JobInfoRow } from "./job-info-row";
-import {
-  Users,
-  MapPin,
-  Globe,
-  Mail,
-  Building2,
-} from "lucide-react";
+import { Users, MapPin, Globe, Mail, Building2 } from "lucide-react";
 
 type Company = {
   id: string;

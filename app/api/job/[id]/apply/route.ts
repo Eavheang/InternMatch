@@ -9,6 +9,7 @@ import {
 } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getAuthenticatedUser } from "@/lib/auth-helpers";
+import { sendApplicationNotificationToCompany } from "@/lib/email";
 
 // POST - Apply for a job
 export async function POST(
@@ -61,7 +62,9 @@ export async function POST(
         jobTitle: jobPostings.jobTitle,
         companyId: jobPostings.companyId,
         company: {
+          id: companies.id,
           companyName: companies.companyName,
+          userId: companies.userId,
         },
       })
       .from(jobPostings)
@@ -166,6 +169,33 @@ export async function POST(
         updatedAt: new Date(),
       })
       .returning();
+
+    // Send email notification to company
+    try {
+      // Get company user email
+      const [companyUser] = await db
+        .select({ email: users.email })
+        .from(users)
+        .where(eq(users.id, jobData.company.userId))
+        .limit(1);
+
+      if (companyUser) {
+        const studentName = `${studentData.firstName} ${studentData.lastName}`;
+        await sendApplicationNotificationToCompany(
+          companyUser.email,
+          jobData.company.companyName,
+          studentName,
+          jobData.jobTitle,
+          jobId
+        );
+      }
+    } catch (emailError) {
+      // Don't fail the application if email fails
+      console.error(
+        "Failed to send application notification email:",
+        emailError
+      );
+    }
 
     return NextResponse.json({
       success: true,

@@ -52,7 +52,8 @@ export function ApplicationsSidebar({
     return (
       app.job.jobTitle.toLowerCase().includes(searchLower) ||
       app.company.companyName.toLowerCase().includes(searchLower) ||
-      (app.company.industry && app.company.industry.toLowerCase().includes(searchLower))
+      (app.company.industry &&
+        app.company.industry.toLowerCase().includes(searchLower))
     );
   });
 
@@ -83,7 +84,9 @@ export function ApplicationsSidebar({
           <div className="p-6 text-center text-zinc-500">
             <Briefcase className="w-12 h-12 mx-auto mb-3 opacity-20" />
             <p className="text-sm">
-              {searchQuery ? "No applications match your search" : "No applications found"}
+              {searchQuery
+                ? "No applications match your search"
+                : "No applications found"}
             </p>
           </div>
         ) : (
@@ -117,12 +120,13 @@ export function ApplicationsSidebar({
                     <Badge
                       variant="outline"
                       className={`text-xs ${
-                        statusColors[app.application.status as keyof typeof statusColors] ||
-                        "bg-zinc-100 text-zinc-800 border-zinc-200"
+                        statusColors[
+                          app.application.status as keyof typeof statusColors
+                        ] || "bg-zinc-100 text-zinc-800 border-zinc-200"
                       }`}
                     >
-                      {app.application.status.charAt(0).toUpperCase() + 
-                       app.application.status.slice(1)}
+                      {app.application.status.charAt(0).toUpperCase() +
+                        app.application.status.slice(1)}
                     </Badge>
                     <div className="flex items-center gap-1 text-xs text-zinc-500">
                       <Calendar className="w-3 h-3" />

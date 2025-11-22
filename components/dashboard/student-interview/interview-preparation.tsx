@@ -44,7 +44,9 @@ const statusColors = {
   rejected: "bg-red-100 text-red-800 border-red-200",
 };
 
-export function InterviewPreparation({ application }: InterviewPreparationProps) {
+export function InterviewPreparation({
+  application,
+}: InterviewPreparationProps) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -94,14 +96,15 @@ export function InterviewPreparation({ application }: InterviewPreparationProps)
           <Badge
             variant="outline"
             className={`${
-              statusColors[application.application.status as keyof typeof statusColors] ||
-              "bg-zinc-100 text-zinc-800 border-zinc-200"
+              statusColors[
+                application.application.status as keyof typeof statusColors
+              ] || "bg-zinc-100 text-zinc-800 border-zinc-200"
             }`}
           >
             <div className="flex items-center gap-1">
               {getStatusIcon(application.application.status)}
-              {application.application.status.charAt(0).toUpperCase() + 
-               application.application.status.slice(1)}
+              {application.application.status.charAt(0).toUpperCase() +
+                application.application.status.slice(1)}
             </div>
           </Badge>
         </div>
@@ -117,15 +120,19 @@ export function InterviewPreparation({ application }: InterviewPreparationProps)
               </h3>
               <div className="space-y-2">
                 <p className="text-sm">
-                  <span className="font-medium">Role:</span> {application.job.jobTitle}
+                  <span className="font-medium">Role:</span>{" "}
+                  {application.job.jobTitle}
                 </p>
                 <div className="flex items-center gap-2">
                   <Building2 className="w-3 h-3 text-zinc-400" />
-                  <span className="text-sm text-zinc-600">{application.company.companyName}</span>
+                  <span className="text-sm text-zinc-600">
+                    {application.company.companyName}
+                  </span>
                 </div>
                 {application.company.industry && (
                   <p className="text-sm">
-                    <span className="font-medium">Industry:</span> {application.company.industry}
+                    <span className="font-medium">Industry:</span>{" "}
+                    {application.company.industry}
                   </p>
                 )}
               </div>
@@ -140,10 +147,13 @@ export function InterviewPreparation({ application }: InterviewPreparationProps)
               </h3>
               <div className="space-y-2">
                 <p className="text-sm">
-                  <span className="font-medium">Applied:</span> {formatDate(application.application.appliedAt)}
+                  <span className="font-medium">Applied:</span>{" "}
+                  {formatDate(application.application.appliedAt)}
                 </p>
                 <p className="text-sm">
-                  <span className="font-medium">Status:</span> {application.application.status.charAt(0).toUpperCase() + application.application.status.slice(1)}
+                  <span className="font-medium">Status:</span>{" "}
+                  {application.application.status.charAt(0).toUpperCase() +
+                    application.application.status.slice(1)}
                 </p>
               </div>
             </div>
@@ -151,39 +161,49 @@ export function InterviewPreparation({ application }: InterviewPreparationProps)
         </div>
 
         {/* Job Requirements Preview */}
-        {application.job.requirements && application.job.requirements.length > 0 && (
-          <div>
-            <h3 className="font-semibold text-zinc-900 mb-3">Key Requirements to Discuss</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {application.job.requirements.slice(0, 6).map((requirement, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 p-2 bg-zinc-50 rounded-lg"
-                >
-                  <CheckCircle2 className="w-3 h-3 text-green-600 flex-shrink-0" />
-                  <span className="text-sm text-zinc-700">{requirement}</span>
-                </div>
-              ))}
+        {application.job.requirements &&
+          application.job.requirements.length > 0 && (
+            <div>
+              <h3 className="font-semibold text-zinc-900 mb-3">
+                Key Requirements to Discuss
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {application.job.requirements
+                  .slice(0, 6)
+                  .map((requirement, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-2 p-2 bg-zinc-50 rounded-lg"
+                    >
+                      <CheckCircle2 className="w-3 h-3 text-green-600 flex-shrink-0" />
+                      <span className="text-sm text-zinc-700">
+                        {requirement}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+              {application.job.requirements.length > 6 && (
+                <p className="text-xs text-zinc-500 mt-2">
+                  +{application.job.requirements.length - 6} more requirements
+                </p>
+              )}
             </div>
-            {application.job.requirements.length > 6 && (
-              <p className="text-xs text-zinc-500 mt-2">
-                +{application.job.requirements.length - 6} more requirements
-              </p>
-            )}
-          </div>
-        )}
+          )}
 
         {/* Cover Letter Preview */}
         {application.application.coverLetter && (
           <div>
-            <h3 className="font-semibold text-zinc-900 mb-3">Your Cover Letter</h3>
+            <h3 className="font-semibold text-zinc-900 mb-3">
+              Your Cover Letter
+            </h3>
             <div className="p-4 bg-zinc-50 rounded-lg border">
               <p className="text-sm text-zinc-700 line-clamp-4">
                 {application.application.coverLetter}
               </p>
             </div>
             <p className="text-xs text-zinc-500 mt-2">
-              Review your cover letter to prepare talking points about your motivation and qualifications.
+              Review your cover letter to prepare talking points about your
+              motivation and qualifications.
             </p>
           </div>
         )}

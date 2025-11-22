@@ -1,14 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { students, resumeAnalysis } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { students, resumes, resumeAtsAnalysis } from "@/db/schema";
+import { eq, and, desc } from "drizzle-orm";
 import { verifyToken } from "@/lib/auth";
 import { generateJson } from "@/lib/openai";
 
-// POST: Analyze uploaded resume PDF and store ATS score
-export async function POST(req: NextRequest) {
+// Ensure this runs in Node.js runtime (required for pdf2json)
+export const runtime = "nodejs";
+
+// Dynamic import for pdf2json (CommonJS module)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let PDFParser: any;
+async function getPDFParser() {
+  if (!PDFParser) {
+    const pdf2jsonModule = await import("pdf2json");
+    PDFParser = pdf2jsonModule.default || pdf2jsonModule;
+  }
+  return PDFParser;
+}
+
+// GET: Fetch the latest analysis for the student's uploaded resume
+export async function GET(req: NextRequest) {
   try {
-    // Verify token
     const authHeader = req.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
@@ -29,7 +42,119 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if user is a student
+    if (decoded.role !== "student") {
+      return NextResponse.json(
+        { error: "Only students can access this endpoint" },
+        { status: 403 }
+      );
+    }
+
+    // Get student record
+    const [student] = await db
+      .select()
+      .from(students)
+      .where(eq(students.userId, decoded.userId))
+      .limit(1);
+
+    if (!student) {
+      return NextResponse.json({ error: "Student not found" }, { status: 404 });
+    }
+
+    if (!student.resumeUrl) {
+      return NextResponse.json(
+        { success: true, analysis: null },
+        { status: 200 }
+      );
+    }
+
+    // Find or create a resume record for the uploaded PDF
+    let resume = await db
+      .select()
+      .from(resumes)
+      .where(
+        and(
+          eq(resumes.studentId, student.id),
+          eq(resumes.fileUrl, student.resumeUrl)
+        )
+      )
+      .limit(1)
+      .then((results) => results[0] || null);
+
+    // If no resume record exists, create one
+    if (!resume) {
+      const [newResume] = await db
+        .insert(resumes)
+        .values({
+          studentId: student.id,
+          title: "Uploaded Resume",
+          fileUrl: student.resumeUrl,
+          publicUrl: student.resumeUrl,
+          isPrimary: true,
+        })
+        .returning();
+      resume = newResume;
+    }
+
+    // Get the latest analysis for this resume
+    const [analysis] = await db
+      .select()
+      .from(resumeAtsAnalysis)
+      .where(eq(resumeAtsAnalysis.resumeId, resume.id))
+      .orderBy(desc(resumeAtsAnalysis.analyzedAt))
+      .limit(1);
+
+    if (!analysis) {
+      return NextResponse.json(
+        { success: true, analysis: null },
+        { status: 200 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      analysis: {
+        id: analysis.id,
+        atsScore: analysis.atsScore,
+        keywordMatch: analysis.keywordMatch,
+        readability: analysis.readability,
+        length: analysis.length,
+        suggestions: analysis.suggestions,
+        missingKeywords: analysis.missingKeywords,
+        analyzedAt: analysis.analyzedAt,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching resume analysis:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to fetch analysis" },
+      { status: 500 }
+    );
+  }
+}
+
+// POST: Analyze the student's uploaded resume PDF
+export async function POST(req: NextRequest) {
+  try {
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "Authorization token required" },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.substring(7);
+    let decoded;
+    try {
+      decoded = await verifyToken(token);
+    } catch (error) {
+      console.error("Token verification error:", error);
+      return NextResponse.json(
+        { error: "Invalid or expired token" },
+        { status: 401 }
+      );
+    }
+
     if (decoded.role !== "student") {
       return NextResponse.json(
         { error: "Only students can analyze resumes" },
@@ -43,11 +168,11 @@ export async function POST(req: NextRequest) {
       .from(students)
       .where(eq(students.userId, decoded.userId))
       .limit(1);
+
     if (!student) {
       return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
 
-    // Check if student has a resume uploaded
     if (!student.resumeUrl) {
       return NextResponse.json(
         { error: "No resume uploaded. Please upload a resume first." },
@@ -55,282 +180,161 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Fetch PDF from Cloudinary URL
-    let pdfBuffer: Buffer;
-    try {
-      // Fetch with broader Accept header to handle Cloudinary responses
-      const pdfResponse = await fetch(student.resumeUrl, {
-        headers: {
-          Accept: "application/pdf, application/octet-stream, */*",
-        },
-      });
-
-      if (!pdfResponse.ok) {
-        throw new Error(
-          `Failed to fetch resume PDF: ${pdfResponse.status} ${pdfResponse.statusText}`
-        );
-      }
-
-      // Log content type for debugging
-      const contentType = pdfResponse.headers.get("content-type") || "";
-      console.log("PDF Content-Type from Cloudinary:", contentType);
-
-      // Get the response as array buffer
-      const arrayBuffer = await pdfResponse.arrayBuffer();
-      pdfBuffer = Buffer.from(arrayBuffer);
-
-      // Validate PDF by checking magic number (%PDF)
-      if (pdfBuffer.length < 4) {
-        throw new Error("File is too small to be a valid PDF");
-      }
-
-      const pdfHeader = pdfBuffer.slice(0, 4).toString("ascii");
-      if (pdfHeader !== "%PDF") {
-        console.error(
-          "Invalid PDF header:",
-          pdfHeader,
-          "First 20 bytes:",
-          pdfBuffer.slice(0, 20).toString("hex")
-        );
-        return NextResponse.json(
-          {
-            error:
-              "The file does not appear to be a valid PDF. Please ensure the resume was uploaded correctly.",
-          },
-          { status: 400 }
-        );
-      }
-
-      console.log(
-        `Successfully fetched PDF (${pdfBuffer.length} bytes, header: ${pdfHeader})`
-      );
-    } catch (error) {
-      console.error("Error fetching PDF:", error);
+    // Fetch PDF from Cloudinary
+    const pdfResponse = await fetch(student.resumeUrl);
+    if (!pdfResponse.ok) {
       return NextResponse.json(
-        {
-          error: `Failed to fetch resume PDF: ${error instanceof Error ? error.message : "Unknown error"}`,
-        },
+        { error: "Failed to fetch resume PDF" },
         { status: 500 }
       );
     }
 
-    // Extract text from PDF using pdf2json (pure Node.js, no browser APIs)
-    let resumeText: string;
-    try {
-      // Use pdf2json for Node.js environment (no browser dependencies)
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const PDFParser = require("pdf2json");
+    const pdfBuffer = Buffer.from(await pdfResponse.arrayBuffer());
 
-      // Create parser instance
-      const pdfParser = new PDFParser(null, 1);
+    // Parse PDF to extract text
+    const PDFParserClass = await getPDFParser();
+    const pdfParser = new PDFParserClass(null, 1);
+    const pdfText = await new Promise<string>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error("PDF parsing timeout"));
+      }, 30000); // 30 second timeout
 
-      // Parse PDF buffer
-      const parsePromise = new Promise<string>((resolve, reject) => {
-        pdfParser.on(
-          "pdfParser_dataError",
-          (errData: { parserError: Error }) => {
-            reject(
-              new Error(`PDF parsing error: ${errData.parserError.message}`)
-            );
-          }
-        );
-
-        pdfParser.on(
-          "pdfParser_dataReady",
-          (pdfData: {
-            Pages: Array<{ Texts: Array<{ R: Array<{ T: string }> }> }>;
-          }) => {
-            try {
-              // Extract text from all pages
-              const textParts: string[] = [];
-
-              if (pdfData && pdfData.Pages) {
-                for (const page of pdfData.Pages) {
-                  if (page.Texts) {
-                    const pageTexts: string[] = [];
-                    for (const textObj of page.Texts) {
-                      if (textObj.R && Array.isArray(textObj.R)) {
-                        for (const run of textObj.R) {
-                          if (run.T) {
-                            // Decode URI component if needed
-                            try {
-                              pageTexts.push(decodeURIComponent(run.T));
-                            } catch {
-                              pageTexts.push(run.T);
-                            }
-                          }
-                        }
-                      }
+      pdfParser.on("pdfParser_dataError", (err: Error) => {
+        clearTimeout(timeout);
+        reject(err);
+      });
+      pdfParser.on("pdfParser_dataReady", (pdfData: unknown) => {
+        clearTimeout(timeout);
+        let text = "";
+        if (pdfData && typeof pdfData === "object" && "Pages" in pdfData) {
+          for (const page of (pdfData as { Pages: unknown[] }).Pages) {
+            if (page && typeof page === "object" && "Texts" in page) {
+              for (const textItem of (page as { Texts: unknown[] }).Texts) {
+                if (
+                  textItem &&
+                  typeof textItem === "object" &&
+                  "R" in textItem
+                ) {
+                  for (const r of (textItem as { R: unknown[] }).R) {
+                    if (r && typeof r === "object" && "T" in r) {
+                      text += decodeURIComponent((r as { T: string }).T) + " ";
                     }
-                    textParts.push(pageTexts.join(" "));
                   }
                 }
               }
-
-              const extractedText = textParts.join("\n\n");
-              resolve(extractedText);
-            } catch (err) {
-              reject(
-                err instanceof Error
-                  ? err
-                  : new Error("Failed to extract text from parsed PDF")
-              );
             }
           }
-        );
-
-        // Parse the buffer
-        pdfParser.parseBuffer(pdfBuffer);
+        }
+        resolve(text.trim());
       });
-
-      resumeText = await parsePromise;
-
-      if (!resumeText || resumeText.trim().length === 0) {
-        return NextResponse.json(
-          {
-            error:
-              "Could not extract text from PDF. Please ensure the PDF contains readable text.",
-          },
-          { status: 400 }
-        );
+      try {
+        pdfParser.parseBuffer(pdfBuffer);
+      } catch (err) {
+        clearTimeout(timeout);
+        reject(err);
       }
-    } catch (error) {
-      console.error("PDF parsing error:", error);
+    });
+
+    if (!pdfText || pdfText.trim().length === 0) {
       return NextResponse.json(
-        {
-          error: `Failed to parse PDF: ${error instanceof Error ? error.message : "Unknown error"}. Please ensure it's a valid PDF file.`,
-        },
-        { status: 500 }
+        { error: "Could not extract text from PDF" },
+        { status: 400 }
       );
     }
 
-    // Analyze resume using AI
+    // Use AI to analyze the resume
     const prompt = `
-You are an expert Resume ATS Optimizer. Analyze the following resume text extracted from a PDF and provide a comprehensive ATS score and feedback.
+You are an expert Resume ATS Optimizer. Analyze the following resume text and provide a score and specific improvements.
 
 Return JSON with this structure:
 {
   "atsScore": number (0-100),
   "keywordMatch": number (0-100),
   "readability": number (0-100),
-  "length": number (word count),
-  "summary": "string (brief overview of the resume quality)",
-  "missingKeywords": ["string"] (common keywords that might be missing),
+  "structureScore": number (0-100),
+  "length": number (approximate word count),
+  "summary": "string (brief overview)",
+  "missingKeywords": ["string"],
   "suggestions": [
-    { "field": "string (e.g., Summary, Experience, Skills)", "advice": "string" }
+    { "field": "string (e.g., Summary, Experience)", "advice": "string" }
   ]
 }
 
 Resume Text:
-${resumeText}
+${pdfText.substring(0, 8000)}${pdfText.length > 8000 ? "..." : ""}
 `;
 
-    const analysisResult = await generateJson<{
+    const aiResult = await generateJson<{
       atsScore: number;
       keywordMatch: number;
       readability: number;
+      structureScore: number;
       length: number;
-      summary: string;
       missingKeywords: string[];
       suggestions: Array<{ field: string; advice: string }>;
+      summary: string;
     }>(prompt);
 
-    // Store analysis in database
-    const [savedAnalysis] = await db
-      .insert(resumeAnalysis)
+    // Find or create a resume record for the uploaded PDF
+    let resume = await db
+      .select()
+      .from(resumes)
+      .where(
+        and(
+          eq(resumes.studentId, student.id),
+          eq(resumes.fileUrl, student.resumeUrl)
+        )
+      )
+      .limit(1)
+      .then((results) => results[0] || null);
+
+    // If no resume record exists, create one
+    if (!resume) {
+      const [newResume] = await db
+        .insert(resumes)
+        .values({
+          studentId: student.id,
+          title: "Uploaded Resume",
+          fileUrl: student.resumeUrl,
+          publicUrl: student.resumeUrl,
+          isPrimary: true,
+        })
+        .returning();
+      resume = newResume;
+    }
+
+    // Store the analysis
+    const [analysis] = await db
+      .insert(resumeAtsAnalysis)
       .values({
-        studentId: student.id,
-        atsScore: analysisResult.atsScore,
-        keywordMatch: analysisResult.keywordMatch,
-        readability: analysisResult.readability,
-        length: analysisResult.length,
-        suggestions: analysisResult.suggestions,
+        resumeId: resume.id,
+        atsScore: aiResult.atsScore,
+        keywordMatch: aiResult.keywordMatch,
+        readability: aiResult.readability,
+        length: aiResult.length,
+        suggestions: aiResult.suggestions,
+        missingKeywords: aiResult.missingKeywords,
         analyzedAt: new Date(),
       })
       .returning();
 
     return NextResponse.json({
       success: true,
-      analysis: savedAnalysis,
-      data: analysisResult,
+      analysis: {
+        id: analysis.id,
+        atsScore: analysis.atsScore,
+        keywordMatch: analysis.keywordMatch,
+        readability: analysis.readability,
+        length: analysis.length,
+        suggestions: analysis.suggestions,
+        missingKeywords: analysis.missingKeywords,
+        analyzedAt: analysis.analyzedAt,
+      },
     });
-  } catch (e: unknown) {
+  } catch (error) {
+    console.error("Error analyzing resume:", error);
     const errorMessage =
-      e instanceof Error ? e.message : "Failed to analyze resume";
-    console.error("Resume analysis error:", e);
-    return NextResponse.json(
-      { success: false, error: errorMessage },
-      { status: 500 }
-    );
-  }
-}
-
-// GET: Fetch stored ATS analysis for the student
-export async function GET(req: NextRequest) {
-  try {
-    // Verify token
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json(
-        { error: "Authorization token required" },
-        { status: 401 }
-      );
-    }
-
-    const token = authHeader.substring(7);
-    let decoded;
-    try {
-      decoded = await verifyToken(token);
-    } catch (error) {
-      console.error("Token verification error:", error);
-      return NextResponse.json(
-        { error: "Invalid or expired token" },
-        { status: 401 }
-      );
-    }
-
-    // Check if user is a student
-    if (decoded.role !== "student") {
-      return NextResponse.json(
-        { error: "Only students can view resume analysis" },
-        { status: 403 }
-      );
-    }
-
-    // Get student record
-    const [student] = await db
-      .select()
-      .from(students)
-      .where(eq(students.userId, decoded.userId))
-      .limit(1);
-    if (!student) {
-      return NextResponse.json({ error: "Student not found" }, { status: 404 });
-    }
-
-    // Fetch latest analysis
-    const analyses = await db
-      .select()
-      .from(resumeAnalysis)
-      .where(eq(resumeAnalysis.studentId, student.id))
-      .orderBy(desc(resumeAnalysis.analyzedAt))
-      .limit(1);
-
-    if (analyses.length === 0) {
-      return NextResponse.json({
-        success: true,
-        analysis: null,
-        message: "No analysis found. Please analyze your resume first.",
-      });
-    }
-
-    return NextResponse.json({
-      success: true,
-      analysis: analyses[0],
-    });
-  } catch (e: unknown) {
-    const errorMessage =
-      e instanceof Error ? e.message : "Failed to fetch resume analysis";
-    console.error("Fetch analysis error:", e);
+      error instanceof Error ? error.message : "Failed to analyze resume";
     return NextResponse.json(
       { success: false, error: errorMessage },
       { status: 500 }

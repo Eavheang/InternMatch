@@ -106,13 +106,15 @@ export default function JobDetailPage() {
     status: "draft",
   });
   const [isSavingEdit, setIsSavingEdit] = useState(false);
-  
+
   // Student-specific state
-  const [hasApplied, setHasApplied] = useState(false);
-  const [applicationStatus, setApplicationStatus] = useState<string | null>(null);
-  const [isApplying, setIsApplying] = useState(false);
+  const [_hasApplied, _setHasApplied] = useState(false);
+  const [_applicationStatus, _setApplicationStatus] = useState<string | null>(
+    null
+  );
+  const [_isApplying, _setIsApplying] = useState(false);
   const [coverLetter, setCoverLetter] = useState("");
-  const [showApplicationForm, setShowApplicationForm] = useState(false);
+  const [_showApplicationForm, _setShowApplicationForm] = useState(false);
 
   useEffect(() => {
     if (!user?.id || !params?.jobId) return;
@@ -149,7 +151,7 @@ export default function JobDetailPage() {
     try {
       setLoading(true);
       const token = localStorage.getItem("internmatch_token");
-      
+
       // Fetch job details
       const jobResponse = await fetch(`/api/job/${jobId}`, {
         headers: {
@@ -171,9 +173,9 @@ export default function JobDetailPage() {
       });
       const applicationData = await applicationResponse.json();
       if (applicationResponse.ok && applicationData.data) {
-        setHasApplied(applicationData.data.hasApplied);
+        _setHasApplied(applicationData.data.hasApplied);
         if (applicationData.data.application) {
-          setApplicationStatus(applicationData.data.application.status);
+          _setApplicationStatus(applicationData.data.application.status);
         }
       }
     } catch (err) {
@@ -213,11 +215,11 @@ export default function JobDetailPage() {
     setIsEditOpen(true);
   };
 
-  const handleJobApplication = async () => {
+  const _handleJobApplication = async () => {
     if (!params?.jobId) return;
-    
+
     try {
-      setIsApplying(true);
+      _setIsApplying(true);
       const token = localStorage.getItem("internmatch_token");
       const response = await fetch(`/api/job/${params.jobId}/apply`, {
         method: "POST",
@@ -229,22 +231,24 @@ export default function JobDetailPage() {
           coverLetter: coverLetter.trim() || null,
         }),
       });
-      
+
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || "Failed to submit application");
       }
-      
-      setHasApplied(true);
-      setApplicationStatus("applied");
-      setShowApplicationForm(false);
+
+      _setHasApplied(true);
+      _setApplicationStatus("applied");
+      _setShowApplicationForm(false);
       setCoverLetter("");
       toast.success("Application submitted successfully!");
     } catch (err) {
       console.error("Failed to submit application", err);
-      toast.error(err instanceof Error ? err.message : "Failed to submit application");
+      toast.error(
+        err instanceof Error ? err.message : "Failed to submit application"
+      );
     } finally {
-      setIsApplying(false);
+      _setIsApplying(false);
     }
   };
 

@@ -97,20 +97,25 @@ export async function POST(req: NextRequest) {
     // If we have suggestions from within the last 24 hours, return them instead of generating new ones
     if (existingSuggestions.length > 0) {
       const lastSuggestion = existingSuggestions[0];
-      const hoursSinceGenerated = (Date.now() - lastSuggestion.createdAt.getTime()) / (1000 * 60 * 60);
-      
+      const hoursSinceGenerated =
+        (Date.now() - lastSuggestion.createdAt.getTime()) / (1000 * 60 * 60);
+
       if (hoursSinceGenerated < 24) {
-        console.log(`Returning existing suggestions (generated ${hoursSinceGenerated.toFixed(1)} hours ago)`);
+        console.log(
+          `Returning existing suggestions (generated ${hoursSinceGenerated.toFixed(1)} hours ago)`
+        );
         const content = JSON.parse(lastSuggestion.content);
         return NextResponse.json({
           success: true,
           data: content,
-          studentInfo: content.studentProfile ? {
-            name: content.studentProfile.name,
-            major: content.studentProfile.major,
-            university: content.studentProfile.university,
-            graduationYear: content.studentProfile.graduationYear,
-          } : null,
+          studentInfo: content.studentProfile
+            ? {
+                name: content.studentProfile.name,
+                major: content.studentProfile.major,
+                university: content.studentProfile.university,
+                graduationYear: content.studentProfile.graduationYear,
+              }
+            : null,
           fromCache: true,
         });
       }

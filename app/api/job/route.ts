@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
       .offset(offset ? parseInt(offset) : 0);
 
     // Transform the results to match the expected structure
-    const transformedJobs = jobs.map(job => ({
+    const transformedJobs = jobs.map((job) => ({
       id: job.id,
       jobTitle: job.jobTitle,
       jobDescription: job.jobDescription,

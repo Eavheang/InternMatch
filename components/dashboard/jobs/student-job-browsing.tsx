@@ -43,7 +43,7 @@ export function StudentJobBrowsing() {
   const [jobs, setJobs] = useState<StudentJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Search state
   const [search, setSearch] = useState("");
 
@@ -55,19 +55,19 @@ export function StudentJobBrowsing() {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Build query parameters - only fetch open jobs
       const params = new URLSearchParams();
       params.append("status", "open"); // Only show open jobs
       params.append("limit", "50"); // Get more jobs for browsing
-      
+
       const response = await fetch(`/api/job?${params.toString()}`);
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || "Failed to load jobs");
       }
-      
+
       if (data.success && data.data?.jobs) {
         setJobs(data.data.jobs);
       } else {
@@ -85,14 +85,15 @@ export function StudentJobBrowsing() {
   // Filter jobs by search term
   const filteredJobs = useMemo(() => {
     if (!search.trim()) return jobs;
-    
+
     const searchLower = search.toLowerCase();
-    return jobs.filter((job) => 
-      job.jobTitle.toLowerCase().includes(searchLower) ||
-      job.company.companyName.toLowerCase().includes(searchLower) ||
-      job.jobDescription.toLowerCase().includes(searchLower) ||
-      job.company.industry?.toLowerCase().includes(searchLower) ||
-      job.location?.toLowerCase().includes(searchLower)
+    return jobs.filter(
+      (job) =>
+        job.jobTitle.toLowerCase().includes(searchLower) ||
+        job.company.companyName.toLowerCase().includes(searchLower) ||
+        job.jobDescription.toLowerCase().includes(searchLower) ||
+        job.company.industry?.toLowerCase().includes(searchLower) ||
+        job.location?.toLowerCase().includes(searchLower)
     );
   }, [jobs, search]);
 
@@ -108,16 +109,14 @@ export function StudentJobBrowsing() {
             Browse Internships & Jobs
           </h1>
           <p className="text-sm text-zinc-500 mt-2">
-            Discover exciting opportunities from top companies looking for talented students like you.
+            Discover exciting opportunities from top companies looking for
+            talented students like you.
           </p>
         </div>
       </header>
 
       {/* Search */}
-      <StudentJobFilters
-        search={search}
-        onSearchChange={setSearch}
-      />
+      <StudentJobFilters search={search} onSearchChange={setSearch} />
 
       {/* Results Summary */}
       <div className="flex items-center justify-between">

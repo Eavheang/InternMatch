@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   useDashboard,
@@ -130,10 +130,55 @@ export default function InterviewToolsPage() {
     }
   }, [selectedApplicationId, selectedApplication, activeApplications]);
 
+  const fetchApplications = useCallback(
+    async (currentUser: User) => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem("internmatch_token");
+        if (!token) {
+          router.push("/login");
+          return;
+        }
+
+        const response = await fetch(
+          `/api/company/${currentUser.id}/applications`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to load applications");
+        }
+        const apps = data.data?.applications || [];
+        setApplications(apps);
+
+        // Filter active applications for initial selection
+        const activeApps = apps.filter(
+          (app: { application: { status: string } }) =>
+            app.application.status !== "hired" &&
+            app.application.status !== "rejected"
+        );
+
+        if (activeApps.length > 0 && !selectedApplicationId) {
+          setSelectedApplicationId(activeApps[0].application.id);
+        }
+      } catch (error) {
+        console.error("Failed to load applications:", error);
+        toast.error("Failed to load applications. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [router, selectedApplicationId]
+  );
+
   useEffect(() => {
     if (!user?.id || user.role !== "company") return;
     fetchApplications(user);
-  }, [user]);
+  }, [user, fetchApplications]);
 
   useEffect(() => {
     if (selectedApplicationId) {
@@ -142,48 +187,6 @@ export default function InterviewToolsPage() {
       loadRoleSuggestions(selectedApplicationId);
     }
   }, [selectedApplicationId]);
-
-  const fetchApplications = async (currentUser: User) => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("internmatch_token");
-      if (!token) {
-        router.push("/login");
-        return;
-      }
-
-      const response = await fetch(
-        `/api/company/${currentUser.id}/applications`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to load applications");
-      }
-      const apps = data.data?.applications || [];
-      setApplications(apps);
-
-      // Filter active applications for initial selection
-      const activeApps = apps.filter(
-        (app: { application: { status: string } }) =>
-          app.application.status !== "hired" &&
-          app.application.status !== "rejected"
-      );
-
-      if (activeApps.length > 0 && !selectedApplicationId) {
-        setSelectedApplicationId(activeApps[0].application.id);
-      }
-    } catch (error) {
-      console.error("Failed to load applications:", error);
-      toast.error("Failed to load applications. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const analyzeApplication = async (applicationId: string) => {
     if (!user?.id) return;
@@ -279,53 +282,59 @@ export default function InterviewToolsPage() {
     }
   };
 
-  const loadReview = async (applicationId: string) => {
-    if (!user?.id || reviews[applicationId]) return;
-    try {
-      const token = localStorage.getItem("internmatch_token");
-      const response = await fetch(
-        `/api/ai/review?applicationId=${applicationId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+  const loadReview = useCallback(
+    async (applicationId: string) => {
+      if (!user?.id || reviews[applicationId]) return;
+      try {
+        const token = localStorage.getItem("internmatch_token");
+        const response = await fetch(
+          `/api/ai/review?applicationId=${applicationId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const data = await response.json();
+        if (data.success && data.data?.length > 0) {
+          setReviews((prev) => ({
+            ...prev,
+            [applicationId]: data.data[0],
+          }));
         }
-      );
-      const data = await response.json();
-      if (data.success && data.data?.length > 0) {
-        setReviews((prev) => ({
-          ...prev,
-          [applicationId]: data.data[0],
-        }));
+      } catch (error) {
+        console.error("Failed to load review:", error);
       }
-    } catch (error) {
-      console.error("Failed to load review:", error);
-    }
-  };
+    },
+    [user?.id, reviews]
+  );
 
-  const loadQuestions = async (applicationId: string) => {
-    if (!user?.id || questions[applicationId]) return;
-    try {
-      const token = localStorage.getItem("internmatch_token");
-      const response = await fetch(
-        `/api/ai/interview?applicationId=${applicationId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+  const loadQuestions = useCallback(
+    async (applicationId: string) => {
+      if (!user?.id || questions[applicationId]) return;
+      try {
+        const token = localStorage.getItem("internmatch_token");
+        const response = await fetch(
+          `/api/ai/interview?applicationId=${applicationId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const data = await response.json();
+        if (data.success && data.data?.length > 0) {
+          setQuestions((prev) => ({
+            ...prev,
+            [applicationId]: data.data[0],
+          }));
         }
-      );
-      const data = await response.json();
-      if (data.success && data.data?.length > 0) {
-        setQuestions((prev) => ({
-          ...prev,
-          [applicationId]: data.data[0],
-        }));
+      } catch (error) {
+        console.error("Failed to load questions:", error);
       }
-    } catch (error) {
-      console.error("Failed to load questions:", error);
-    }
-  };
+    },
+    [user?.id, questions]
+  );
 
   const generateRoleSuggestions = async (applicationId: string) => {
     if (!user?.id) return;
@@ -369,33 +378,38 @@ export default function InterviewToolsPage() {
     }
   };
 
-  const loadRoleSuggestions = async (applicationId: string) => {
-    if (!user?.id || roleSuggestions[applicationId]) return;
-    try {
-      const token = localStorage.getItem("internmatch_token");
-      const app = applications.find((a) => a.application.id === applicationId);
-      if (!app) return;
+  const loadRoleSuggestions = useCallback(
+    async (applicationId: string) => {
+      if (!user?.id || roleSuggestions[applicationId]) return;
+      try {
+        const token = localStorage.getItem("internmatch_token");
+        const app = applications.find(
+          (a) => a.application.id === applicationId
+        );
+        if (!app) return;
 
-      const response = await fetch(
-        `/api/ai/role-suggestions?studentId=${app.student.id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const response = await fetch(
+          `/api/ai/role-suggestions?studentId=${app.student.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const data = await response.json();
+        if (data.success && data.data?.length > 0) {
+          // The content is already parsed in the API response
+          setRoleSuggestions((prev) => ({
+            ...prev,
+            [applicationId]: data.data[0].content,
+          }));
         }
-      );
-      const data = await response.json();
-      if (data.success && data.data?.length > 0) {
-        // The content is already parsed in the API response
-        setRoleSuggestions((prev) => ({
-          ...prev,
-          [applicationId]: data.data[0].content,
-        }));
+      } catch (error) {
+        console.error("Failed to load role suggestions:", error);
       }
-    } catch (error) {
-      console.error("Failed to load role suggestions:", error);
-    }
-  };
+    },
+    [user?.id, roleSuggestions, applications]
+  );
 
   const deleteInterviewData = async (applicationId: string) => {
     if (!user?.id) return;

@@ -12,7 +12,7 @@ interface JobRequirementsProps {
 }
 
 export function JobRequirements({ requirements }: JobRequirementsProps) {
-  const hasAnyRequirements = 
+  const hasAnyRequirements =
     (requirements.qualifications && requirements.qualifications.length > 0) ||
     (requirements.skills && requirements.skills.length > 0) ||
     (requirements.responsibilities && requirements.responsibilities.length > 0);
@@ -27,23 +27,31 @@ export function JobRequirements({ requirements }: JobRequirementsProps) {
         <CardTitle className="text-xl">Requirements</CardTitle>
       </CardHeader>
       <CardContent className="p-6 space-y-6">
-        {requirements.qualifications && requirements.qualifications.length > 0 && (
-          <div>
-            <h4 className="font-semibold text-zinc-900 mb-3">Qualifications</h4>
-            <ul className="space-y-2">
-              {requirements.qualifications.map((qual, index) => (
-                <li key={index} className="flex items-start gap-2 text-zinc-700">
-                  <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                  {qual}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        {requirements.qualifications &&
+          requirements.qualifications.length > 0 && (
+            <div>
+              <h4 className="font-semibold text-zinc-900 mb-3">
+                Qualifications
+              </h4>
+              <ul className="space-y-2">
+                {requirements.qualifications.map((qual, index) => (
+                  <li
+                    key={index}
+                    className="flex items-start gap-2 text-zinc-700"
+                  >
+                    <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    {qual}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
         {requirements.skills && requirements.skills.length > 0 && (
           <div>
-            <h4 className="font-semibold text-zinc-900 mb-3">Required Skills</h4>
+            <h4 className="font-semibold text-zinc-900 mb-3">
+              Required Skills
+            </h4>
             <div className="flex flex-wrap gap-2">
               {requirements.skills.map((skill, index) => (
                 <span
@@ -57,19 +65,25 @@ export function JobRequirements({ requirements }: JobRequirementsProps) {
           </div>
         )}
 
-        {requirements.responsibilities && requirements.responsibilities.length > 0 && (
-          <div>
-            <h4 className="font-semibold text-zinc-900 mb-3">Responsibilities</h4>
-            <ul className="space-y-2">
-              {requirements.responsibilities.map((resp, index) => (
-                <li key={index} className="flex items-start gap-2 text-zinc-700">
-                  <CheckCircle2 className="w-4 h-4 text-indigo-600 mt-0.5 flex-shrink-0" />
-                  {resp}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        {requirements.responsibilities &&
+          requirements.responsibilities.length > 0 && (
+            <div>
+              <h4 className="font-semibold text-zinc-900 mb-3">
+                Responsibilities
+              </h4>
+              <ul className="space-y-2">
+                {requirements.responsibilities.map((resp, index) => (
+                  <li
+                    key={index}
+                    className="flex items-start gap-2 text-zinc-700"
+                  >
+                    <CheckCircle2 className="w-4 h-4 text-indigo-600 mt-0.5 flex-shrink-0" />
+                    {resp}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
       </CardContent>
     </Card>
   );

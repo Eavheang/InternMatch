@@ -1,15 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  CheckCircle2,
-  Clock3,
-  User,
-  Award,
-  XCircle,
-  List,
-} from "lucide-react";
+import { CheckCircle2, Clock3, User, Award, XCircle, List } from "lucide-react";
 
-type ApplicationStatus = "all" | "applied" | "shortlisted" | "rejected" | "interviewed" | "hired";
+type ApplicationStatus =
+  | "all"
+  | "applied"
+  | "shortlisted"
+  | "rejected"
+  | "interviewed"
+  | "hired";
 
 interface ApplicationStatusFilterProps {
   activeStatus: ApplicationStatus;
@@ -87,7 +86,7 @@ export function ApplicationStatusFilter({
           {statusOptions.map((option) => {
             const Icon = option.icon;
             const isActive = activeStatus === option.key;
-            
+
             return (
               <Button
                 key={option.key}
@@ -102,11 +101,11 @@ export function ApplicationStatusFilter({
               >
                 <Icon className="w-4 h-4" />
                 <span className="font-medium">{option.label}</span>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                  isActive
-                    ? "bg-white/20"
-                    : "bg-zinc-100 text-zinc-700"
-                }`}>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                    isActive ? "bg-white/20" : "bg-zinc-100 text-zinc-700"
+                  }`}
+                >
                   {option.count}
                 </span>
               </Button>

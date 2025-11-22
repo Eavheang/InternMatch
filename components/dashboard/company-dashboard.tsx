@@ -107,7 +107,22 @@ export function CompanyDashboard({ profileData }: CompanyDashboardProps) {
 
         if (jobsResponse.ok) {
           const jobsData = await jobsResponse.json();
-          setJobPostings(jobsData.data?.jobs || []);
+          // Map applicationCount to applicantCount
+          const mappedJobs = (jobsData.data?.jobs || []).map(
+            (job: {
+              id: string;
+              jobTitle: string;
+              location?: string;
+              createdAt: string;
+              status: string;
+              applicationCount?: number;
+              [key: string]: unknown;
+            }) => ({
+              ...job,
+              applicantCount: job.applicationCount || 0,
+            })
+          );
+          setJobPostings(mappedJobs);
         }
 
         if (studentsResponse.ok) {

@@ -3,7 +3,14 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, MessageSquare, Brain, Lightbulb, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Loader2,
+  MessageSquare,
+  Brain,
+  Lightbulb,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { useState } from "react";
 
 type PracticeQuestions = {
@@ -49,7 +56,9 @@ export function PracticeQuestionsCard({
   onGenerate,
   onRegenerate,
 }: PracticeQuestionsCardProps) {
-  const [expandedQuestions, setExpandedQuestions] = useState<Set<number>>(new Set());
+  const [expandedQuestions, setExpandedQuestions] = useState<Set<number>>(
+    new Set()
+  );
 
   const toggleQuestion = (index: number) => {
     const newExpanded = new Set(expandedQuestions);
@@ -98,7 +107,8 @@ export function PracticeQuestionsCard({
           <div className="text-center py-8">
             <MessageSquare className="w-12 h-12 mx-auto mb-4 text-zinc-300" />
             <p className="text-zinc-500 mb-4">
-              Generate personalized interview questions based on this job posting
+              Generate personalized interview questions based on this job
+              posting
             </p>
             <Button
               onClick={onGenerate}
@@ -114,7 +124,8 @@ export function PracticeQuestionsCard({
           <div className="text-center py-8">
             <Loader2 className="w-8 h-8 mx-auto mb-4 text-indigo-600 animate-spin" />
             <p className="text-zinc-600">
-              Analyzing job requirements and generating personalized questions...
+              Analyzing job requirements and generating personalized
+              questions...
             </p>
           </div>
         )}
@@ -127,7 +138,8 @@ export function PracticeQuestionsCard({
               </p>
               <div className="flex items-center gap-3">
                 <p className="text-xs text-zinc-500">
-                  Generated on {new Date(questions.createdAt).toLocaleDateString()}
+                  Generated on{" "}
+                  {new Date(questions.createdAt).toLocaleDateString()}
                 </p>
                 {onRegenerate && (
                   <Button
@@ -162,8 +174,9 @@ export function PracticeQuestionsCard({
                         <Badge
                           variant="outline"
                           className={`text-xs ${
-                            categoryColors[q.category.toLowerCase() as keyof typeof categoryColors] ||
-                            categoryColors.general
+                            categoryColors[
+                              q.category.toLowerCase() as keyof typeof categoryColors
+                            ] || categoryColors.general
                           }`}
                         >
                           {q.category}
@@ -171,8 +184,9 @@ export function PracticeQuestionsCard({
                         <Badge
                           variant="outline"
                           className={`text-xs ${
-                            difficultyColors[q.difficulty.toLowerCase() as keyof typeof difficultyColors] ||
-                            difficultyColors.medium
+                            difficultyColors[
+                              q.difficulty.toLowerCase() as keyof typeof difficultyColors
+                            ] || difficultyColors.medium
                           }`}
                         >
                           {q.difficulty}
@@ -207,7 +221,10 @@ export function PracticeQuestionsCard({
                           </h5>
                           <ul className="space-y-1">
                             {q.tips.map((tip, tipIndex) => (
-                              <li key={tipIndex} className="text-sm text-zinc-600 flex items-start gap-2">
+                              <li
+                                key={tipIndex}
+                                className="text-sm text-zinc-600 flex items-start gap-2"
+                              >
                                 <span className="w-1 h-1 bg-zinc-400 rounded-full mt-2 flex-shrink-0" />
                                 {tip}
                               </li>
@@ -219,12 +236,17 @@ export function PracticeQuestionsCard({
                       {/* Sample Answer */}
                       {q.sampleAnswer && (
                         <div>
-                          <h5 className="font-medium text-zinc-900 mb-2">Sample Answer Framework</h5>
+                          <h5 className="font-medium text-zinc-900 mb-2">
+                            Sample Answer Framework
+                          </h5>
                           <div className="p-3 bg-zinc-50 rounded-lg border">
-                            <p className="text-sm text-zinc-700">{q.sampleAnswer}</p>
+                            <p className="text-sm text-zinc-700">
+                              {q.sampleAnswer}
+                            </p>
                           </div>
                           <p className="text-xs text-zinc-500 mt-2">
-                            Use this as a framework and personalize with your own experiences.
+                            Use this as a framework and personalize with your
+                            own experiences.
                           </p>
                         </div>
                       )}
@@ -238,8 +260,14 @@ export function PracticeQuestionsCard({
               <h4 className="font-medium text-blue-900 mb-2">Practice Tips</h4>
               <ul className="text-sm text-blue-800 space-y-1">
                 <li>• Practice answering out loud, not just in your head</li>
-                <li>• Use the STAR method (Situation, Task, Action, Result) for behavioral questions</li>
-                <li>• Prepare specific examples from your experience for each question</li>
+                <li>
+                  • Use the STAR method (Situation, Task, Action, Result) for
+                  behavioral questions
+                </li>
+                <li>
+                  • Prepare specific examples from your experience for each
+                  question
+                </li>
                 <li>• Time yourself to ensure concise, focused answers</li>
               </ul>
             </div>

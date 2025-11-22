@@ -62,10 +62,12 @@ export default function StudentJobView() {
   const [job, setJob] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Application state
   const [hasApplied, setHasApplied] = useState(false);
-  const [applicationStatus, setApplicationStatus] = useState<string | null>(null);
+  const [applicationStatus, setApplicationStatus] = useState<string | null>(
+    null
+  );
   const [isApplying, setIsApplying] = useState(false);
   const [coverLetter, setCoverLetter] = useState("");
   const [showApplicationForm, setShowApplicationForm] = useState(false);
@@ -79,7 +81,7 @@ export default function StudentJobView() {
     try {
       setLoading(true);
       const token = localStorage.getItem("internmatch_token");
-      
+
       // Fetch job details
       const jobResponse = await fetch(`/api/job/${jobId}`, {
         headers: {
@@ -116,7 +118,7 @@ export default function StudentJobView() {
 
   const handleJobApplication = async () => {
     if (!params?.jobId) return;
-    
+
     try {
       setIsApplying(true);
       const token = localStorage.getItem("internmatch_token");
@@ -130,12 +132,12 @@ export default function StudentJobView() {
           coverLetter: coverLetter.trim() || null,
         }),
       });
-      
+
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || "Failed to submit application");
       }
-      
+
       setHasApplied(true);
       setApplicationStatus("applied");
       setShowApplicationForm(false);
@@ -143,7 +145,9 @@ export default function StudentJobView() {
       toast.success("Application submitted successfully!");
     } catch (err) {
       console.error("Failed to submit application", err);
-      toast.error(err instanceof Error ? err.message : "Failed to submit application");
+      toast.error(
+        err instanceof Error ? err.message : "Failed to submit application"
+      );
     } finally {
       setIsApplying(false);
     }
@@ -272,23 +276,19 @@ export default function StudentJobView() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             <JobDescription description={job.jobDescription} />
-            
+
             {job.requirements && (
               <JobRequirements requirements={job.requirements} />
             )}
-            
-            {job.benefits && (
-              <JobBenefits benefits={job.benefits} />
-            )}
+
+            {job.benefits && <JobBenefits benefits={job.benefits} />}
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
             <JobDetailsSidebar job={job} formatDate={formatDate} />
-            
-            {job.company && (
-              <CompanyInfoCard company={job.company} />
-            )}
+
+            {job.company && <CompanyInfoCard company={job.company} />}
           </div>
         </div>
       </div>

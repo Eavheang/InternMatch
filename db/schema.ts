@@ -161,53 +161,11 @@ export const applications = pgTable("applications", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Analytics table
-export const analytics = pgTable("analytics", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  companyId: uuid("company_id").references(() => companies.id, {
-    onDelete: "cascade",
-  }),
-  totalJobs: integer("total_jobs").default(0),
-  totalApplications: integer("total_applications").default(0),
-  shortlisted: integer("shortlisted").default(0),
-  rejected: integer("rejected").default(0),
-  hired: integer("hired").default(0),
-  topUniversities: json("top_universities"),
-  popularSkills: json("popular_skills"),
-  avgResponseTime: text("avg_response_time"),
-  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
-});
+// Analytics table - REMOVED (unused)
 
-// Student analytics table
-export const studentAnalytics = pgTable("student_analytics", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  studentId: uuid("student_id")
-    .notNull()
-    .references(() => students.id, { onDelete: "cascade" }),
-  totalApplications: integer("total_applications").default(0),
-  shortlisted: integer("shortlisted").default(0),
-  interviewed: integer("interviewed").default(0),
-  hired: integer("hired").default(0),
-  rejected: integer("rejected").default(0),
-  avgResponseTime: text("avg_response_time"),
-  skillDemand: json("skill_demand"),
-  marketInsights: json("market_insights"),
-  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
-});
+// Student analytics table - REMOVED (unused)
 
-// Resume analysis table
-export const resumeAnalysis = pgTable("resume_analysis", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  studentId: uuid("student_id")
-    .notNull()
-    .references(() => students.id, { onDelete: "cascade" }),
-  atsScore: integer("ats_score"),
-  keywordMatch: integer("keyword_match"),
-  readability: integer("readability"),
-  length: integer("length"),
-  suggestions: json("suggestions"),
-  analyzedAt: timestamp("analyzed_at").defaultNow().notNull(),
-});
+// Resume analysis table - REMOVED (replaced by resumeAtsAnalysis)
 
 // AI generated content table
 export const aiGeneratedContent = pgTable("ai_generated_content", {
@@ -377,8 +335,6 @@ export const studentsRelations = relations(students, ({ one, many }) => ({
   projects: many(projects),
   experiences: many(experiences),
   applications: many(applications),
-  analytics: many(studentAnalytics),
-  resumeAnalysis: many(resumeAnalysis),
 }));
 
 export const socialLinksRelations = relations(socialLinks, ({ one }) => ({
@@ -423,7 +379,6 @@ export const companiesRelations = relations(companies, ({ one, many }) => ({
     references: [users.id],
   }),
   jobPostings: many(jobPostings),
-  analytics: many(analytics),
 }));
 
 export const jobPostingsRelations = relations(jobPostings, ({ one, many }) => ({
@@ -445,47 +400,13 @@ export const applicationsRelations = relations(applications, ({ one }) => ({
   }),
 }));
 
-export const analyticsRelations = relations(analytics, ({ one }) => ({
-  company: one(companies, {
-    fields: [analytics.companyId],
-    references: [companies.id],
-  }),
-}));
+// analyticsRelations - REMOVED (unused)
 
-export const studentAnalyticsRelations = relations(
-  studentAnalytics,
-  ({ one }) => ({
-    student: one(students, {
-      fields: [studentAnalytics.studentId],
-      references: [students.id],
-    }),
-  })
-);
+// studentAnalyticsRelations - REMOVED (unused)
 
-export const resumeAnalysisRelations = relations(resumeAnalysis, ({ one }) => ({
-  student: one(students, {
-    fields: [resumeAnalysis.studentId],
-    references: [students.id],
-  }),
-}));
+// resumeAnalysisRelations - REMOVED (unused)
 
-export const aiGeneratedContentRelations = relations(
-  aiGeneratedContent,
-  ({ one }) => ({
-    student: one(students, {
-      fields: [aiGeneratedContent.studentId],
-      references: [students.id],
-    }),
-    company: one(companies, {
-      fields: [aiGeneratedContent.companyId],
-      references: [companies.id],
-    }),
-    job: one(jobPostings, {
-      fields: [aiGeneratedContent.jobId],
-      references: [jobPostings.id],
-    }),
-  })
-);
+// aiGeneratedContentRelations - REMOVED (unused - no queries use these relations)
 
 // Student Interview Preparation Tables
 
