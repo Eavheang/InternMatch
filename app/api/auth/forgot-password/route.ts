@@ -1,74 +1,65 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { users } from '@/db/schema';
-import { eq } from 'drizzle-orm';
-import { generateResetToken, validateEmail } from '@/lib/auth';
-import { sendPasswordResetEmail } from '@/lib/email';
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import crypto from "crypto";
+import { sendPasswordResetEmail } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { email } = body;
+    const { email } = await request.json();
 
-    // Validate required fields
     if (!email) {
-      return NextResponse.json(
-        { error: 'Email is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
-    // Validate email format
-    if (!validateEmail(email)) {
-      return NextResponse.json(
-        { error: 'Invalid email format' },
-        { status: 400 }
-      );
-    }
-
-    // Find user by email
+    // Check if user exists
     const [user] = await db
       .select()
       .from(users)
-      .where(eq(users.email, email))
+      .where(eq(users.email, email.toLowerCase()))
       .limit(1);
 
-    // Always return success to prevent email enumeration
-    // But only send email if user exists
-    if (user) {
-      // Generate reset token
-      const resetToken = generateResetToken();
-      const resetExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
-
-      // Update user with reset token
-      await db
-        .update(users)
-        .set({
-          verificationCode: resetToken, // Store token instead of code
-          verificationExpires: resetExpires,
-        })
-        .where(eq(users.id, user.id));
-
-      // Send reset email with link
-      const emailSent = await sendPasswordResetEmail(email, resetToken);
-      
-      if (!emailSent) {
-        return NextResponse.json(
-          { error: 'Failed to send password reset email' },
-          { status: 500 }
-        );
-      }
+    // Always return success to prevent email enumeration attacks
+    if (!user) {
+      return NextResponse.json({
+        success: true,
+        message:
+          "If an account with that email exists, we've sent a password reset link.",
+      });
     }
 
-    // Always return success message (security best practice)
-    return NextResponse.json({
-      message: 'If an account with that email exists, a password reset link has been sent.',
-    }, { status: 200 });
+    // Generate reset code (6-digit number)
+    const resetCode = crypto.randomInt(100000, 999999).toString();
+    const resetExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
+    // Update user with reset code
+    await db
+      .update(users)
+      .set({
+        verificationCode: resetCode,
+        verificationExpires: resetExpires,
+      })
+      .where(eq(users.id, user.id));
+
+    // Send password reset email
+    const emailResult = await sendPasswordResetEmail(email, resetCode);
+
+    if (!emailResult.success) {
+      console.error("Failed to send password reset email:", emailResult.error);
+      // Don't fail the request - still return success for security
+      // But log the error for debugging
+    }
+
+    return NextResponse.json({
+      success: true,
+      message:
+        "If an account with that email exists, we've sent a password reset link.",
+    });
   } catch (error) {
-    console.error('Password reset request error:', error);
+    console.error("Forgot password error:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

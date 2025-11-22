@@ -29,11 +29,7 @@ type Step5ReviewProps = {
   onSubmit: () => void;
 };
 
-export function Step5Review({
-  data,
-  onPrevious,
-  onSubmit,
-}: Step5ReviewProps) {
+export function Step5Review({ data, onPrevious, onSubmit }: Step5ReviewProps) {
   // Debug: Log data received
   console.log("Step5 Review - Received data:", data);
   console.log("Step5 Review - Projects:", data.projects);
@@ -42,7 +38,9 @@ export function Step5Review({
   return (
     <div className="rounded-2xl bg-white p-8 shadow-sm">
       <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-zinc-900">Review Your Profile</h2>
+        <h2 className="text-2xl font-semibold text-zinc-900">
+          Review Your Profile
+        </h2>
         <p className="mt-2 text-zinc-600">
           Please review your information before submitting
         </p>
@@ -51,19 +49,29 @@ export function Step5Review({
       <div className="space-y-6">
         {/* Education Section */}
         <div className="rounded-lg border border-zinc-200 bg-white p-6">
-          <h3 className="mb-4 text-lg font-semibold text-zinc-900">Education</h3>
+          <h3 className="mb-4 text-lg font-semibold text-zinc-900">
+            Education
+          </h3>
           <div className="space-y-2 text-sm">
             <div>
               <span className="font-medium text-zinc-700">University:</span>{" "}
-              <span className="text-zinc-600">{data.university || "Not provided"}</span>
+              <span className="text-zinc-600">
+                {data.university || "Not provided"}
+              </span>
             </div>
             <div>
               <span className="font-medium text-zinc-700">Major:</span>{" "}
-              <span className="text-zinc-600">{data.major || "Not provided"}</span>
+              <span className="text-zinc-600">
+                {data.major || "Not provided"}
+              </span>
             </div>
             <div>
-              <span className="font-medium text-zinc-700">Graduation Year:</span>{" "}
-              <span className="text-zinc-600">{data.graduationYear || "Not provided"}</span>
+              <span className="font-medium text-zinc-700">
+                Graduation Year:
+              </span>{" "}
+              <span className="text-zinc-600">
+                {data.graduationYear || "Not provided"}
+              </span>
             </div>
             {data.gpa && (
               <div>
@@ -100,8 +108,12 @@ export function Step5Review({
             <div className="space-y-4">
               {data.projects.map((project, index) => (
                 <div key={index} className="border-l-2 border-indigo-200 pl-4">
-                  <h4 className="font-semibold text-zinc-900">{project.projectName}</h4>
-                  <p className="mt-1 text-sm text-zinc-600">{project.projectDescription}</p>
+                  <h4 className="font-semibold text-zinc-900">
+                    {project.projectName}
+                  </h4>
+                  <p className="mt-1 text-sm text-zinc-600">
+                    {project.projectDescription}
+                  </p>
                   {project.technologiesUsed && (
                     <p className="mt-2 text-xs text-indigo-600">
                       {project.technologiesUsed}
@@ -117,7 +129,9 @@ export function Step5Review({
 
         {/* Experience Section */}
         <div className="rounded-lg border border-zinc-200 bg-white p-6">
-          <h3 className="mb-4 text-lg font-semibold text-zinc-900">Experience</h3>
+          <h3 className="mb-4 text-lg font-semibold text-zinc-900">
+            Experience
+          </h3>
           {data.experiences.length > 0 ? (
             <div className="space-y-4">
               {data.experiences.map((experience, index) => (
@@ -125,8 +139,12 @@ export function Step5Review({
                   <h4 className="font-semibold text-zinc-900">
                     {experience.role} at {experience.company}
                   </h4>
-                  <p className="mt-1 text-sm text-indigo-600">{experience.duration}</p>
-                  <p className="mt-2 text-sm text-zinc-600">{experience.description}</p>
+                  <p className="mt-1 text-sm text-indigo-600">
+                    {experience.duration}
+                  </p>
+                  <p className="mt-2 text-sm text-zinc-600">
+                    {experience.description}
+                  </p>
                 </div>
               ))}
             </div>
@@ -225,4 +243,3 @@ function ArrowLeftIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-

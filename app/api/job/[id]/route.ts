@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { jobPostings, companies, applications } from '@/db/schema';
-import { eq, count } from 'drizzle-orm';
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/db";
+import { jobPostings, companies, applications } from "@/db/schema";
+import { eq, count } from "drizzle-orm";
 
 // GET - Fetch job details by ID for students
 export async function GET(
@@ -12,12 +12,13 @@ export async function GET(
     const jobId = (await params).id;
 
     // Validate job ID format (should be UUID)
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(jobId)) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Invalid job ID format' 
+        {
+          success: false,
+          error: "Invalid job ID format",
         },
         { status: 400 }
       );
@@ -51,7 +52,7 @@ export async function GET(
           description: companies.description,
           contactName: companies.contactName,
           contactEmail: companies.contactEmail,
-        }
+        },
       })
       .from(jobPostings)
       .innerJoin(companies, eq(jobPostings.companyId, companies.id))
@@ -62,9 +63,9 @@ export async function GET(
 
     if (jobDetails.length === 0) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Job not found' 
+        {
+          success: false,
+          error: "Job not found",
         },
         { status: 404 }
       );
@@ -73,11 +74,11 @@ export async function GET(
     const job = jobDetails[0];
 
     // Only show open jobs to students (not draft or closed)
-    if (job.status !== 'open') {
+    if (job.status !== "open") {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Job is not available for viewing' 
+        {
+          success: false,
+          error: "Job is not available for viewing",
         },
         { status: 403 }
       );
@@ -85,16 +86,15 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      data: job
+      data: job,
     });
-
   } catch (error) {
-    console.error('Error fetching job details:', error);
+    console.error("Error fetching job details:", error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to fetch job details',
-        message: error instanceof Error ? error.message : 'Unknown error'
+      {
+        success: false,
+        error: "Failed to fetch job details",
+        message: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );

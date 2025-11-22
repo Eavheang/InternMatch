@@ -95,30 +95,40 @@ export function CompleteProfileFlow() {
               gpa: profile.gpa?.toString() || "",
               skills: profile.skills || [],
               projects:
-                profile.projects?.map((p: { projectName?: string; projectDescription?: string }) => ({
-                  projectName: p.projectName || "",
-                  projectDescription: p.projectDescription || "",
-                  technologiesUsed: "",
-                })) || [],
+                profile.projects?.map(
+                  (p: {
+                    projectName?: string;
+                    projectDescription?: string;
+                  }) => ({
+                    projectName: p.projectName || "",
+                    projectDescription: p.projectDescription || "",
+                    technologiesUsed: "",
+                  })
+                ) || [],
               experiences:
-                profile.experiences?.map((e: { experienceTitle?: string; experienceDescription?: string }) => {
-                  // Parse experience title and description
-                  const titleMatch =
-                    e.experienceTitle?.match(/(.+?)\s+at\s+(.+)/);
-                  const durationMatch = e.experienceDescription?.match(
-                    /Duration:\s*(.+?)\n\n/
-                  );
-                  return {
-                    company: titleMatch?.[2] || "",
-                    role: titleMatch?.[1] || "",
-                    duration: durationMatch?.[1] || "",
-                    description:
-                      e.experienceDescription?.replace(
-                        /Duration:.*?\n\n/,
-                        ""
-                      ) || "",
-                  };
-                }) || [],
+                profile.experiences?.map(
+                  (e: {
+                    experienceTitle?: string;
+                    experienceDescription?: string;
+                  }) => {
+                    // Parse experience title and description
+                    const titleMatch =
+                      e.experienceTitle?.match(/(.+?)\s+at\s+(.+)/);
+                    const durationMatch = e.experienceDescription?.match(
+                      /Duration:\s*(.+?)\n\n/
+                    );
+                    return {
+                      company: titleMatch?.[2] || "",
+                      role: titleMatch?.[1] || "",
+                      duration: durationMatch?.[1] || "",
+                      description:
+                        e.experienceDescription?.replace(
+                          /Duration:.*?\n\n/,
+                          ""
+                        ) || "",
+                    };
+                  }
+                ) || [],
             });
           }
         }
@@ -132,7 +142,10 @@ export function CompleteProfileFlow() {
     checkProfile();
   }, [router]);
 
-  const updateFormData = (stepData: Partial<ProfileData>, callback?: () => void) => {
+  const updateFormData = (
+    stepData: Partial<ProfileData>,
+    callback?: () => void
+  ) => {
     console.log("updateFormData called with:", stepData);
     setFormData((prev) => {
       const updated = { ...prev, ...stepData };
@@ -180,26 +193,38 @@ export function CompleteProfileFlow() {
       );
 
       // Try to decode token to check if it's valid (just for debugging)
-      let tokenPayload: { userId?: string; email?: string; role?: string; isVerified?: boolean; exp?: number } | null = null;
+      let tokenPayload: {
+        userId?: string;
+        email?: string;
+        role?: string;
+        isVerified?: boolean;
+        exp?: number;
+      } | null = null;
       try {
         const tokenParts = token.split(".");
         if (tokenParts.length === 3) {
           tokenPayload = JSON.parse(atob(tokenParts[1]));
-          console.log("Token payload:", {
-            userId: tokenPayload.userId,
-            email: tokenPayload.email,
-            role: tokenPayload.role,
-            isVerified: tokenPayload.isVerified,
-            exp: tokenPayload.exp
-              ? new Date(tokenPayload.exp * 1000).toISOString()
-              : "No expiration",
-            isExpired: tokenPayload.exp
-              ? Date.now() > tokenPayload.exp * 1000
-              : false,
-          });
+          if (tokenPayload) {
+            console.log("Token payload:", {
+              userId: tokenPayload.userId,
+              email: tokenPayload.email,
+              role: tokenPayload.role,
+              isVerified: tokenPayload.isVerified,
+              exp: tokenPayload.exp
+                ? new Date(tokenPayload.exp * 1000).toISOString()
+                : "No expiration",
+              isExpired: tokenPayload.exp
+                ? Date.now() > tokenPayload.exp * 1000
+                : false,
+            });
+          }
 
           // Check if token is expired
-          if (tokenPayload.exp && Date.now() > tokenPayload.exp * 1000) {
+          if (
+            tokenPayload &&
+            tokenPayload.exp &&
+            Date.now() > tokenPayload.exp * 1000
+          ) {
             console.warn("Token is expired, redirecting to login");
             localStorage.removeItem("internmatch_token");
             alert("Your session has expired. Please log in again.");
@@ -304,7 +329,9 @@ export function CompleteProfileFlow() {
 
       // No new token needed - existing token remains valid since token payload doesn't change
       // Profile data is stored in database, not in token
-      console.log("[Profile Complete] Profile saved successfully, redirecting to dashboard");
+      console.log(
+        "[Profile Complete] Profile saved successfully, redirecting to dashboard"
+      );
       setTimeout(() => {
         router.push("/dashboard");
       }, 100);
@@ -314,10 +341,14 @@ export function CompleteProfileFlow() {
         error instanceof Error
           ? error.message
           : "Failed to save profile. Please try again.";
-      
+
       // Only redirect to login if it's an authentication error
       // For other errors, show alert but stay on the page
-      if (error instanceof Error && (error.message.includes("401") || error.message.includes("unauthorized"))) {
+      if (
+        error instanceof Error &&
+        (error.message.includes("401") ||
+          error.message.includes("unauthorized"))
+      ) {
         localStorage.removeItem("internmatch_token");
         alert("Your session has expired. Please log in again.");
         router.push("/login");

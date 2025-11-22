@@ -3,4 +3,3 @@ import { ResumeBuilder } from "@/components/dashboard/resume-builder/resume-buil
 export default function ResumeBuilderPage() {
   return <ResumeBuilder />;
 }
-

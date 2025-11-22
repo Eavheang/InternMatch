@@ -209,35 +209,38 @@ export function Step3Skills({
           </div>
 
           {/* Skill Suggestions */}
-          {showSuggestions && skillInput.trim() && filteredSkills.length > 0 && (
-            <div
-              ref={suggestionsRef}
-              className="absolute z-10 mt-2 w-full max-h-48 overflow-y-auto rounded-lg border border-zinc-200 bg-white shadow-lg"
-            >
-              {filteredSkills.map((skill, index) => (
-                <button
-                  key={skill}
-                  type="button"
-                  onClick={() => handleSkillSelect(skill)}
-                  className={`w-full px-4 py-2 text-left text-sm text-zinc-900 transition-colors ${
-                    index === highlightedIndex
-                      ? "bg-indigo-50 text-indigo-700"
-                      : "hover:bg-zinc-50"
-                  }`}
-                  onMouseEnter={() => setHighlightedIndex(index)}
-                >
-                  {skill}
-                </button>
-              ))}
-            </div>
-          )}
+          {showSuggestions &&
+            skillInput.trim() &&
+            filteredSkills.length > 0 && (
+              <div
+                ref={suggestionsRef}
+                className="absolute z-10 mt-2 w-full max-h-48 overflow-y-auto rounded-lg border border-zinc-200 bg-white shadow-lg"
+              >
+                {filteredSkills.map((skill, index) => (
+                  <button
+                    key={skill}
+                    type="button"
+                    onClick={() => handleSkillSelect(skill)}
+                    className={`w-full px-4 py-2 text-left text-sm text-zinc-900 transition-colors ${
+                      index === highlightedIndex
+                        ? "bg-indigo-50 text-indigo-700"
+                        : "hover:bg-zinc-50"
+                    }`}
+                    onMouseEnter={() => setHighlightedIndex(index)}
+                  >
+                    {skill}
+                  </button>
+                ))}
+              </div>
+            )}
 
           {/* Show message if no suggestions found */}
           {showSuggestions &&
             skillInput.trim() &&
             filteredSkills.length === 0 && (
               <div className="absolute z-10 mt-2 w-full rounded-lg border border-zinc-200 bg-white p-4 text-sm text-zinc-600 shadow-lg">
-                No matching skills found. You can still add &quot;{skillInput.trim()}&quot; as a custom skill.
+                No matching skills found. You can still add &quot;
+                {skillInput.trim()}&quot; as a custom skill.
               </div>
             )}
         </div>
@@ -372,4 +375,3 @@ function ArrowRightIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-

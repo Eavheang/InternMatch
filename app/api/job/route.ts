@@ -1,34 +1,46 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { jobPostings, companies } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/db";
+import { jobPostings, companies } from "@/db/schema";
+import { eq, and, desc } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status');
-    const jobType = searchParams.get('jobType');
-    const experienceLevel = searchParams.get('experienceLevel');
-    const location = searchParams.get('location');
-    const limit = searchParams.get('limit');
-    const offset = searchParams.get('offset');
+    const status = searchParams.get("status");
+    const jobType = searchParams.get("jobType");
+    const experienceLevel = searchParams.get("experienceLevel");
+    const location = searchParams.get("location");
+    const limit = searchParams.get("limit");
+    const offset = searchParams.get("offset");
 
     // Build query conditions
     const conditions = [];
-    
+
     // Only show open jobs by default, unless specifically requested otherwise
     if (status) {
-      conditions.push(eq(jobPostings.status, status as 'open' | 'closed' | 'draft'));
+      conditions.push(
+        eq(jobPostings.status, status as "open" | "closed" | "draft")
+      );
     } else {
-      conditions.push(eq(jobPostings.status, 'open'));
+      conditions.push(eq(jobPostings.status, "open"));
     }
 
     if (jobType) {
-      conditions.push(eq(jobPostings.jobType, jobType as 'full-time' | 'part-time' | 'internship' | 'contract'));
+      conditions.push(
+        eq(
+          jobPostings.jobType,
+          jobType as "full-time" | "part-time" | "internship" | "contract"
+        )
+      );
     }
 
     if (experienceLevel) {
-      conditions.push(eq(jobPostings.experienceLevel, experienceLevel as 'entry' | 'mid' | 'senior' | 'executive'));
+      conditions.push(
+        eq(
+          jobPostings.experienceLevel,
+          experienceLevel as "entry" | "mid" | "senior" | "executive"
+        )
+      );
     }
 
     if (location) {
@@ -51,16 +63,14 @@ export async function GET(request: NextRequest) {
         aiGenerated: jobPostings.aiGenerated,
         createdAt: jobPostings.createdAt,
         updatedAt: jobPostings.updatedAt,
-        company: {
-          id: companies.id,
-          companyName: companies.companyName,
-          industry: companies.industry,
-          companySize: companies.companySize,
-          website: companies.website,
-          companyLogo: companies.companyLogo,
-          companyLocation: companies.location,
-          description: companies.description,
-        }
+        companyId: jobPostings.companyId,
+        companyName: companies.companyName,
+        companyIndustry: companies.industry,
+        companySize: companies.companySize,
+        companyWebsite: companies.website,
+        companyLogo: companies.companyLogo,
+        companyLocation: companies.location,
+        companyDescription: companies.description,
       })
       .from(jobPostings)
       .innerJoin(companies, eq(jobPostings.companyId, companies.id))
@@ -68,6 +78,33 @@ export async function GET(request: NextRequest) {
       .orderBy(desc(jobPostings.createdAt))
       .limit(limit ? parseInt(limit) : 50)
       .offset(offset ? parseInt(offset) : 0);
+
+    // Transform the results to match the expected structure
+    const transformedJobs = jobs.map((job) => ({
+      id: job.id,
+      jobTitle: job.jobTitle,
+      jobDescription: job.jobDescription,
+      status: job.status,
+      requirements: job.requirements,
+      benefits: job.benefits,
+      salaryRange: job.salaryRange,
+      location: job.location,
+      jobType: job.jobType,
+      experienceLevel: job.experienceLevel,
+      aiGenerated: job.aiGenerated,
+      createdAt: job.createdAt,
+      updatedAt: job.updatedAt,
+      company: {
+        id: job.companyId,
+        companyName: job.companyName,
+        industry: job.companyIndustry,
+        companySize: job.companySize,
+        website: job.companyWebsite,
+        companyLogo: job.companyLogo,
+        companyLocation: job.companyLocation,
+        description: job.companyDescription,
+      },
+    }));
 
     // Get total count for pagination
     const totalCount = await db
@@ -79,23 +116,24 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        jobs,
+        jobs: transformedJobs,
         pagination: {
           total: totalCount.length,
           limit: limit ? parseInt(limit) : 50,
           offset: offset ? parseInt(offset) : 0,
-          hasMore: totalCount.length > (offset ? parseInt(offset) : 0) + (limit ? parseInt(limit) : 50)
-        }
-      }
+          hasMore:
+            totalCount.length >
+            (offset ? parseInt(offset) : 0) + (limit ? parseInt(limit) : 50),
+        },
+      },
     });
-
   } catch (error) {
-    console.error('Error fetching job listings:', error);
+    console.error("Error fetching job listings:", error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to fetch job listings',
-        message: error instanceof Error ? error.message : 'Unknown error'
+      {
+        success: false,
+        error: "Failed to fetch job listings",
+        message: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );
@@ -116,15 +154,16 @@ export async function POST(request: NextRequest) {
       location,
       jobType,
       experienceLevel,
-      aiGenerated = false
+      aiGenerated = false,
     } = body;
 
     // Validate required fields
     if (!companyId || !jobTitle || !jobDescription) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Missing required fields: companyId, jobTitle, and jobDescription are required' 
+        {
+          success: false,
+          error:
+            "Missing required fields: companyId, jobTitle, and jobDescription are required",
         },
         { status: 400 }
       );
@@ -144,23 +183,22 @@ export async function POST(request: NextRequest) {
         jobType,
         experienceLevel,
         aiGenerated,
-        status: 'draft' // New jobs start as draft
+        status: "draft", // New jobs start as draft
       })
       .returning();
 
     return NextResponse.json({
       success: true,
       data: newJob[0],
-      message: 'Job posting created successfully'
+      message: "Job posting created successfully",
     });
-
   } catch (error) {
-    console.error('Error creating job posting:', error);
+    console.error("Error creating job posting:", error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to create job posting',
-        message: error instanceof Error ? error.message : 'Unknown error'
+      {
+        success: false,
+        error: "Failed to create job posting",
+        message: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );

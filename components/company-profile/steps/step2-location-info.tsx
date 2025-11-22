@@ -110,4 +110,3 @@ function ChevronRightIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-

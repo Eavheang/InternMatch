@@ -42,4 +42,3 @@ export const initialResumeData: ResumeData = {
   experience: [],
   skills: [],
 };
-

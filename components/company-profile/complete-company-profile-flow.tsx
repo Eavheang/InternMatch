@@ -193,21 +193,27 @@ export function CompleteCompanyProfileFlow() {
       }
 
       await response.json();
-      
+
       // No new token needed - existing token remains valid since token payload doesn't change
       // Profile data is stored in database, not in token
-      console.log("Company profile completed successfully, redirecting to dashboard");
+      console.log(
+        "Company profile completed successfully, redirecting to dashboard"
+      );
       setTimeout(() => {
         router.push("/dashboard");
       }, 100);
     } catch (err) {
       console.error("Error saving company profile:", err);
-      const errorMessage = err instanceof Error
-        ? err.message
-        : "Failed to save company profile. Please try again.";
-      
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Failed to save company profile. Please try again.";
+
       // Only redirect to login if it's an authentication error
-      if (err instanceof Error && (errorMessage.includes("401") || errorMessage.includes("unauthorized"))) {
+      if (
+        err instanceof Error &&
+        (errorMessage.includes("401") || errorMessage.includes("unauthorized"))
+      ) {
         localStorage.removeItem("internmatch_token");
         alert("Your session has expired. Please log in again.");
         router.push("/login");
@@ -261,7 +267,9 @@ export function CompleteCompanyProfileFlow() {
               <h2 className="text-xl font-semibold text-zinc-900">
                 {currentStepMeta.title}
               </h2>
-              <p className="text-sm text-zinc-600">{currentStepMeta.description}</p>
+              <p className="text-sm text-zinc-600">
+                {currentStepMeta.description}
+              </p>
             </div>
           </div>
           <div className="mt-6 h-2 w-full overflow-hidden rounded-full bg-zinc-100">
@@ -276,7 +284,11 @@ export function CompleteCompanyProfileFlow() {
         </div>
 
         {currentStep === 1 && (
-          <CompanyStep1Info data={formData} onUpdate={updateFormData} onNext={handleNext} />
+          <CompanyStep1Info
+            data={formData}
+            onUpdate={updateFormData}
+            onNext={handleNext}
+          />
         )}
         {currentStep === 2 && (
           <CompanyStep2Location
@@ -329,7 +341,7 @@ function isProfileComplete(profile: CompanyProfileRecord | null | undefined) {
     !!profile.companySize &&
     !!profile.website &&
     !!(profile.headquarters || profile.location) &&
-    !!profile.description &&
+    !!profile.companyDescription &&
     !!profile.contactName &&
     !!profile.contactEmail
   );
@@ -414,4 +426,3 @@ function BriefcaseIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-

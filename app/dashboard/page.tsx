@@ -34,4 +34,3 @@ export default function DashboardPage() {
   // Default to student dashboard
   return <StudentDashboard user={user} profileData={profileData} />;
 }
-

@@ -12,6 +12,20 @@ type JobPosting = {
   status: string;
   applicantCount?: number;
   viewCount?: number;
+  jobType?: string;
+  experienceLevel?: string;
+};
+
+type Student = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  university: string;
+  major: string;
+  graduationYear: number;
+  location: string;
+  careerInterest: string;
+  createdAt: string;
 };
 
 type CompanyDashboardProps = {
@@ -24,12 +38,12 @@ export function CompanyDashboard({ profileData }: CompanyDashboardProps) {
     activePostings: 0,
     totalApplicants: 0,
     interviewsScheduled: 0,
-    avgMatchScore: 0,
     activePostingsChange: "+2 this month",
     applicantsChange: "+45 this week",
     interviewsChange: "5 this week",
   });
   const [jobPostings, setJobPostings] = useState<JobPosting[]>([]);
+  const [topStudents, setTopStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -43,23 +57,90 @@ export function CompanyDashboard({ profileData }: CompanyDashboardProps) {
         const token = localStorage.getItem("internmatch_token");
         if (!token) return;
 
-        // Fetch job postings
-        const jobsResponse = await fetch(`/api/company/${profileData.id}/job`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // Fetch weekly statistics for this company
+        const statsResponse = await fetch(
+          `/api/company/${profileData.userId}/stats`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        // Fetch job postings for this company (for display)
+        const jobsResponse = await fetch(
+          `/api/company/${profileData.userId}/job?limit=3`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        // Fetch top students for scouting with intelligent matching
+        const studentsResponse = await fetch(
+          `/api/students?limit=6&intelligent=true&companyId=${profileData.id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (statsResponse.ok) {
+          const statsData = await statsResponse.json();
+          const weeklyStats = statsData.data;
+
+          setStats((prev) => ({
+            ...prev,
+            activePostings: weeklyStats.activePostings,
+            totalApplicants: weeklyStats.totalApplicants,
+            interviewsScheduled: weeklyStats.interviewsScheduled,
+            activePostingsChange:
+              weeklyStats.activePostings > 0
+                ? `+${weeklyStats.activePostings} this week`
+                : "No new jobs this week",
+            applicantsChange:
+              weeklyStats.totalApplicants > 0
+                ? `+${weeklyStats.totalApplicants} this week`
+                : "No applications this week",
+            interviewsChange:
+              weeklyStats.interviewsScheduled > 0
+                ? `${weeklyStats.interviewsScheduled} scheduled`
+                : "No interviews scheduled",
+          }));
+        }
 
         if (jobsResponse.ok) {
           const jobsData = await jobsResponse.json();
-          setJobPostings(jobsData.data || []);
-
-          // Calculate stats from job postings
-          const activeJobs = (jobsData.data || []).filter(
-            (job: JobPosting) => job.status === "open"
+          // Map applicationCount to applicantCount
+          const mappedJobs = (jobsData.data?.jobs || []).map(
+            (job: {
+              id: string;
+              jobTitle: string;
+              location?: string;
+              createdAt: string;
+              status: string;
+              applicationCount?: number;
+              [key: string]: unknown;
+            }) => ({
+              ...job,
+              applicantCount: job.applicationCount || 0,
+            })
           );
-          setStats((prev) => ({
-            ...prev,
-            activePostings: activeJobs.length,
-          }));
+          setJobPostings(mappedJobs);
+        }
+
+        if (studentsResponse.ok) {
+          const studentsData = await studentsResponse.json();
+          const intelligentStudents = studentsData.data || [];
+
+          // If intelligent matching returns no results, fallback to basic query
+          if (intelligentStudents.length === 0) {
+            const fallbackResponse = await fetch(`/api/students?limit=6`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            if (fallbackResponse.ok) {
+              const fallbackData = await fallbackResponse.json();
+              setTopStudents(fallbackData.data || []);
+            }
+          } else {
+            setTopStudents(intelligentStudents);
+          }
         }
       } catch (error) {
         console.error("Error loading dashboard data:", error);
@@ -69,7 +150,7 @@ export function CompanyDashboard({ profileData }: CompanyDashboardProps) {
     };
 
     loadDashboardData();
-  }, [profileData?.id]);
+  }, [profileData?.id, profileData?.userId]);
 
   if (loading) {
     return (
@@ -101,38 +182,25 @@ export function CompanyDashboard({ profileData }: CompanyDashboardProps) {
       </div>
 
       {/* Stats Cards */}
-      <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <StatsCard
-          title="Active Postings"
+          title="New Jobs This Week"
           value={stats.activePostings.toString()}
           change={stats.activePostingsChange}
-          changeType="positive"
+          changeType={stats.activePostings > 0 ? "positive" : "neutral"}
         />
         <StatsCard
-          title="Total Applicants"
+          title="Applications This Week"
           value={stats.totalApplicants.toString()}
           change={stats.applicantsChange}
-          changeType="positive"
+          changeType={stats.totalApplicants > 0 ? "positive" : "neutral"}
         />
         <StatsCard
           title="Interviews Scheduled"
           value={stats.interviewsScheduled.toString()}
           change={stats.interviewsChange}
-          changeType="neutral"
+          changeType={stats.interviewsScheduled > 0 ? "positive" : "neutral"}
         />
-        <StatsCard
-          title="Avg. Match Score"
-          value={`${stats.avgMatchScore}%`}
-          change=""
-          changeType="neutral"
-        >
-          <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-zinc-200">
-            <div
-              className="h-full rounded-full bg-indigo-600 transition-all"
-              style={{ width: `${stats.avgMatchScore}%` }}
-            />
-          </div>
-        </StatsCard>
       </div>
 
       {/* Active Job Postings */}
@@ -180,24 +248,42 @@ export function CompanyDashboard({ profileData }: CompanyDashboardProps) {
 
       {/* Top Candidates */}
       <div>
-        <div className="mb-4">
-          <h2 className="text-xl font-semibold text-zinc-900">
-            Top Candidates
-          </h2>
-          <p className="text-sm text-zinc-600">
-            AI-recommended matches for your positions
-          </p>
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-zinc-900">
+              Top Candidates
+            </h2>
+            <p className="text-sm text-zinc-600">
+              AI-recommended students based on your job requirements and company
+              profile
+            </p>
+          </div>
+          <Link
+            href="/dashboard/students"
+            className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
+          >
+            Browse All Students
+          </Link>
         </div>
 
-        <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-center">
-          <UsersIcon className="mx-auto h-12 w-12 text-zinc-400" />
-          <h3 className="mt-4 text-lg font-semibold text-zinc-900">
-            No candidates yet
-          </h3>
-          <p className="mt-2 text-sm text-zinc-600">
-            Post a job to start receiving applications from talented students
-          </p>
-        </div>
+        {topStudents.length === 0 ? (
+          <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-center">
+            <UsersIcon className="mx-auto h-12 w-12 text-zinc-400" />
+            <h3 className="mt-4 text-lg font-semibold text-zinc-900">
+              No matching candidates found
+            </h3>
+            <p className="mt-2 text-sm text-zinc-600">
+              AI-recommended students will appear here based on your job
+              requirements and company profile
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {topStudents.map((student) => (
+              <StudentCard key={student.id} student={student} />
+            ))}
+          </div>
+        )}
       </div>
     </main>
   );
@@ -279,15 +365,57 @@ function JobPostingCard({ job }: { job: JobPosting }) {
             Applicants
           </span>
         </div>
-        <div className="flex items-center gap-2">
-          <EyeIcon className="h-5 w-5 text-zinc-400" />
-          <span className="text-sm text-zinc-600">
-            <span className="font-semibold text-zinc-900">
-              {job.viewCount || 0}
-            </span>{" "}
-            Views
-          </span>
+      </div>
+    </div>
+  );
+}
+
+function StudentCard({ student }: { student: Student }) {
+  return (
+    <div className="rounded-2xl border border-zinc-200 bg-white p-6 transition-shadow hover:shadow-md relative">
+      {/* AI Recommended Badge */}
+      <div className="absolute top-3 right-3">
+        <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700">
+          <SparklesIcon className="h-3 w-3" />
+          AI Match
+        </span>
+      </div>
+
+      <div className="flex items-start gap-4">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50">
+          <UserIcon className="h-6 w-6 text-emerald-600" />
         </div>
+        <div className="flex-1 min-w-0 pr-16">
+          {" "}
+          {/* Add padding to avoid badge overlap */}
+          <h3 className="text-lg font-semibold text-zinc-900 truncate">
+            {student.firstName} {student.lastName}
+          </h3>
+          <p className="text-sm text-zinc-600 truncate">
+            {student.major} • Class of {student.graduationYear}
+          </p>
+          <p className="text-sm text-zinc-500 truncate">{student.university}</p>
+        </div>
+      </div>
+
+      <div className="mt-4 space-y-2">
+        <div className="flex items-center gap-2 text-sm text-zinc-600">
+          <LocationIcon className="h-4 w-4 flex-shrink-0" />
+          <span className="truncate">{student.location}</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-zinc-600">
+          <BriefcaseIcon className="h-4 w-4 flex-shrink-0" />
+          <span className="truncate">{student.careerInterest}</span>
+        </div>
+      </div>
+
+      <div className="mt-4 pt-4 border-t border-zinc-100">
+        <Link
+          href={`/dashboard/students/${student.id}`}
+          className="w-full rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 text-center block"
+        >
+          View Profile
+        </Link>
       </div>
     </div>
   );
@@ -396,7 +524,7 @@ function ClockIcon({ className }: { className?: string }) {
   );
 }
 
-function EyeIcon({ className }: { className?: string }) {
+function _EyeIcon({ className }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -409,6 +537,43 @@ function EyeIcon({ className }: { className?: string }) {
     >
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
       <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function UserIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  );
+}
+
+function SparklesIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .962L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z" />
+      <path d="M20 3v4" />
+      <path d="M22 5h-4" />
+      <path d="M4 17v2" />
+      <path d="M5 18H3" />
     </svg>
   );
 }

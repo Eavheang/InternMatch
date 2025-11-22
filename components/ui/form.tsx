@@ -18,28 +18,31 @@ const FormField = <
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >(
-  props: ControllerProps<TFieldValues, TName>,
+  props: ControllerProps<TFieldValues, TName>
 ) => <Controller {...props} />;
 FormField.displayName = "FormField";
 
-const FormItemContext = React.createContext<{ id: string } | undefined>(undefined);
-
-const FormItem = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => {
-    const id = React.useId();
-
-    return (
-      <FormItemContext.Provider value={{ id }}>
-        <div 
-          ref={ref} 
-          className={cn("space-y-2", className)} 
-          suppressHydrationWarning
-          {...props} 
-        />
-      </FormItemContext.Provider>
-    );
-  },
+const FormItemContext = React.createContext<{ id: string } | undefined>(
+  undefined
 );
+
+const FormItem = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => {
+  const id = React.useId();
+
+  return (
+    <FormItemContext.Provider value={{ id }}>
+      <div
+        ref={ref}
+        className={cn("space-y-2", className)}
+        suppressHydrationWarning
+        {...props}
+      />
+    </FormItemContext.Provider>
+  );
+});
 FormItem.displayName = "FormItem";
 
 const useFormItem = () => {
@@ -86,12 +89,16 @@ FormDescription.displayName = "FormDescription";
 
 const FormMessage = React.forwardRef<
   HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
+  React.HTMLAttributes<HTMLParagraphElement> & { "data-message"?: string }
 >(({ className, children, ...props }, ref) => {
   const body = children ?? props["data-message"];
   return (
     body && (
-      <p ref={ref} className={cn("text-sm font-medium text-rose-500", className)} {...props}>
+      <p
+        ref={ref}
+        className={cn("text-sm font-medium text-rose-500", className)}
+        {...props}
+      >
         {body}
       </p>
     )
@@ -108,5 +115,3 @@ export {
   FormMessage,
   FormDescription,
 };
-
-

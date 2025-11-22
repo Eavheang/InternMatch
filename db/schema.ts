@@ -161,53 +161,11 @@ export const applications = pgTable("applications", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Analytics table
-export const analytics = pgTable("analytics", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  companyId: uuid("company_id").references(() => companies.id, {
-    onDelete: "cascade",
-  }),
-  totalJobs: integer("total_jobs").default(0),
-  totalApplications: integer("total_applications").default(0),
-  shortlisted: integer("shortlisted").default(0),
-  rejected: integer("rejected").default(0),
-  hired: integer("hired").default(0),
-  topUniversities: json("top_universities"),
-  popularSkills: json("popular_skills"),
-  avgResponseTime: text("avg_response_time"),
-  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
-});
+// Analytics table - REMOVED (unused)
 
-// Student analytics table
-export const studentAnalytics = pgTable("student_analytics", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  studentId: uuid("student_id")
-    .notNull()
-    .references(() => students.id, { onDelete: "cascade" }),
-  totalApplications: integer("total_applications").default(0),
-  shortlisted: integer("shortlisted").default(0),
-  interviewed: integer("interviewed").default(0),
-  hired: integer("hired").default(0),
-  rejected: integer("rejected").default(0),
-  avgResponseTime: text("avg_response_time"),
-  skillDemand: json("skill_demand"),
-  marketInsights: json("market_insights"),
-  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
-});
+// Student analytics table - REMOVED (unused)
 
-// Resume analysis table
-export const resumeAnalysis = pgTable("resume_analysis", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  studentId: uuid("student_id")
-    .notNull()
-    .references(() => students.id, { onDelete: "cascade" }),
-  atsScore: integer("ats_score"),
-  keywordMatch: integer("keyword_match"),
-  readability: integer("readability"),
-  length: integer("length"),
-  suggestions: json("suggestions"),
-  analyzedAt: timestamp("analyzed_at").defaultNow().notNull(),
-});
+// Resume analysis table - REMOVED (replaced by resumeAtsAnalysis)
 
 // AI generated content table
 export const aiGeneratedContent = pgTable("ai_generated_content", {
@@ -235,54 +193,70 @@ export const aiGeneratedContent = pgTable("ai_generated_content", {
 });
 
 // Resumes (resume builder - multiple versions per student)
-export const resumes = pgTable('resumes', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  studentId: uuid('student_id').notNull().references(() => students.id, { onDelete: 'cascade' }),
-  title: text('title'),
-  structuredContent: json('structured_content'), // builder blocks/sections
-  publicUrl: text('public_url'),
-  fileUrl: text('file_url'),
-  isPrimary: boolean('is_primary').notNull().default(false),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+export const resumes = pgTable("resumes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  studentId: uuid("student_id")
+    .notNull()
+    .references(() => students.id, { onDelete: "cascade" }),
+  title: text("title"),
+  structuredContent: json("structured_content"), // builder blocks/sections
+  publicUrl: text("public_url"),
+  fileUrl: text("file_url"),
+  isPrimary: boolean("is_primary").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // ATS analysis (general per resume, or tied to job/application)
-export const resumeAtsAnalysis = pgTable('resume_ats_analysis', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  resumeId: uuid('resume_id').notNull().references(() => resumes.id, { onDelete: 'cascade' }),
-  applicationId: uuid('application_id').references(() => applications.id, { onDelete: 'set null' }),
-  jobId: uuid('job_id').references(() => jobPostings.id, { onDelete: 'set null' }),
-  atsScore: integer('ats_score'),
-  keywordMatch: integer('keyword_match'),
-  readability: integer('readability'),
-  length: integer('length'),
-  suggestions: json('suggestions'),
-  missingKeywords: json('missing_keywords'),
-  analyzedAt: timestamp('analyzed_at').defaultNow().notNull(),
+export const resumeAtsAnalysis = pgTable("resume_ats_analysis", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  resumeId: uuid("resume_id")
+    .notNull()
+    .references(() => resumes.id, { onDelete: "cascade" }),
+  applicationId: uuid("application_id").references(() => applications.id, {
+    onDelete: "set null",
+  }),
+  jobId: uuid("job_id").references(() => jobPostings.id, {
+    onDelete: "set null",
+  }),
+  atsScore: integer("ats_score"),
+  keywordMatch: integer("keyword_match"),
+  readability: integer("readability"),
+  length: integer("length"),
+  suggestions: json("suggestions"),
+  missingKeywords: json("missing_keywords"),
+  analyzedAt: timestamp("analyzed_at").defaultNow().notNull(),
 });
 
 // Company-side AI review of an application
-export const applicationAiReviews = pgTable('application_ai_reviews', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  applicationId: uuid('application_id').notNull().references(() => applications.id, { onDelete: 'cascade' }),
-  companyId: uuid('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
-  matchScore: integer('match_score'),
-  matchedSkills: json('matched_skills'),   // array of strings
-  missingSkills: json('missing_skills'),   // array of strings
-  alternatives: json('alternatives'),      // array of job objects/ids with reasons
-  summary: text('summary'),
-  analyzedAt: timestamp('analyzed_at').defaultNow().notNull(),
+export const applicationAiReviews = pgTable("application_ai_reviews", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  applicationId: uuid("application_id")
+    .notNull()
+    .references(() => applications.id, { onDelete: "cascade" }),
+  companyId: uuid("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  matchScore: integer("match_score"),
+  matchedSkills: json("matched_skills"), // array of strings
+  missingSkills: json("missing_skills"), // array of strings
+  alternatives: json("alternatives"), // array of job objects/ids with reasons
+  summary: text("summary"),
+  analyzedAt: timestamp("analyzed_at").defaultNow().notNull(),
 });
 
 // Generated interview questions when shortlisted
-export const interviewQuestions = pgTable('interview_questions', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  applicationId: uuid('application_id').notNull().references(() => applications.id, { onDelete: 'cascade' }),
-  companyId: uuid('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
-  questions: json('questions').notNull(),  // [{ question, intent, difficulty }]
-  generatedFrom: text('generated_from', { enum: ['resume', 'job', 'both'] }),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+export const interviewQuestions = pgTable("interview_questions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  applicationId: uuid("application_id")
+    .notNull()
+    .references(() => applications.id, { onDelete: "cascade" }),
+  companyId: uuid("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  questions: json("questions").notNull(), // [{ question, intent, difficulty }]
+  generatedFrom: text("generated_from", { enum: ["resume", "job", "both"] }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const resumesRelations = relations(resumes, ({ one, many }) => ({
@@ -293,45 +267,54 @@ export const resumesRelations = relations(resumes, ({ one, many }) => ({
   atsAnalyses: many(resumeAtsAnalysis),
 }));
 
-export const resumeAtsAnalysisRelations = relations(resumeAtsAnalysis, ({ one }) => ({
-  resume: one(resumes, {
-    fields: [resumeAtsAnalysis.resumeId],
-    references: [resumes.id],
-  }),
-  application: one(applications, {
-    fields: [resumeAtsAnalysis.applicationId],
-    references: [applications.id],
-  }),
-  job: one(jobPostings, {
-    fields: [resumeAtsAnalysis.jobId],
-    references: [jobPostings.id],
-  }),
-}));
+export const resumeAtsAnalysisRelations = relations(
+  resumeAtsAnalysis,
+  ({ one }) => ({
+    resume: one(resumes, {
+      fields: [resumeAtsAnalysis.resumeId],
+      references: [resumes.id],
+    }),
+    application: one(applications, {
+      fields: [resumeAtsAnalysis.applicationId],
+      references: [applications.id],
+    }),
+    job: one(jobPostings, {
+      fields: [resumeAtsAnalysis.jobId],
+      references: [jobPostings.id],
+    }),
+  })
+);
 
-export const applicationAiReviewsRelations = relations(applicationAiReviews, ({ one }) => ({
-  application: one(applications, {
-    fields: [applicationAiReviews.applicationId],
-    references: [applications.id],
-  }),
-  company: one(companies, {
-    fields: [applicationAiReviews.companyId],
-    references: [companies.id],
-  }),
-}));
+export const applicationAiReviewsRelations = relations(
+  applicationAiReviews,
+  ({ one }) => ({
+    application: one(applications, {
+      fields: [applicationAiReviews.applicationId],
+      references: [applications.id],
+    }),
+    company: one(companies, {
+      fields: [applicationAiReviews.companyId],
+      references: [companies.id],
+    }),
+  })
+);
 
-export const interviewQuestionsRelations = relations(interviewQuestions, ({ one }) => ({
-  application: one(applications, {
-    fields: [interviewQuestions.applicationId],
-    references: [applications.id],
-  }),
-  company: one(companies, {
-    fields: [interviewQuestions.companyId],
-    references: [companies.id],
-  }),
-}));
+export const interviewQuestionsRelations = relations(
+  interviewQuestions,
+  ({ one }) => ({
+    application: one(applications, {
+      fields: [interviewQuestions.applicationId],
+      references: [applications.id],
+    }),
+    company: one(companies, {
+      fields: [interviewQuestions.companyId],
+      references: [companies.id],
+    }),
+  })
+);
 
 // Define relations
-export const usersRelations = relations(users, ({ one, many }) => ({
+export const usersRelations = relations(users, ({ one }) => ({
   student: one(students, {
     fields: [users.id],
     references: [students.userId],
@@ -352,8 +335,6 @@ export const studentsRelations = relations(students, ({ one, many }) => ({
   projects: many(projects),
   experiences: many(experiences),
   applications: many(applications),
-  analytics: many(studentAnalytics),
-  resumeAnalysis: many(resumeAnalysis),
 }));
 
 export const socialLinksRelations = relations(socialLinks, ({ one }) => ({
@@ -398,7 +379,6 @@ export const companiesRelations = relations(companies, ({ one, many }) => ({
     references: [users.id],
   }),
   jobPostings: many(jobPostings),
-  analytics: many(analytics),
 }));
 
 export const jobPostingsRelations = relations(jobPostings, ({ one, many }) => ({
@@ -420,44 +400,74 @@ export const applicationsRelations = relations(applications, ({ one }) => ({
   }),
 }));
 
-export const analyticsRelations = relations(analytics, ({ one }) => ({
-  company: one(companies, {
-    fields: [analytics.companyId],
-    references: [companies.id],
-  }),
-}));
+// analyticsRelations - REMOVED (unused)
 
-export const studentAnalyticsRelations = relations(
-  studentAnalytics,
+// studentAnalyticsRelations - REMOVED (unused)
+
+// resumeAnalysisRelations - REMOVED (unused)
+
+// aiGeneratedContentRelations - REMOVED (unused - no queries use these relations)
+
+// Student Interview Preparation Tables
+
+// Student practice questions generated for interview preparation
+export const studentPracticeQuestions = pgTable("student_practice_questions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  applicationId: uuid("application_id")
+    .notNull()
+    .references(() => applications.id, { onDelete: "cascade" }),
+  studentId: uuid("student_id")
+    .notNull()
+    .references(() => students.id, { onDelete: "cascade" }),
+  questions: json("questions").notNull(), // Array of {question, category, difficulty, tips, sampleAnswer}
+  jobTitle: text("job_title").notNull(),
+  companyName: text("company_name").notNull(),
+  generatedAt: timestamp("generated_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Student interview tips generated for specific applications
+export const studentInterviewTips = pgTable("student_interview_tips", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  applicationId: uuid("application_id")
+    .notNull()
+    .references(() => applications.id, { onDelete: "cascade" }),
+  studentId: uuid("student_id")
+    .notNull()
+    .references(() => students.id, { onDelete: "cascade" }),
+  tips: json("tips").notNull(), // {general: [], behavioral: [], technical: [], companySpecific: []}
+  jobTitle: text("job_title").notNull(),
+  companyName: text("company_name").notNull(),
+  industry: text("industry"),
+  generatedAt: timestamp("generated_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Relations for student interview preparation
+export const studentPracticeQuestionsRelations = relations(
+  studentPracticeQuestions,
   ({ one }) => ({
+    application: one(applications, {
+      fields: [studentPracticeQuestions.applicationId],
+      references: [applications.id],
+    }),
     student: one(students, {
-      fields: [studentAnalytics.studentId],
+      fields: [studentPracticeQuestions.studentId],
       references: [students.id],
     }),
   })
 );
 
-export const resumeAnalysisRelations = relations(resumeAnalysis, ({ one }) => ({
-  student: one(students, {
-    fields: [resumeAnalysis.studentId],
-    references: [students.id],
-  }),
-}));
-
-export const aiGeneratedContentRelations = relations(
-  aiGeneratedContent,
+export const studentInterviewTipsRelations = relations(
+  studentInterviewTips,
   ({ one }) => ({
+    application: one(applications, {
+      fields: [studentInterviewTips.applicationId],
+      references: [applications.id],
+    }),
     student: one(students, {
-      fields: [aiGeneratedContent.studentId],
+      fields: [studentInterviewTips.studentId],
       references: [students.id],
-    }),
-    company: one(companies, {
-      fields: [aiGeneratedContent.companyId],
-      references: [companies.id],
-    }),
-    job: one(jobPostings, {
-      fields: [aiGeneratedContent.jobId],
-      references: [jobPostings.id],
     }),
   })
 );

@@ -37,7 +37,9 @@ type DashboardContextType = {
   profileData: ProfileData | null;
 };
 
-const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
+const DashboardContext = createContext<DashboardContextType | undefined>(
+  undefined
+);
 
 export function DashboardProvider({
   children,
@@ -63,4 +65,3 @@ export function useDashboard() {
   }
   return context;
 }
-
