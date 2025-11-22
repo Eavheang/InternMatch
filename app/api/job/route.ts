@@ -63,16 +63,14 @@ export async function GET(request: NextRequest) {
         aiGenerated: jobPostings.aiGenerated,
         createdAt: jobPostings.createdAt,
         updatedAt: jobPostings.updatedAt,
-        company: {
-          id: companies.id,
-          companyName: companies.companyName,
-          industry: companies.industry,
-          companySize: companies.companySize,
-          website: companies.website,
-          companyLogo: companies.companyLogo,
-          companyLocation: companies.location,
-          description: companies.description,
-        },
+        companyId: jobPostings.companyId,
+        companyName: companies.companyName,
+        companyIndustry: companies.industry,
+        companySize: companies.companySize,
+        companyWebsite: companies.website,
+        companyLogo: companies.companyLogo,
+        companyLocation: companies.location,
+        companyDescription: companies.description,
       })
       .from(jobPostings)
       .innerJoin(companies, eq(jobPostings.companyId, companies.id))
@@ -80,6 +78,33 @@ export async function GET(request: NextRequest) {
       .orderBy(desc(jobPostings.createdAt))
       .limit(limit ? parseInt(limit) : 50)
       .offset(offset ? parseInt(offset) : 0);
+
+    // Transform the results to match the expected structure
+    const transformedJobs = jobs.map(job => ({
+      id: job.id,
+      jobTitle: job.jobTitle,
+      jobDescription: job.jobDescription,
+      status: job.status,
+      requirements: job.requirements,
+      benefits: job.benefits,
+      salaryRange: job.salaryRange,
+      location: job.location,
+      jobType: job.jobType,
+      experienceLevel: job.experienceLevel,
+      aiGenerated: job.aiGenerated,
+      createdAt: job.createdAt,
+      updatedAt: job.updatedAt,
+      company: {
+        id: job.companyId,
+        companyName: job.companyName,
+        industry: job.companyIndustry,
+        companySize: job.companySize,
+        website: job.companyWebsite,
+        companyLogo: job.companyLogo,
+        companyLocation: job.companyLocation,
+        description: job.companyDescription,
+      },
+    }));
 
     // Get total count for pagination
     const totalCount = await db
@@ -91,7 +116,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        jobs,
+        jobs: transformedJobs,
         pagination: {
           total: totalCount.length,
           limit: limit ? parseInt(limit) : 50,

@@ -54,10 +54,83 @@ export function RoleSuggestions({
     graduationYear?: number;
   } | null>(null);
   const [expandedRole, setExpandedRole] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
-  const generateSuggestions = async () => {
+  const loadExistingSuggestions = async () => {
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      if (!token) {
+        console.log("No token available for loading suggestions");
+        return false;
+      }
+
+      const params = new URLSearchParams();
+      if (studentId) params.append("studentId", studentId);
+
+      console.log("Loading existing role suggestions...");
+      const response = await fetch(`/api/ai/role-suggestions?${params}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const result = await response.json();
+      console.log("Existing suggestions response:", result);
+      
+      if (response.ok && result.success && result.data && result.data.length > 0) {
+        // Use the most recent suggestions
+        const latestSuggestion = result.data[0];
+        console.log("Found existing suggestions, using cached data");
+        
+        // Parse the content if it's a string
+        const content = typeof latestSuggestion.content === 'string' 
+          ? JSON.parse(latestSuggestion.content) 
+          : latestSuggestion.content;
+        
+        setData(content);
+        
+        // Extract student info from the content if available
+        if (content.studentProfile) {
+          const profile = content.studentProfile;
+          setStudentInfo({
+            name: profile.name || "Student",
+            major: profile.major,
+            university: profile.university,
+            graduationYear: profile.graduationYear,
+          });
+        }
+        return true;
+      }
+      
+      console.log("No existing suggestions found, will generate new ones");
+      return false;
+    } catch (error) {
+      console.error("Failed to load existing suggestions:", error);
+      return false;
+    }
+  };
+
+  const generateSuggestions = async (forceRegenerate = false) => {
+    // Prevent multiple simultaneous calls
+    if (loading) {
+      console.log("Already loading, skipping duplicate call");
+      return;
+    }
+
     setLoading(true);
     try {
+      // If not forcing regeneration, try to load existing suggestions first
+      if (!forceRegenerate) {
+        console.log("Checking for existing suggestions...");
+        const hasExisting = await loadExistingSuggestions();
+        if (hasExisting) {
+          console.log("Using existing suggestions, no AI call needed");
+          setLoading(false);
+          return;
+        }
+      }
+
+      console.log("No existing suggestions found, generating new ones...");
       const token = localStorage.getItem("internmatch_token");
       if (!token) {
         toast.error("Authentication required");
@@ -78,27 +151,45 @@ export function RoleSuggestions({
 
       const result = await response.json();
       if (!response.ok) {
-        throw new Error(result.error || "Failed to generate role suggestions");
+        // Handle quota exceeded error specifically
+        if (result.error && result.error.includes("quota")) {
+          toast.error("AI service quota exceeded. Please try again later or contact support.");
+        } else {
+          throw new Error(result.error || "Failed to generate role suggestions");
+        }
+        return;
       }
 
       setData(result.data);
       setStudentInfo(result.studentInfo);
-      toast.success("Role suggestions generated successfully!");
+      toast.success(
+        forceRegenerate 
+          ? "Role suggestions regenerated successfully!" 
+          : "Role suggestions generated successfully!"
+      );
     } catch (error) {
       console.error("Failed to generate role suggestions:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to generate suggestions"
-      );
+      const errorMessage = error instanceof Error ? error.message : "Failed to generate suggestions";
+      
+      // Handle quota errors more gracefully
+      if (errorMessage.includes("quota") || errorMessage.includes("429")) {
+        toast.error("AI service is temporarily unavailable due to high demand. Please try again later.");
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    generateSuggestions();
-  }, [studentId, resumeId, generateSuggestions]);
+    // Only run once when component mounts or when studentId/resumeId changes
+    if (!initialized) {
+      console.log("Initializing role suggestions component...");
+      setInitialized(true);
+      generateSuggestions(false); // Don't force regeneration on initial load
+    }
+  }, [studentId, resumeId, initialized]);
 
   const getPercentageColor = (percentage: number) => {
     if (percentage >= 15) return "bg-emerald-500";
@@ -258,13 +349,36 @@ export function RoleSuggestions({
           {/* Role Suggestions */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-indigo-600" />
-                Career Role Recommendations
-              </CardTitle>
-              <p className="text-sm text-zinc-500">
-                Based on your skills, experience, and educational background
-              </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-indigo-600" />
+                    Career Role Recommendations
+                  </CardTitle>
+                  <p className="text-sm text-zinc-500">
+                    Based on your skills, experience, and educational background
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => generateSuggestions(true)}
+                  disabled={loading}
+                  className="flex items-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-4 h-4" />
+                      Regenerate
+                    </>
+                  )}
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               {data.suggestions.map((suggestion, index) => (

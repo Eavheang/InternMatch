@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
 
-export default async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Public routes that don't require authentication
@@ -15,17 +15,17 @@ export default async function proxy(request: NextRequest) {
 
   // Check if route is public
   const isPublicRoute = publicRoutes.some((route) => {
-    if (
-      route.endsWith("/job") ||
-      route.endsWith("/company") ||
-      route.endsWith("/students")
-    ) {
-      return pathname.startsWith(route) && request.method === "GET";
-    }
     return pathname.startsWith(route);
   });
 
-  if (isPublicRoute) {
+  // Special case: Allow GET requests to browse jobs, companies, and students
+  const isBrowsingRoute = (
+    (pathname === "/api/job" || pathname.startsWith("/api/job?")) ||
+    (pathname === "/api/company" || pathname.startsWith("/api/company?")) ||
+    (pathname === "/api/students" || pathname.startsWith("/api/students?"))
+  ) && request.method === "GET";
+
+  if (isPublicRoute || isBrowsingRoute) {
     return NextResponse.next();
   }
 
@@ -69,6 +69,7 @@ export const config = {
   matcher: [
     "/api/auth/me",
     "/api/company/:path*",
+    "/api/student/:path*",
     "/api/students/:path*",
     "/api/job/:path*",
   ],

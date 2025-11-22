@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { EditJobDialog } from "@/components/dashboard/jobs/edit-job-dialog";
 import { type EditFormState } from "@/components/dashboard/jobs/types";
+import StudentJobView from "./student-view";
 
 type JobDetail = {
   id: string;
@@ -105,10 +106,21 @@ export default function JobDetailPage() {
     status: "draft",
   });
   const [isSavingEdit, setIsSavingEdit] = useState(false);
+  
+  // Student-specific state
+  const [hasApplied, setHasApplied] = useState(false);
+  const [applicationStatus, setApplicationStatus] = useState<string | null>(null);
+  const [isApplying, setIsApplying] = useState(false);
+  const [coverLetter, setCoverLetter] = useState("");
+  const [showApplicationForm, setShowApplicationForm] = useState(false);
 
   useEffect(() => {
-    if (!user?.id || user.role !== "company" || !params?.jobId) return;
-    fetchJob(user.id, params.jobId);
+    if (!user?.id || !params?.jobId) return;
+    if (user.role === "company") {
+      fetchJob(user.id, params.jobId);
+    } else if (user.role === "student") {
+      fetchStudentJobDetails(params.jobId);
+    }
   }, [user, params?.jobId]);
 
   const fetchJob = async (userId: string, jobId: string) => {
@@ -127,6 +139,45 @@ export default function JobDetailPage() {
       setJob(data.data);
     } catch (err) {
       console.error("Failed to load job", err);
+      setError(err instanceof Error ? err.message : "Failed to load job");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchStudentJobDetails = async (jobId: string) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("internmatch_token");
+      
+      // Fetch job details
+      const jobResponse = await fetch(`/api/job/${jobId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const jobData = await jobResponse.json();
+      if (!jobResponse.ok) {
+        throw new Error(jobData.error || "Failed to load job");
+      }
+      setJob(jobData.data);
+
+      // Check if student has already applied
+      const applicationResponse = await fetch(`/api/job/${jobId}/apply`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const applicationData = await applicationResponse.json();
+      if (applicationResponse.ok && applicationData.data) {
+        setHasApplied(applicationData.data.hasApplied);
+        if (applicationData.data.application) {
+          setApplicationStatus(applicationData.data.application.status);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load job details", err);
       setError(err instanceof Error ? err.message : "Failed to load job");
     } finally {
       setLoading(false);
@@ -160,6 +211,41 @@ export default function JobDetailPage() {
       status: job.status || "draft",
     });
     setIsEditOpen(true);
+  };
+
+  const handleJobApplication = async () => {
+    if (!params?.jobId) return;
+    
+    try {
+      setIsApplying(true);
+      const token = localStorage.getItem("internmatch_token");
+      const response = await fetch(`/api/job/${params.jobId}/apply`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          coverLetter: coverLetter.trim() || null,
+        }),
+      });
+      
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to submit application");
+      }
+      
+      setHasApplied(true);
+      setApplicationStatus("applied");
+      setShowApplicationForm(false);
+      setCoverLetter("");
+      toast.success("Application submitted successfully!");
+    } catch (err) {
+      console.error("Failed to submit application", err);
+      toast.error(err instanceof Error ? err.message : "Failed to submit application");
+    } finally {
+      setIsApplying(false);
+    }
   };
 
   const handleEditSave = async () => {
@@ -211,6 +297,11 @@ export default function JobDetailPage() {
       setIsSavingEdit(false);
     }
   };
+
+  // Route students to student view
+  if (user?.role === "student") {
+    return <StudentJobView />;
+  }
 
   if (loading) {
     return (

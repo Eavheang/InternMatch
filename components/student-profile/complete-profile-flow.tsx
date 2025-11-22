@@ -205,18 +205,18 @@ export function CompleteProfileFlow() {
         if (tokenParts.length === 3) {
           tokenPayload = JSON.parse(atob(tokenParts[1]));
           if (tokenPayload) {
-            console.log("Token payload:", {
-              userId: tokenPayload.userId,
-              email: tokenPayload.email,
-              role: tokenPayload.role,
-              isVerified: tokenPayload.isVerified,
-              exp: tokenPayload.exp
-                ? new Date(tokenPayload.exp * 1000).toISOString()
-                : "No expiration",
-              isExpired: tokenPayload.exp
-                ? Date.now() > tokenPayload.exp * 1000
-                : false,
-            });
+          console.log("Token payload:", {
+            userId: tokenPayload.userId,
+            email: tokenPayload.email,
+            role: tokenPayload.role,
+            isVerified: tokenPayload.isVerified,
+            exp: tokenPayload.exp
+              ? new Date(tokenPayload.exp * 1000).toISOString()
+              : "No expiration",
+            isExpired: tokenPayload.exp
+              ? Date.now() > tokenPayload.exp * 1000
+              : false,
+          });
           }
 
           // Check if token is expired

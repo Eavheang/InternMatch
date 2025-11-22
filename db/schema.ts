@@ -486,3 +486,67 @@ export const aiGeneratedContentRelations = relations(
     }),
   })
 );
+
+// Student Interview Preparation Tables
+
+// Student practice questions generated for interview preparation
+export const studentPracticeQuestions = pgTable("student_practice_questions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  applicationId: uuid("application_id")
+    .notNull()
+    .references(() => applications.id, { onDelete: "cascade" }),
+  studentId: uuid("student_id")
+    .notNull()
+    .references(() => students.id, { onDelete: "cascade" }),
+  questions: json("questions").notNull(), // Array of {question, category, difficulty, tips, sampleAnswer}
+  jobTitle: text("job_title").notNull(),
+  companyName: text("company_name").notNull(),
+  generatedAt: timestamp("generated_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Student interview tips generated for specific applications
+export const studentInterviewTips = pgTable("student_interview_tips", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  applicationId: uuid("application_id")
+    .notNull()
+    .references(() => applications.id, { onDelete: "cascade" }),
+  studentId: uuid("student_id")
+    .notNull()
+    .references(() => students.id, { onDelete: "cascade" }),
+  tips: json("tips").notNull(), // {general: [], behavioral: [], technical: [], companySpecific: []}
+  jobTitle: text("job_title").notNull(),
+  companyName: text("company_name").notNull(),
+  industry: text("industry"),
+  generatedAt: timestamp("generated_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Relations for student interview preparation
+export const studentPracticeQuestionsRelations = relations(
+  studentPracticeQuestions,
+  ({ one }) => ({
+    application: one(applications, {
+      fields: [studentPracticeQuestions.applicationId],
+      references: [applications.id],
+    }),
+    student: one(students, {
+      fields: [studentPracticeQuestions.studentId],
+      references: [students.id],
+    }),
+  })
+);
+
+export const studentInterviewTipsRelations = relations(
+  studentInterviewTips,
+  ({ one }) => ({
+    application: one(applications, {
+      fields: [studentInterviewTips.applicationId],
+      references: [applications.id],
+    }),
+    student: one(students, {
+      fields: [studentInterviewTips.studentId],
+      references: [students.id],
+    }),
+  })
+);

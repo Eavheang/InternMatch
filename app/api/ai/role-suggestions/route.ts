@@ -9,7 +9,7 @@ import {
   experiences,
   aiGeneratedContent,
 } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { generateJson } from "@/lib/gemini";
 import { verifyToken } from "@/lib/auth";
 import { careers } from "@/constants/career";
@@ -80,6 +80,43 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
     }
+
+    // Check if we already have recent role suggestions for this student
+    const existingSuggestions = await db
+      .select()
+      .from(aiGeneratedContent)
+      .where(
+        and(
+          eq(aiGeneratedContent.studentId, targetStudentId),
+          eq(aiGeneratedContent.type, "resume_suggestions")
+        )
+      )
+      .orderBy(desc(aiGeneratedContent.createdAt))
+      .limit(1);
+
+    // If we have suggestions from within the last 24 hours, return them instead of generating new ones
+    if (existingSuggestions.length > 0) {
+      const lastSuggestion = existingSuggestions[0];
+      const hoursSinceGenerated = (Date.now() - lastSuggestion.createdAt.getTime()) / (1000 * 60 * 60);
+      
+      if (hoursSinceGenerated < 24) {
+        console.log(`Returning existing suggestions (generated ${hoursSinceGenerated.toFixed(1)} hours ago)`);
+        const content = JSON.parse(lastSuggestion.content);
+        return NextResponse.json({
+          success: true,
+          data: content,
+          studentInfo: content.studentProfile ? {
+            name: content.studentProfile.name,
+            major: content.studentProfile.major,
+            university: content.studentProfile.university,
+            graduationYear: content.studentProfile.graduationYear,
+          } : null,
+          fromCache: true,
+        });
+      }
+    }
+
+    console.log("No recent suggestions found, generating new ones...");
 
     // Fetch student's complete profile: skills, projects, experiences
     const [studentSkillsData, studentProjects, studentExperiences] =

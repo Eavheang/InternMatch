@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   useDashboard,
@@ -18,6 +18,7 @@ import { JobSummaryCards } from "@/components/dashboard/jobs/job-summary-cards";
 import { JobSearchBar } from "@/components/dashboard/jobs/job-search-bar";
 import { JobCard } from "@/components/dashboard/jobs/job-card";
 import { EditJobDialog } from "@/components/dashboard/jobs/edit-job-dialog";
+import { StudentJobBrowsing } from "@/components/dashboard/jobs/student-job-browsing";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -61,7 +62,7 @@ export default function JobsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [jobToDelete, setJobToDelete] = useState<string | null>(null);
 
-  const fetchJobs = async (currentUser: User) => {
+  const fetchJobs = useCallback(async (currentUser: User) => {
     try {
       setLoading(true);
       const token = localStorage.getItem("internmatch_token");
@@ -85,7 +86,7 @@ export default function JobsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
 
   useEffect(() => {
     if (!user?.id || user.role !== "company") return;
@@ -230,12 +231,18 @@ export default function JobsPage() {
     }
   };
 
+  // Show student job browsing interface for students
+  if (user?.role === "student") {
+    return <StudentJobBrowsing />;
+  }
+
+  // Show company management interface for companies
   if (user?.role !== "company") {
     return (
       <div className="p-8">
         <h1 className="text-3xl font-bold mb-4">Browse Jobs</h1>
         <p className="text-zinc-500">
-          Company tools are not available for student accounts yet.
+          Please log in to access job features.
         </p>
       </div>
     );
