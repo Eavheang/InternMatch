@@ -11,6 +11,7 @@ export async function middleware(request: NextRequest) {
     "/api/auth/verify-email",
     "/api/auth/forgot-password",
     "/api/auth/reset-password",
+    "/api/payway/return", // PayWay callback doesn't include auth headers
   ];
 
   // Check if route is public
@@ -75,5 +76,7 @@ export const config = {
     "/api/student/:path*",
     "/api/students/:path*",
     "/api/job/:path*",
+    "/api/payway/:path*",
+    "/api/user/:path*",
   ],
 };

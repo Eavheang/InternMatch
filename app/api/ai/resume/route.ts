@@ -67,6 +67,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Check usage limit for resume generation
+    const { checkUsageLimit, incrementUsage } = await import("@/lib/usage-tracking");
+    const usageCheck = await checkUsageLimit(
+      decoded.userId,
+      "resume_generate",
+      "student"
+    );
+    if (!usageCheck.allowed) {
+      return NextResponse.json(
+        { error: usageCheck.message || "Usage limit exceeded" },
+        { status: 403 }
+      );
+    }
+
     const [student] = await db
       .select()
       .from(students)
@@ -184,6 +198,9 @@ ${JSON.stringify(body, null, 2)}
         .set({ isPrimary: true })
         .where(eq(resumes.id, inserted[0].id));
     }
+
+    // Increment usage after successful resume generation
+    await incrementUsage(decoded.userId, "resume_generate", "student");
 
     return NextResponse.json({
       success: true,

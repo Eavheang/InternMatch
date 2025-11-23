@@ -162,6 +162,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Check usage limit for ATS analyze
+    const { checkUsageLimit } = await import("@/lib/usage-tracking");
+    const usageCheck = await checkUsageLimit(
+      decoded.userId,
+      "ats_analyze",
+      "student"
+    );
+    if (!usageCheck.allowed) {
+      return NextResponse.json(
+        { error: usageCheck.message || "Usage limit exceeded" },
+        { status: 403 }
+      );
+    }
+
     // Get student record
     const [student] = await db
       .select()

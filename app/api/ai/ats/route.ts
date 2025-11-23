@@ -46,6 +46,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Check usage limit for ATS analyze (students only)
+    if (decoded.role === "student") {
+      const { checkUsageLimit } = await import("@/lib/usage-tracking");
+      const usageCheck = await checkUsageLimit(
+        decoded.userId,
+        "ats_analyze",
+        "student"
+      );
+      if (!usageCheck.allowed) {
+        return NextResponse.json(
+          { error: usageCheck.message || "Usage limit exceeded" },
+          { status: 403 }
+        );
+      }
+    }
+
     const { resumeId, resumeData, jobId, applicationId } =
       (await req.json()) as AtsInput;
 

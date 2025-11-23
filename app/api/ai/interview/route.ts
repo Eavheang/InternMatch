@@ -36,6 +36,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Check usage limit for interview questions
+    const { checkUsageLimit, incrementUsage } = await import("@/lib/usage-tracking");
+    const usageCheck = await checkUsageLimit(
+      decoded.userId,
+      "interview_questions",
+      "company"
+    );
+    if (!usageCheck.allowed) {
+      return NextResponse.json(
+        { error: usageCheck.message || "Usage limit exceeded" },
+        { status: 403 }
+      );
+    }
+
     const {
       applicationId,
       generatedFrom = "both",
@@ -187,6 +201,9 @@ Return JSON: {
         createdAt: new Date(),
       })
       .returning();
+
+    // Increment usage after successful generation
+    await incrementUsage(decoded.userId, "interview_questions", "company");
 
     // Optionally also save to applications.aiGeneratedQuestions for convenience
     try {

@@ -138,6 +138,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check usage limit for interview prep
+    const { checkUsageLimit, incrementUsage } = await import("@/lib/usage-tracking");
+    const usageCheck = await checkUsageLimit(
+      payload.userId,
+      "interview_prep",
+      "student"
+    );
+    if (!usageCheck.allowed) {
+      return NextResponse.json(
+        { error: usageCheck.message || "Usage limit exceeded" },
+        { status: 403 }
+      );
+    }
+
     const { applicationId, type } = await request.json();
 
     if (!applicationId || !type) {
@@ -220,6 +234,9 @@ export async function POST(request: NextRequest) {
           })
           .returning();
 
+        // Increment usage after generating new content
+        await incrementUsage(payload.userId, "interview_prep", "student");
+
         responseData = {
           id: savedQuestions.id,
           questions: savedQuestions.questions,
@@ -257,6 +274,9 @@ export async function POST(request: NextRequest) {
             industry: application.industry,
           })
           .returning();
+
+        // Increment usage after generating new content
+        await incrementUsage(payload.userId, "interview_prep", "student");
 
         responseData = savedTips.tips;
       }
