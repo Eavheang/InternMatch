@@ -2,14 +2,15 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { type User, type ProfileData } from "./dashboard-context";
+import { type User, type ProfileData, type UserPlan } from "./dashboard-context";
 
 type DashboardSidebarProps = {
   user: User | null;
   profileData: ProfileData | null;
+  userPlan?: UserPlan | null;
 };
 
-export function DashboardSidebar({ user, profileData }: DashboardSidebarProps) {
+export function DashboardSidebar({ user, profileData, userPlan }: DashboardSidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -29,6 +30,7 @@ export function DashboardSidebar({ user, profileData }: DashboardSidebarProps) {
       href: "/dashboard/interviews",
       icon: MessageIcon,
     },
+    { name: "Settings", href: "/dashboard/settings", icon: SettingsIcon },
   ];
 
   const studentMenuItems = [
@@ -46,6 +48,7 @@ export function DashboardSidebar({ user, profileData }: DashboardSidebarProps) {
       href: "/dashboard/role-suggestions",
       icon: TargetIcon,
     },
+    { name: "Settings", href: "/dashboard/settings", icon: SettingsIcon },
   ];
 
   const menuItems =
@@ -81,6 +84,19 @@ export function DashboardSidebar({ user, profileData }: DashboardSidebarProps) {
       ? profileData?.industry || "Technology"
       : profileData?.major || "Student";
 
+  // Get plan display name
+  const getPlanDisplayName = () => {
+    const plan = userPlan?.plan || "free";
+    if (plan === "free") {
+      return user?.role === "company" ? "Free Plan" : "Free Member";
+    }
+    // Capitalize first letter
+    const planName = plan.charAt(0).toUpperCase() + plan.slice(1);
+    return user?.role === "company" ? `${planName} Plan` : `${planName} Member`;
+  };
+
+  const planDisplayName = getPlanDisplayName();
+
   return (
     <div className="w-64 bg-white border-r border-zinc-200 flex flex-col sticky top-0 h-screen overflow-y-auto">
       {/* User Profile Section */}
@@ -94,8 +110,14 @@ export function DashboardSidebar({ user, profileData }: DashboardSidebarProps) {
             <p className="text-sm text-indigo-100 truncate">
               {displaySubtitle}
             </p>
-            <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-purple-500 rounded">
-              Pro {user?.role === "company" ? "Plan" : "Member"}
+            <span className={`inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded ${
+              userPlan?.plan === "free" 
+                ? "bg-gray-500" 
+                : userPlan?.plan === "pro" || userPlan?.plan === "enterprise"
+                ? "bg-purple-500"
+                : "bg-blue-500"
+            }`}>
+              {planDisplayName}
             </span>
           </div>
         </div>
@@ -261,6 +283,23 @@ function TargetIcon({ className }: { className?: string }) {
       <circle cx="12" cy="12" r="10" />
       <circle cx="12" cy="12" r="6" />
       <circle cx="12" cy="12" r="2" />
+    </svg>
+  );
+}
+
+function SettingsIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
     </svg>
   );
 }

@@ -471,3 +471,39 @@ export const studentInterviewTipsRelations = relations(
     }),
   })
 );
+
+// Transactions table - Payment records
+export const transactions = pgTable("transactions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  tranId: text("tran_id").notNull().unique(), // PayWay transaction ID
+  amount: real("amount").notNull(),
+  currency: text("currency").notNull().default("KHR"),
+  plan: text("plan"), // Subscription plan name (e.g., "basic", "pro", "growth", "enterprise")
+  status: text("status", {
+    enum: ["pending", "completed", "failed", "cancelled", "refunded"],
+  })
+    .notNull()
+    .default("pending"),
+  paymentStatus: text("payment_status"), // PayWay payment status code
+  paymentStatusMessage: text("payment_status_message"),
+  paymentAmount: real("payment_amount"), // Actual amount paid (may differ due to discounts)
+  paymentCurrency: text("payment_currency"),
+  transactionDate: timestamp("transaction_date"), // PayWay transaction date
+  expiresAt: timestamp("expires_at"), // Subscription expiration date (1 month from payment)
+  autoRenew: boolean("auto_renew").notNull().default(true), // Auto-renewal enabled
+  nextBillingDate: timestamp("next_billing_date"), // Next billing date for auto-renewal
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  metadata: json("metadata"), // Additional PayWay response data
+});
+
+// Relations for transactions
+export const transactionsRelations = relations(transactions, ({ one }) => ({
+  user: one(users, {
+    fields: [transactions.userId],
+    references: [users.id],
+  }),
+}));

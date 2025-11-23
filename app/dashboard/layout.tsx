@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
 import {
   DashboardProvider,
   type User,
   type ProfileData,
+  type UserPlan,
 } from "@/components/dashboard/dashboard-context";
 
 export default function DashboardLayout({
@@ -19,7 +20,9 @@ export default function DashboardLayout({
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
+  const [userPlan, setUserPlan] = useState<UserPlan | null>(null);
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const planFetchedRef = useRef(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -158,6 +161,29 @@ export default function DashboardLayout({
         console.log(
           "[Dashboard Layout] Auth check successful, user authorized"
         );
+
+        // Fetch user plan (only once per session)
+        if (!planFetchedRef.current) {
+          planFetchedRef.current = true;
+          try {
+            const planResponse = await fetch("/api/user/plan", {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+            if (planResponse.ok) {
+              const planData = await planResponse.json();
+              setUserPlan(planData);
+            } else {
+              // Set default free plan on error
+              setUserPlan({ plan: "free", transaction: null });
+            }
+          } catch (planError) {
+            console.error("[Dashboard Layout] Error fetching plan:", planError);
+            // Set default free plan on error
+            setUserPlan({ plan: "free", transaction: null });
+          }
+        }
       } catch (error) {
         console.error("[Dashboard Layout] Auth check error:", error);
         // Redirect to login on any error - if auth fails, user should re-authenticate
@@ -172,7 +198,8 @@ export default function DashboardLayout({
     };
 
     checkAuth();
-  }, [router, pathname]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]); // Only depend on pathname, not router
 
   if (loading || !isAuthorized) {
     return (
@@ -185,9 +212,9 @@ export default function DashboardLayout({
   }
 
   return (
-    <DashboardProvider user={user} profileData={profileData}>
+    <DashboardProvider user={user} profileData={profileData} userPlan={userPlan}>
       <div className="flex min-h-screen bg-zinc-50">
-        <DashboardSidebar user={user} profileData={profileData} />
+        <DashboardSidebar user={user} profileData={profileData} userPlan={userPlan} />
         <div className="flex-1 flex flex-col">
           <main className="flex-1">{children}</main>
         </div>
