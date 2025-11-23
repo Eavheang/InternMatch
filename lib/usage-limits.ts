@@ -15,9 +15,9 @@ export type PlanType = "free" | "basic" | "pro" | "growth" | "enterprise";
 
 interface PlanLimits {
   role_suggestion?: number; // Duration in months (for students)
-  interview_prep: number; // Times per month
+  interview_prep?: number; // Times per month (for students)
   ats_analyze?: number; // Duration in months (for students)
-  resume_generate: number; // Times per month
+  resume_generate?: number; // Times per month (for students)
   job_prediction?: number; // Times per month (for companies)
   alternative_role?: number; // Times per month (for companies)
   interview_questions?: number; // Times per month (for companies)
