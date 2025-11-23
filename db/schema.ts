@@ -507,3 +507,25 @@ export const transactionsRelations = relations(transactions, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+// Usage tracking table - tracks feature usage per user per month
+export const usageTracking = pgTable("usage_tracking", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  feature: text("feature").notNull(), // e.g., "role_suggestion", "interview_prep", "ats_analyze", "resume_generate", "job_prediction", "alternative_role", "interview_questions"
+  month: text("month").notNull(), // Format: "YYYY-MM" (e.g., "2025-01")
+  count: integer("count").notNull().default(0), // Usage count for this month
+  limit: integer("limit").notNull(), // Monthly limit based on plan
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Relations for usage tracking
+export const usageTrackingRelations = relations(usageTracking, ({ one }) => ({
+  user: one(users, {
+    fields: [usageTracking.userId],
+    references: [users.id],
+  }),
+}));

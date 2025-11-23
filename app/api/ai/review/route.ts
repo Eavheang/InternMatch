@@ -34,6 +34,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Check usage limit for job prediction/alternative role
+    const { checkUsageLimit, incrementUsage } = await import("@/lib/usage-tracking");
+    const jobPredictionCheck = await checkUsageLimit(
+      decoded.userId,
+      "job_prediction",
+      "company"
+    );
+    const alternativeRoleCheck = await checkUsageLimit(
+      decoded.userId,
+      "alternative_role",
+      "company"
+    );
+    
+    if (!jobPredictionCheck.allowed || !alternativeRoleCheck.allowed) {
+      return NextResponse.json(
+        { error: jobPredictionCheck.message || alternativeRoleCheck.message || "Usage limit exceeded" },
+        { status: 403 }
+      );
+    }
+
     const { applicationId } = (await req.json()) as ReviewInput;
     const [appRow] = await db
       .select()
@@ -192,6 +212,10 @@ Return JSON: {
         analyzedAt: new Date(),
       })
       .returning();
+
+    // Increment usage after successful generation
+    await incrementUsage(decoded.userId, "job_prediction", "company");
+    await incrementUsage(decoded.userId, "alternative_role", "company");
 
     try {
       await db.insert(aiGeneratedContent).values({

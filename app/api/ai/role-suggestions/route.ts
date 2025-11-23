@@ -40,6 +40,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Check usage limit for role suggestions
+    const { checkUsageLimit } = await import("@/lib/usage-tracking");
+    const usageCheck = await checkUsageLimit(
+      decoded.userId,
+      "role_suggestion",
+      "student"
+    );
+    if (!usageCheck.allowed) {
+      return NextResponse.json(
+        { error: usageCheck.message || "Usage limit exceeded" },
+        { status: 403 }
+      );
+    }
+
     const { studentId, resumeId } = (await req.json()) as RoleSuggestionInput;
 
     let targetStudentId = studentId;
