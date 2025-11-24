@@ -14,8 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "InternMatch | Sign In",
-  description: "Student and company auth flows for InternMatch.",
+  title: "InternMatch | Your Next Adventure Starts Here",
+  description:
+    "Find your dream internship in a world of endless opportunities. Connect with top companies and unlock your potential.",
 };
 
 export default function RootLayout({

@@ -2,24 +2,18 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import GTALanding from "@/components/landing/gta-landing";
 
 export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
+    // Check if user is authenticated and redirect to dashboard
     const token = localStorage.getItem("internmatch_token");
     if (token) {
       router.push("/dashboard");
-    } else {
-      router.push("/login");
     }
   }, [router]);
 
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50">
-      <div className="text-center">
-        <p className="text-zinc-600">Loading...</p>
-      </div>
-    </div>
-  );
+  return <GTALanding />;
 }
