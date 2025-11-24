@@ -70,7 +70,9 @@ export default function Home() {
       {/* Navigation Bar */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-6 bg-white/80 backdrop-blur-md border-b border-gray-200/50">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg"></div>
+          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+            <Briefcase className="h-4 w-4 text-white" />
+          </div>
           <span className="text-xl font-semibold text-gray-900">InternMatch</span>
         </div>
         <div className="flex items-center gap-4">
@@ -520,7 +522,9 @@ export default function Home() {
       <footer className="relative py-12 px-4 bg-gray-900 text-gray-400">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between">
           <div className="flex items-center gap-2 mb-4 md:mb-0">
-            <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-md"></div>
+            <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-md flex items-center justify-center">
+              <Briefcase className="h-3 w-3 text-white" />
+            </div>
             <span className="text-lg font-semibold text-white">InternMatch</span>
           </div>
           <div className="text-sm">
