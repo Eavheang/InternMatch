@@ -14,9 +14,11 @@ type ProfileData = {
   major: string;
   graduationYear: string;
   gpa: string;
+  location: string;
 
   // Step 3: Skills
   skills: string[];
+  careerInterest: string[];
 
   // Step 4: Projects & Experience
   projects: Array<{
@@ -47,7 +49,9 @@ export function CompleteProfileFlow() {
     major: "",
     graduationYear: "",
     gpa: "",
+    location: "",
     skills: [],
+    careerInterest: [],
     projects: [],
     experiences: [],
     resumeFile: null,
@@ -88,12 +92,25 @@ export function CompleteProfileFlow() {
 
           // Pre-fill form with existing data if available
           if (profile) {
+            // Parse careerInterest from string to array
+            let careerInterestArray: string[] = [];
+            if (profile.careerInterest) {
+              const interestStr = profile.careerInterest as string;
+              if (interestStr.includes(",")) {
+                careerInterestArray = interestStr.split(",").map((s) => s.trim());
+              } else if (interestStr) {
+                careerInterestArray = [interestStr];
+              }
+            }
+
             setFormData({
               university: profile.university || "",
               major: profile.major || "",
               graduationYear: profile.graduationYear?.toString() || "",
               gpa: profile.gpa?.toString() || "",
+              location: profile.location || "",
               skills: profile.skills || [],
+              careerInterest: careerInterestArray,
               projects:
                 profile.projects?.map(
                   (p: {
@@ -259,7 +276,11 @@ export function CompleteProfileFlow() {
           ? parseInt(formData.graduationYear)
           : null,
         gpa: formData.gpa ? parseFloat(formData.gpa) : null,
+        location: formData.location || null,
         skills: formData.skills || [],
+        careerInterest: formData.careerInterest?.length > 0
+          ? formData.careerInterest.join(", ")
+          : null,
         projects: (formData.projects || []).map((p) => ({
           projectName: p.projectName,
           projectDescription: p.technologiesUsed

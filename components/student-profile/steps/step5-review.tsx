@@ -7,7 +7,9 @@ type ProfileData = {
   major: string;
   graduationYear: string;
   gpa: string;
+  location: string;
   skills: string[];
+  careerInterest: string[];
   projects: Array<{
     projectName: string;
     projectDescription: string;
@@ -79,6 +81,12 @@ export function Step5Review({ data, onPrevious, onSubmit }: Step5ReviewProps) {
                 <span className="text-zinc-600">{data.gpa}</span>
               </div>
             )}
+            {data.location && (
+              <div>
+                <span className="font-medium text-zinc-700">Location:</span>{" "}
+                <span className="text-zinc-600">{data.location}</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -98,6 +106,27 @@ export function Step5Review({ data, onPrevious, onSubmit }: Step5ReviewProps) {
             </div>
           ) : (
             <p className="text-sm text-zinc-500">No skills added</p>
+          )}
+        </div>
+
+        {/* Career Interests Section */}
+        <div className="rounded-lg border border-zinc-200 bg-white p-6">
+          <h3 className="mb-4 text-lg font-semibold text-zinc-900">
+            Career Interests
+          </h3>
+          {data.careerInterest && data.careerInterest.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {data.careerInterest.map((career, index) => (
+                <span
+                  key={index}
+                  className="rounded-lg bg-purple-100 px-3 py-1 text-sm text-purple-700"
+                >
+                  {career}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-zinc-500">No career interests added</p>
           )}
         </div>
 

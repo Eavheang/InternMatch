@@ -35,6 +35,7 @@ export const students = pgTable("students", {
   phoneNumber: text("phone_number"),
   location: text("location"),
   university: text("university"),
+  degree: text("degree"),
   major: text("major"),
   graduationYear: integer("graduation_year"),
   gpa: real("gpa"),

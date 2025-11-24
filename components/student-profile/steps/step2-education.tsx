@@ -17,6 +17,7 @@ type EducationData = {
   major: string;
   graduationYear: string;
   gpa: string;
+  location: string;
 };
 
 type Step2EducationProps = {
@@ -36,6 +37,7 @@ export function Step2Education({
       major: data.major || "",
       graduationYear: data.graduationYear || "",
       gpa: data.gpa || "",
+      location: data.location || "",
     },
   });
 
@@ -111,26 +113,45 @@ export function Step2Education({
             />
           </div>
 
-          <FormField
-            control={form.control}
-            name="gpa"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>GPA (Optional)</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="3.8"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="4.0"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="gpa"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>GPA (Optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="3.8"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="4.0"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Location (Optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g. San Francisco, CA"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           <div className="flex justify-end pt-4">
             <Button type="submit" className="rounded-2xl">
