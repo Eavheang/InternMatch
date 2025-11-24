@@ -112,7 +112,10 @@ export default function GTALanding() {
       </div>
 
       {/* Animated particles/stars */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div
+        className="absolute inset-0 overflow-hidden pointer-events-none"
+        suppressHydrationWarning
+      >
         {particles.map((particle) => (
           <div
             key={particle.id}
