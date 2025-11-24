@@ -1,34 +1,23 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useMemo } from "react";
+import { useState } from "react";
+
+// Generate particles once outside the component
+const generateParticles = () =>
+  Array.from({ length: 20 }, (_, i) => ({
+    id: i,
+    width: Math.random() * 4 + 1,
+    height: Math.random() * 4 + 1,
+    top: Math.random() * 100,
+    left: Math.random() * 100,
+    animationDuration: Math.random() * 3 + 2,
+    animationDelay: Math.random() * 2,
+  }));
 
 export default function GTALanding() {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-
-  // Generate particle positions once to avoid hydration mismatch
-  const particles = useMemo(
-    () =>
-      Array.from({ length: 20 }, (_, i) => ({
-        id: i,
-        width: Math.random() * 4 + 1,
-        height: Math.random() * 4 + 1,
-        top: Math.random() * 100,
-        left: Math.random() * 100,
-        animationDuration: Math.random() * 3 + 2,
-        animationDelay: Math.random() * 2,
-      })),
-    []
-  );
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return null;
-  }
+  const [particles] = useState(generateParticles);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-purple-900 via-pink-900 to-orange-900">
