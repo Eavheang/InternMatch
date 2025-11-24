@@ -1,11 +1,26 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 export default function GTALanding() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+
+  // Generate particle positions once to avoid hydration mismatch
+  const particles = useMemo(
+    () =>
+      Array.from({ length: 20 }, (_, i) => ({
+        id: i,
+        width: Math.random() * 4 + 1,
+        height: Math.random() * 4 + 1,
+        top: Math.random() * 100,
+        left: Math.random() * 100,
+        animationDuration: Math.random() * 3 + 2,
+        animationDelay: Math.random() * 2,
+      })),
+    []
+  );
 
   useEffect(() => {
     setMounted(true);
@@ -109,64 +124,21 @@ export default function GTALanding() {
 
       {/* Animated particles/stars */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
+        {particles.map((particle) => (
           <div
-            key={i}
+            key={particle.id}
             className="absolute rounded-full bg-white/30"
             style={{
-              width: Math.random() * 4 + 1 + "px",
-              height: Math.random() * 4 + 1 + "px",
-              top: Math.random() * 100 + "%",
-              left: Math.random() * 100 + "%",
-              animation: `twinkle ${Math.random() * 3 + 2}s ease-in-out infinite`,
-              animationDelay: Math.random() * 2 + "s",
+              width: `${particle.width}px`,
+              height: `${particle.height}px`,
+              top: `${particle.top}%`,
+              left: `${particle.left}%`,
+              animation: `twinkle ${particle.animationDuration}s ease-in-out infinite`,
+              animationDelay: `${particle.animationDelay}s`,
             }}
           />
         ))}
       </div>
-
-      <style jsx>{`
-        @keyframes twinkle {
-          0%,
-          100% {
-            opacity: 0.3;
-            transform: scale(1);
-          }
-          50% {
-            opacity: 1;
-            transform: scale(1.5);
-          }
-        }
-
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-
-        @keyframes slide-up {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .animate-fade-in {
-          animation: fade-in 1s ease-out forwards;
-        }
-
-        .animate-slide-up {
-          animation: slide-up 1s ease-out forwards;
-          opacity: 0;
-        }
-      `}</style>
     </div>
   );
 }
