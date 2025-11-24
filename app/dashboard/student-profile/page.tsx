@@ -271,6 +271,7 @@ export default function StudentProfilePage() {
         phoneNumber: phone,
         location,
         university,
+        degree,
         major,
         graduationYear: parseInt(gradYear) || null,
         gpa: parseFloat(gpa) || null,
