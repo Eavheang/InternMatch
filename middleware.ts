@@ -78,5 +78,6 @@ export const config = {
     "/api/job/:path*",
     "/api/payway/:path*",
     "/api/user/:path*",
+    "/api/subscriptions/:path*",
   ],
 };

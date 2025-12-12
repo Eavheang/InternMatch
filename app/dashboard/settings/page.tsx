@@ -334,10 +334,8 @@ export default function SettingsPage() {
                                     {userPlan.isExpired && userPlan.plan !== "free" && (
                                         <span className="text-red-600 ml-2">(Expired)</span>
                                     )}
-                                    {userPlan.transaction && (
-                                        <span className={`ml-2 ${
-                                            userPlan.isExpired ? "text-red-600" : "text-indigo-600"
-                                        }`}>
+                                    {userPlan.transaction && userPlan.plan !== "free" && !userPlan.isExpired && (
+                                        <span className="ml-2 text-indigo-600">
                                             (Paid ${userPlan.transaction.amount} on{" "}
                                             {userPlan.transaction.transactionDate
                                                 ? new Date(userPlan.transaction.transactionDate).toLocaleDateString()
