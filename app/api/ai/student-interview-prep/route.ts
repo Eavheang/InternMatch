@@ -274,7 +274,8 @@ export async function POST(request: NextRequest) {
       if (existingTips) {
         // Return existing tips (cached)
         console.log("[Cache Hit] Returning existing tips for applicationId:", applicationId);
-        responseData = { ...existingTips.tips, isNewGeneration: false };
+        const tips = existingTips.tips as Record<string, unknown>;
+        responseData = { ...tips, isNewGeneration: false };
       } else {
         // Generate new tips
         const generatedTips = generateMockTips(
@@ -298,7 +299,8 @@ export async function POST(request: NextRequest) {
 
         console.log("[New Generation] Created new tips for applicationId:", applicationId);
 
-        responseData = { ...savedTips.tips, isNewGeneration: true };
+        const newTips = savedTips.tips as Record<string, unknown>;
+        responseData = { ...newTips, isNewGeneration: true };
       }
     } else {
       return NextResponse.json(
