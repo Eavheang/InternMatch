@@ -145,9 +145,23 @@ export async function POST(request: NextRequest) {
       "interview_prep",
       "student"
     );
+    
+    console.log("[Usage Check] interview_prep:", {
+      userId: payload.userId,
+      current: usageCheck.current,
+      limit: usageCheck.limit,
+      allowed: usageCheck.allowed,
+    });
+    
     if (!usageCheck.allowed) {
       return NextResponse.json(
-        { error: usageCheck.message || "Usage limit exceeded" },
+        { 
+          error: usageCheck.message || "Usage limit exceeded",
+          usage: {
+            current: usageCheck.current,
+            limit: usageCheck.limit,
+          }
+        },
         { status: 403 }
       );
     }
@@ -200,6 +214,10 @@ export async function POST(request: NextRequest) {
 
     let responseData;
 
+    // Increment usage for EVERY request (whether cached or new generation)
+    await incrementUsage(payload.userId, "interview_prep", "student");
+    console.log("[Usage Increment] interview_prep incremented - current usage:", usageCheck.current + 1, "/", usageCheck.limit);
+
     if (type === "questions") {
       // Check if questions already exist
       const [existingQuestions] = await db
@@ -209,11 +227,13 @@ export async function POST(request: NextRequest) {
         .limit(1);
 
       if (existingQuestions) {
-        // Return existing questions
+        // Return existing questions (cached)
+        console.log("[Cache Hit] Returning existing questions for applicationId:", applicationId);
         responseData = {
           id: existingQuestions.id,
           questions: existingQuestions.questions,
           createdAt: existingQuestions.generatedAt.toISOString(),
+          isNewGeneration: false,
         };
       } else {
         // Generate new questions
@@ -234,13 +254,13 @@ export async function POST(request: NextRequest) {
           })
           .returning();
 
-        // Increment usage after generating new content
-        await incrementUsage(payload.userId, "interview_prep", "student");
+        console.log("[New Generation] Created new questions for applicationId:", applicationId);
 
         responseData = {
           id: savedQuestions.id,
           questions: savedQuestions.questions,
           createdAt: savedQuestions.generatedAt.toISOString(),
+          isNewGeneration: true,
         };
       }
     } else if (type === "tips") {
@@ -252,8 +272,9 @@ export async function POST(request: NextRequest) {
         .limit(1);
 
       if (existingTips) {
-        // Return existing tips
-        responseData = existingTips.tips;
+        // Return existing tips (cached)
+        console.log("[Cache Hit] Returning existing tips for applicationId:", applicationId);
+        responseData = { ...existingTips.tips, isNewGeneration: false };
       } else {
         // Generate new tips
         const generatedTips = generateMockTips(
@@ -275,10 +296,9 @@ export async function POST(request: NextRequest) {
           })
           .returning();
 
-        // Increment usage after generating new content
-        await incrementUsage(payload.userId, "interview_prep", "student");
+        console.log("[New Generation] Created new tips for applicationId:", applicationId);
 
-        responseData = savedTips.tips;
+        responseData = { ...savedTips.tips, isNewGeneration: true };
       }
     } else {
       return NextResponse.json(

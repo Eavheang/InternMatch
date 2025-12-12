@@ -158,16 +158,8 @@ export function RoleSuggestions({
 
         const result = await response.json();
         if (!response.ok) {
-          // Handle quota exceeded error specifically
-          if (result.error && result.error.includes("quota")) {
-            toast.error(
-              "AI service quota exceeded. Please try again later or contact support."
-            );
-          } else {
-            throw new Error(
-              result.error || "Failed to generate role suggestions"
-            );
-          }
+          // Show the actual error message from the API (including usage limit messages)
+          toast.error(result.error || "Failed to generate role suggestions. Please try again.");
           return;
         }
 

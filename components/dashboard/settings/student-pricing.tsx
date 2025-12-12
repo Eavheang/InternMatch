@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { PricingCard } from "./pricing-card";
+import { useState, useEffect } from "react";
+import { PricingCard, FeatureUsage } from "./pricing-card";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -20,6 +20,38 @@ interface StudentPricingProps {
 export function StudentPricing({ currentPlan = "free" }: StudentPricingProps) {
     const [showDialog, setShowDialog] = useState(false);
     const [isDowngrading, setIsDowngrading] = useState(false);
+    const [usage, setUsage] = useState<FeatureUsage[]>([]);
+    const [isLoadingUsage, setIsLoadingUsage] = useState(true);
+
+    // Fetch usage data
+    useEffect(() => {
+        const fetchUsage = async () => {
+            try {
+                const token = localStorage.getItem("internmatch_token");
+                if (!token) {
+                    setIsLoadingUsage(false);
+                    return;
+                }
+
+                const response = await fetch("/api/user/usage", {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setUsage(data.usage || []);
+                }
+            } catch (error) {
+                console.error("Failed to fetch usage:", error);
+            } finally {
+                setIsLoadingUsage(false);
+            }
+        };
+
+        fetchUsage();
+    }, []);
 
     const handleSubscribe = async (amount: number, plan: string) => {
         try {
@@ -131,6 +163,9 @@ export function StudentPricing({ currentPlan = "free" }: StudentPricingProps) {
         }
     };
 
+    // Get usage for current plan only
+    const currentPlanUsage = isLoadingUsage ? undefined : usage;
+
     return (
         <div className="space-y-6">
             <div>
@@ -151,6 +186,7 @@ export function StudentPricing({ currentPlan = "free" }: StudentPricingProps) {
                     onSubscribe={handleDowngradeToFree}
                     isCurrentPlan={currentPlan === "free"}
                     buttonText={currentPlan === "free" ? "Active Plan" : "Switch to Free"}
+                    usage={currentPlan === "free" ? currentPlanUsage : undefined}
                 />
                 <PricingCard
                     title="Basic"
@@ -164,6 +200,7 @@ export function StudentPricing({ currentPlan = "free" }: StudentPricingProps) {
                     ]}
                     onSubscribe={() => handleSubscribe(5, "basic")}
                     isCurrentPlan={currentPlan === "basic"}
+                    usage={currentPlan === "basic" ? currentPlanUsage : undefined}
                 />
                 <PricingCard
                     title="Pro"
@@ -177,6 +214,7 @@ export function StudentPricing({ currentPlan = "free" }: StudentPricingProps) {
                     ]}
                     onSubscribe={() => handleSubscribe(15, "pro")}
                     isCurrentPlan={currentPlan === "pro"}
+                    usage={currentPlan === "pro" ? currentPlanUsage : undefined}
                 />
             </div>
 

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { PricingCard } from "./pricing-card";
+import { useState, useEffect } from "react";
+import { PricingCard, FeatureUsage } from "./pricing-card";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -20,6 +20,38 @@ interface CompanyPricingProps {
 export function CompanyPricing({ currentPlan = "free" }: CompanyPricingProps) {
     const [showDialog, setShowDialog] = useState(false);
     const [isDowngrading, setIsDowngrading] = useState(false);
+    const [usage, setUsage] = useState<FeatureUsage[]>([]);
+    const [isLoadingUsage, setIsLoadingUsage] = useState(true);
+
+    // Fetch usage data
+    useEffect(() => {
+        const fetchUsage = async () => {
+            try {
+                const token = localStorage.getItem("internmatch_token");
+                if (!token) {
+                    setIsLoadingUsage(false);
+                    return;
+                }
+
+                const response = await fetch("/api/user/usage", {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setUsage(data.usage || []);
+                }
+            } catch (error) {
+                console.error("Failed to fetch usage:", error);
+            } finally {
+                setIsLoadingUsage(false);
+            }
+        };
+
+        fetchUsage();
+    }, []);
 
     const handleSubscribe = async (amount: number, plan: string) => {
         try {
@@ -131,6 +163,9 @@ export function CompanyPricing({ currentPlan = "free" }: CompanyPricingProps) {
         }
     };
 
+    // Get usage for current plan only
+    const currentPlanUsage = isLoadingUsage ? undefined : usage;
+
     return (
         <div className="space-y-6">
             <div>
@@ -143,37 +178,40 @@ export function CompanyPricing({ currentPlan = "free" }: CompanyPricingProps) {
                     price="Free"
                     description="Basic tools for small teams"
                     features={[
-                        "Generate job prediction: 5 times/month",
+                        "Job prediction: 5 times/month",
                         "Alternative role: 5 times/month",
                         "Interview questions: 5 times/month",
                     ]}
                     onSubscribe={handleDowngradeToFree}
                     isCurrentPlan={currentPlan === "free"}
                     buttonText={currentPlan === "free" ? "Active Plan" : "Switch to Free"}
+                    usage={currentPlan === "free" ? currentPlanUsage : undefined}
                 />
                 <PricingCard
                     title="Growth"
                     price="$15"
                     description="Enhanced tools for growing companies"
                     features={[
-                        "Generate job prediction: 10 times/month",
+                        "Job prediction: 10 times/month",
                         "Alternative role: 10 times/month",
                         "Interview questions: 10 times/month",
                     ]}
                     onSubscribe={() => handleSubscribe(15, "growth")}
                     isCurrentPlan={currentPlan === "growth"}
+                    usage={currentPlan === "growth" ? currentPlanUsage : undefined}
                 />
                 <PricingCard
                     title="Enterprise"
                     price="$25"
                     description="Full access for large organizations"
                     features={[
-                        "Generate job prediction: 20 times/month",
+                        "Job prediction: 20 times/month",
                         "Alternative role: 20 times/month",
                         "Interview questions: 20 times/month",
                     ]}
                     onSubscribe={() => handleSubscribe(25, "enterprise")}
                     isCurrentPlan={currentPlan === "enterprise"}
+                    usage={currentPlan === "enterprise" ? currentPlanUsage : undefined}
                 />
             </div>
 

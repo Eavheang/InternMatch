@@ -49,6 +49,9 @@ export async function POST(req: NextRequest) {
         { status: 403 }
       );
     }
+    // Increment usage for EVERY request
+    await incrementUsage(decoded.userId, "interview_questions", "company");
+    console.log("[Usage Increment] interview_questions incremented - current usage:", usageCheck.current + 1, "/", usageCheck.limit);
 
     const {
       applicationId,
@@ -201,9 +204,6 @@ Return JSON: {
         createdAt: new Date(),
       })
       .returning();
-
-    // Increment usage after successful generation
-    await incrementUsage(decoded.userId, "interview_questions", "company");
 
     // Optionally also save to applications.aiGeneratedQuestions for convenience
     try {

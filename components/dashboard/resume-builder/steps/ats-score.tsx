@@ -85,8 +85,10 @@ export function ATSScore({ resumeData, onUpdateResume }: ATSScoreProps) {
 
     try {
       const token = localStorage.getItem("internmatch_token");
-      // Token check commented out as per previous context to allow loose dev testing if needed
-      // if (!token) { ... }
+      if (!token) {
+        toast.error("Please log in to analyze your resume.");
+        return;
+      }
 
       const response = await fetch("/api/ai/resume/analyze", {
         method: "POST",
@@ -99,11 +101,14 @@ export function ATSScore({ resumeData, onUpdateResume }: ATSScoreProps) {
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("Failed to analyze resume");
+        // Show the actual error message from the API (including usage limit messages)
+        toast.error(data.error || "Failed to analyze resume. Please try again.");
+        return;
       }
 
-      const data = await response.json();
       const analysis = data.data;
 
       setResult({
@@ -153,6 +158,10 @@ export function ATSScore({ resumeData, onUpdateResume }: ATSScoreProps) {
     setIsImproving(true);
     try {
       const token = localStorage.getItem("internmatch_token");
+      if (!token) {
+        toast.error("Please log in to improve your resume.");
+        return;
+      }
 
       const response = await fetch("/api/ai/resume/improve", {
         method: "POST",
@@ -166,11 +175,14 @@ export function ATSScore({ resumeData, onUpdateResume }: ATSScoreProps) {
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("Failed to improve resume");
+        // Show the actual error message from the API (including usage limit messages)
+        toast.error(data.error || "Failed to improve resume. Please try again.");
+        return;
       }
 
-      const data = await response.json();
       if (data.data) {
         onUpdateResume(data.data);
         toast.success(
@@ -181,7 +193,7 @@ export function ATSScore({ resumeData, onUpdateResume }: ATSScoreProps) {
       }
     } catch (error) {
       console.error("AI Improvement error:", error);
-      toast.error("Failed to improve resume.");
+      toast.error("Failed to improve resume. Please try again.");
     } finally {
       setIsImproving(false);
     }

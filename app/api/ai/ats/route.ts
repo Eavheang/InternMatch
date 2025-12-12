@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
     // Check usage limit for ATS analyze (students only)
     if (decoded.role === "student") {
-      const { checkUsageLimit } = await import("@/lib/usage-tracking");
+      const { checkUsageLimit, incrementUsage } = await import("@/lib/usage-tracking");
       const usageCheck = await checkUsageLimit(
         decoded.userId,
         "ats_analyze",
@@ -60,6 +60,9 @@ export async function POST(req: NextRequest) {
           { status: 403 }
         );
       }
+      // Increment usage for EVERY request
+      await incrementUsage(decoded.userId, "ats_analyze", "student");
+      console.log("[Usage Increment] ats_analyze incremented - current usage:", usageCheck.current + 1, "/", usageCheck.limit);
     }
 
     const { resumeId, resumeData, jobId, applicationId } =

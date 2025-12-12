@@ -80,6 +80,9 @@ export async function POST(req: NextRequest) {
         { status: 403 }
       );
     }
+    // Increment usage for EVERY request
+    await incrementUsage(decoded.userId, "resume_generate", "student");
+    console.log("[Usage Increment] resume_generate incremented - current usage:", usageCheck.current + 1, "/", usageCheck.limit);
 
     const [student] = await db
       .select()
@@ -198,9 +201,6 @@ ${JSON.stringify(body, null, 2)}
         .set({ isPrimary: true })
         .where(eq(resumes.id, inserted[0].id));
     }
-
-    // Increment usage after successful resume generation
-    await incrementUsage(decoded.userId, "resume_generate", "student");
 
     return NextResponse.json({
       success: true,

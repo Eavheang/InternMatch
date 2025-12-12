@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check usage limit for role suggestions
-    const { checkUsageLimit } = await import("@/lib/usage-tracking");
+    const { checkUsageLimit, incrementUsage } = await import("@/lib/usage-tracking");
     const usageCheck = await checkUsageLimit(
       decoded.userId,
       "role_suggestion",
@@ -53,6 +53,10 @@ export async function POST(req: NextRequest) {
         { status: 403 }
       );
     }
+
+    // Increment usage for EVERY request (whether cached or new generation)
+    await incrementUsage(decoded.userId, "role_suggestion", "student");
+    console.log("[Usage Increment] role_suggestion incremented - current usage:", usageCheck.current + 1, "/", usageCheck.limit);
 
     const { studentId, resumeId } = (await req.json()) as RoleSuggestionInput;
 

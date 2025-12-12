@@ -1,9 +1,29 @@
 import { db } from "@/db";
 import { usageTracking, transactions } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
-import { getUsageLimit, getCurrentMonth, FeatureType, PlanType } from "./usage-limits";
+import {
+  getUsageLimit,
+  getCurrentMonth,
+  FeatureType,
+  PlanType,
+  getFeaturesForRole,
+  FEATURE_DISPLAY_NAMES,
+} from "./usage-limits";
 import { getAuthenticatedUser } from "./auth-helpers";
 import { NextRequest } from "next/server";
+
+export interface UsageInfo {
+  feature: FeatureType;
+  displayName: string;
+  current: number;
+  limit: number;
+  percentage: number;
+}
+
+export interface AllUsageInfo {
+  plan: PlanType;
+  usage: UsageInfo[];
+}
 
 /**
  * Get user's current plan from their most recent completed transaction
@@ -52,6 +72,8 @@ export async function checkUsageLimit(
   const plan = await getUserPlan(userId);
   const limit = getUsageLimit(plan, feature, role);
 
+  console.log(`[checkUsageLimit] userId=${userId}, feature=${feature}, role=${role}, plan=${plan}, limit=${limit}`);
+
   // If limit is 0, feature is not available for this plan
   if (limit === 0) {
     return {
@@ -62,43 +84,7 @@ export async function checkUsageLimit(
     };
   }
 
-  // For duration-based features (role_suggestion, ats_analyze), check subscription expiration
-  if (feature === "role_suggestion" || feature === "ats_analyze") {
-    const [latestTransaction] = await db
-      .select()
-      .from(transactions)
-      .where(
-        and(
-          eq(transactions.userId, userId),
-          eq(transactions.status, "completed")
-        )
-      )
-      .orderBy(desc(transactions.createdAt))
-      .limit(1);
-
-    if (latestTransaction?.expiresAt) {
-      const now = new Date();
-      const expirationDate = new Date(latestTransaction.expiresAt);
-      if (now > expirationDate && !latestTransaction.autoRenew) {
-        return {
-          allowed: false,
-          current: 0,
-          limit: 0,
-          message: `Your subscription has expired. Please renew to continue using this feature.`,
-        };
-      }
-    }
-
-    // For duration-based features, we check if subscription is still active
-    // The limit represents months of access, not monthly count
-    return {
-      allowed: true,
-      current: 0,
-      limit: limit,
-    };
-  }
-
-  // For count-based features, check monthly usage
+  // Check monthly usage
   const currentMonth = getCurrentMonth();
   const [usage] = await db
     .select()
@@ -114,6 +100,8 @@ export async function checkUsageLimit(
 
   const currentCount = usage?.count || 0;
   const allowed = currentCount < limit;
+
+  console.log(`[checkUsageLimit] month=${currentMonth}, currentCount=${currentCount}, allowed=${allowed}`);
 
   return {
     allowed,
@@ -136,8 +124,11 @@ export async function incrementUsage(
   const plan = await getUserPlan(userId);
   const limit = getUsageLimit(plan, feature, role);
 
-  // Don't track usage for duration-based features or if limit is 0
-  if (feature === "role_suggestion" || feature === "ats_analyze" || limit === 0) {
+  console.log(`[incrementUsage] userId=${userId}, feature=${feature}, role=${role}, plan=${plan}, limit=${limit}`);
+
+  // Don't track usage if limit is 0
+  if (limit === 0) {
+    console.log(`[incrementUsage] Skipping - limit is 0`);
     return;
   }
 
@@ -156,15 +147,18 @@ export async function incrementUsage(
 
   if (existingUsage) {
     // Update existing usage record
+    const newCount = existingUsage.count + 1;
+    console.log(`[incrementUsage] Updating existing record: ${existingUsage.count} -> ${newCount}`);
     await db
       .update(usageTracking)
       .set({
-        count: existingUsage.count + 1,
+        count: newCount,
         updatedAt: new Date(),
       })
       .where(eq(usageTracking.id, existingUsage.id));
   } else {
     // Create new usage record
+    console.log(`[incrementUsage] Creating new record with count=1`);
     await db.insert(usageTracking).values({
       userId,
       feature,
@@ -173,6 +167,46 @@ export async function incrementUsage(
       limit,
     });
   }
+}
+
+/**
+ * Get all usage information for a user
+ */
+export async function getAllUsage(
+  userId: string,
+  role: "student" | "company"
+): Promise<AllUsageInfo> {
+  const plan = await getUserPlan(userId);
+  const features = getFeaturesForRole(role);
+  const currentMonth = getCurrentMonth();
+
+  const usageRecords = await db
+    .select()
+    .from(usageTracking)
+    .where(
+      and(
+        eq(usageTracking.userId, userId),
+        eq(usageTracking.month, currentMonth)
+      )
+    );
+
+  const usageMap = new Map(
+    usageRecords.map((record) => [record.feature, record.count])
+  );
+
+  const usage: UsageInfo[] = features.map((feature) => {
+    const limit = getUsageLimit(plan, feature, role);
+    const current = usageMap.get(feature) || 0;
+    return {
+      feature,
+      displayName: FEATURE_DISPLAY_NAMES[feature],
+      current,
+      limit,
+      percentage: limit > 0 ? Math.round((current / limit) * 100) : 0,
+    };
+  });
+
+  return { plan, usage };
 }
 
 /**
@@ -201,7 +235,7 @@ export async function checkAndIncrementUsage(
     }
 
     const usageCheck = await checkUsageLimit(user.userId, feature, role);
-    
+
     if (!usageCheck.allowed) {
       return {
         allowed: false,
@@ -213,7 +247,7 @@ export async function checkAndIncrementUsage(
     await incrementUsage(user.userId, feature, role);
 
     return { allowed: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error checking usage:", error);
     return {
       allowed: false,
@@ -221,4 +255,3 @@ export async function checkAndIncrementUsage(
     };
   }
 }
-

@@ -54,6 +54,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Increment usage for EVERY request
+    await incrementUsage(decoded.userId, "job_prediction", "company");
+    await incrementUsage(decoded.userId, "alternative_role", "company");
+    console.log("[Usage Increment] job_prediction & alternative_role incremented");
+
     const { applicationId } = (await req.json()) as ReviewInput;
     const [appRow] = await db
       .select()
@@ -212,10 +217,6 @@ Return JSON: {
         analyzedAt: new Date(),
       })
       .returning();
-
-    // Increment usage after successful generation
-    await incrementUsage(decoded.userId, "job_prediction", "company");
-    await incrementUsage(decoded.userId, "alternative_role", "company");
 
     try {
       await db.insert(aiGeneratedContent).values({

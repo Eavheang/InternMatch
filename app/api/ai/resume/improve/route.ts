@@ -4,16 +4,49 @@ import { verifyToken } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
-    // Verify token
+    // Verify token - REQUIRED for rate limiting
     const authHeader = req.headers.get("authorization");
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      const token = authHeader.substring(7);
-      try {
-        await verifyToken(token);
-      } catch {
-        console.warn("Token invalid, but proceeding");
-      }
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "Authorization token required" },
+        { status: 401 }
+      );
     }
+
+    const token = authHeader.substring(7);
+    let decoded;
+    try {
+      decoded = await verifyToken(token);
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid or expired token" },
+        { status: 401 }
+      );
+    }
+
+    if (decoded.role !== "student") {
+      return NextResponse.json(
+        { error: "Only students can improve resumes" },
+        { status: 403 }
+      );
+    }
+
+    // Check usage limit for resume generation (improve counts as generation)
+    const { checkUsageLimit, incrementUsage } = await import("@/lib/usage-tracking");
+    const usageCheck = await checkUsageLimit(
+      decoded.userId,
+      "resume_generate",
+      "student"
+    );
+    if (!usageCheck.allowed) {
+      return NextResponse.json(
+        { error: usageCheck.message || "Usage limit exceeded" },
+        { status: 403 }
+      );
+    }
+    // Increment usage for EVERY request
+    await incrementUsage(decoded.userId, "resume_generate", "student");
+    console.log("[Usage Increment] resume_generate (resume/improve) incremented - current usage:", usageCheck.current + 1, "/", usageCheck.limit);
 
     const body = await req.json();
     const { resumeData, suggestions } = body;

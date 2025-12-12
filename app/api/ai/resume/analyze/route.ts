@@ -4,27 +4,49 @@ import { verifyToken } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
-    // Verify token (Optional for this specific tool if we want to allow quick checks,
-    // but kept for security. If token is missing/null, we can decide to block or allow).
-    // For now, let's be lenient for development if auth is flaky, or strict for prod.
-    // Based on user error, it seems token might be missing or invalid.
-
+    // Verify token - REQUIRED for rate limiting
     const authHeader = req.headers.get("authorization");
-    // if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    //   return NextResponse.json({ error: 'Authorization token required' }, { status: 401 });
-    // }
-
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      const token = authHeader.substring(7);
-      try {
-        await verifyToken(token);
-      } catch {
-        console.warn(
-          "Token invalid, but proceeding for now (or handle strictly)"
-        );
-        // return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
-      }
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "Authorization token required" },
+        { status: 401 }
+      );
     }
+
+    const token = authHeader.substring(7);
+    let decoded;
+    try {
+      decoded = await verifyToken(token);
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid or expired token" },
+        { status: 401 }
+      );
+    }
+
+    if (decoded.role !== "student") {
+      return NextResponse.json(
+        { error: "Only students can analyze resumes" },
+        { status: 403 }
+      );
+    }
+
+    // Check usage limit for ATS analyze
+    const { checkUsageLimit, incrementUsage } = await import("@/lib/usage-tracking");
+    const usageCheck = await checkUsageLimit(
+      decoded.userId,
+      "ats_analyze",
+      "student"
+    );
+    if (!usageCheck.allowed) {
+      return NextResponse.json(
+        { error: usageCheck.message || "Usage limit exceeded" },
+        { status: 403 }
+      );
+    }
+    // Increment usage for EVERY request
+    await incrementUsage(decoded.userId, "ats_analyze", "student");
+    console.log("[Usage Increment] ats_analyze (resume/analyze) incremented - current usage:", usageCheck.current + 1, "/", usageCheck.limit);
 
     const body = await req.json();
     const { resumeData } = body;
