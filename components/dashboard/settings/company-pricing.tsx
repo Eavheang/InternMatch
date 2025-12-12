@@ -144,8 +144,8 @@ export function CompanyPricing({ currentPlan = "free" }: CompanyPricingProps) {
                     description="Basic tools for small teams"
                     features={[
                         "Generate job prediction: 5 times/month",
-                        "Alternative role: 5 times",
-                        "Interview questions: 5 to prepare",
+                        "Alternative role: 5 times/month",
+                        "Interview questions: 5 times/month",
                     ]}
                     onSubscribe={handleDowngradeToFree}
                     isCurrentPlan={currentPlan === "free"}
@@ -157,8 +157,8 @@ export function CompanyPricing({ currentPlan = "free" }: CompanyPricingProps) {
                     description="Enhanced tools for growing companies"
                     features={[
                         "Generate job prediction: 10 times/month",
-                        "Alternative role: 10 times",
-                        "Interview questions: 10 to prepare",
+                        "Alternative role: 10 times/month",
+                        "Interview questions: 10 times/month",
                     ]}
                     onSubscribe={() => handleSubscribe(15, "growth")}
                     isCurrentPlan={currentPlan === "growth"}
@@ -169,8 +169,8 @@ export function CompanyPricing({ currentPlan = "free" }: CompanyPricingProps) {
                     description="Full access for large organizations"
                     features={[
                         "Generate job prediction: 20 times/month",
-                        "Alternative role: 20 times",
-                        "Interview questions: 20 to prepare",
+                        "Alternative role: 20 times/month",
+                        "Interview questions: 20 times/month",
                     ]}
                     onSubscribe={() => handleSubscribe(25, "enterprise")}
                     isCurrentPlan={currentPlan === "enterprise"}

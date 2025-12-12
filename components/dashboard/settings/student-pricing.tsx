@@ -143,10 +143,10 @@ export function StudentPricing({ currentPlan = "free" }: StudentPricingProps) {
                     price="Free"
                     description="Essential tools to get started"
                     features={[
-                        "Role suggestion: 1 month",
+                        "Role suggestion: 1 times/month",
                         "Interview preps: 5 times/month",
-                        "ATS Analyze: 1 month",
-                        "Resume: 1/month",
+                        "ATS Analyze: 1 time/month",
+                        "Resume: 1 times/month",
                     ]}
                     onSubscribe={handleDowngradeToFree}
                     isCurrentPlan={currentPlan === "free"}
@@ -159,8 +159,8 @@ export function StudentPricing({ currentPlan = "free" }: StudentPricingProps) {
                     features={[
                         "Role suggestion: 3 times/month",
                         "Interview preps: 15 times/month",
-                        "ATS Analyze: 5 months",
-                        "Resume: 5/month",
+                        "ATS Analyze: 5 times/month",
+                        "Resume: 5 times/month",
                     ]}
                     onSubscribe={() => handleSubscribe(5, "basic")}
                     isCurrentPlan={currentPlan === "basic"}
@@ -172,8 +172,8 @@ export function StudentPricing({ currentPlan = "free" }: StudentPricingProps) {
                     features={[
                         "Role suggestion: 5 times/month",
                         "Interview preps: 45 times/month",
-                        "ATS Analyze: 15 months",
-                        "Resume: 15/month",
+                        "ATS Analyze: 15 times/month",
+                        "Resume: 15 times/month",
                     ]}
                     onSubscribe={() => handleSubscribe(15, "pro")}
                     isCurrentPlan={currentPlan === "pro"}
