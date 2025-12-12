@@ -128,7 +128,7 @@ export default function ForgotPasswordPage() {
         helperCta="Sign in"
       >
         <div className="space-y-6">
-          <Form {...emailForm}>
+          <Form {...emailForm} key="email-form">
             <form
               className="space-y-5"
               onSubmit={emailForm.handleSubmit(onSubmitEmail)}
@@ -189,7 +189,7 @@ export default function ForgotPasswordPage() {
       onHelperClick={() => setStep("email")}
     >
       <div className="space-y-6">
-        <Form {...resetForm}>
+        <Form {...resetForm} key="reset-form">
           <form
             className="space-y-5"
             onSubmit={resetForm.handleSubmit(onSubmitReset)}
@@ -208,11 +208,14 @@ export default function ForgotPasswordPage() {
                 <FormItem>
                   <FormLabel>Verification Code</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="123456"
+                  <Input
+                      placeholder="12345"
                       type="text"
-                      maxLength={6}
                       {...field}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, ""); // Only allow digits
+                        field.onChange(value);
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
