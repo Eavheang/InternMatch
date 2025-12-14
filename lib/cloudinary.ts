@@ -65,6 +65,68 @@ export async function uploadResumeToCloudinary(
   });
 }
 
+export async function uploadCompanyLogoToCloudinary(
+  fileBuffer: Buffer,
+  fileName: string,
+  companyId: string
+): Promise<{ secure_url: string; public_id: string }> {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: `company-logos/${companyId}`,
+        resource_type: "image",
+        public_id: `${fileName}-${Date.now()}`,
+        allowed_formats: ["jpg", "jpeg", "png", "webp"],
+      },
+      (error, result) => {
+        if (error) {
+          reject(error);
+        } else if (result) {
+          resolve({
+            secure_url: result.secure_url,
+            public_id: result.public_id,
+          });
+        } else {
+          reject(new Error("Upload failed: No result returned"));
+        }
+      }
+    );
+
+    uploadStream.end(fileBuffer);
+  });
+}
+
+export async function uploadStudentProfileImageToCloudinary(
+  fileBuffer: Buffer,
+  fileName: string,
+  studentId: string
+): Promise<{ secure_url: string; public_id: string }> {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: `student-profiles/${studentId}`,
+        resource_type: "image",
+        public_id: `${fileName}-${Date.now()}`,
+        allowed_formats: ["jpg", "jpeg", "png", "webp"],
+      },
+      (error, result) => {
+        if (error) {
+          reject(error);
+        } else if (result) {
+          resolve({
+            secure_url: result.secure_url,
+            public_id: result.public_id,
+          });
+        } else {
+          reject(new Error("Upload failed: No result returned"));
+        }
+      }
+    );
+
+    uploadStream.end(fileBuffer);
+  });
+}
+
 export async function deleteResumeFromCloudinary(
   publicId: string
 ): Promise<void> {

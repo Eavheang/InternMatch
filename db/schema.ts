@@ -40,6 +40,7 @@ export const students = pgTable("students", {
   graduationYear: integer("graduation_year"),
   gpa: real("gpa"),
   resumeUrl: text("resume_url"),
+  profileImageUrl: text("profile_image_url"),
   careerInterest: text("career_interest"),
   aboutMe: text("about_me"),
   createdAt: timestamp("created_at").defaultNow().notNull(),

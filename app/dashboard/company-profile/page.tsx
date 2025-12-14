@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { useDashboard } from "@/components/dashboard/dashboard-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +22,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Building2, MapPin, Phone } from "lucide-react";
+import { Building2, MapPin, Phone, Upload, Loader2 } from "lucide-react";
 
 export default function CompanyProfilePage() {
   const { user, profileData } = useDashboard();
@@ -51,6 +52,8 @@ export default function CompanyProfilePage() {
 
   // Company Logo
   const [companyLogo, setCompanyLogo] = useState("");
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (profileData) {
@@ -171,6 +174,64 @@ export default function CompanyProfilePage() {
     }
   };
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    if (!validTypes.includes(file.type)) {
+      toast.error("Only JPG, PNG, and WebP images are allowed");
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size must be less than 5MB");
+      return;
+    }
+
+    setIsUploadingLogo(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      if (!token) {
+        toast.error("Authentication required");
+        return;
+      }
+
+      const response = await fetch("/api/company/logo", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to upload logo");
+      }
+
+      setCompanyLogo(data.logoUrl);
+      toast.success("Logo uploaded successfully!");
+    } catch (error) {
+      console.error("Logo upload error:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to upload logo"
+      );
+    } finally {
+      setIsUploadingLogo(false);
+      // Reset file input
+      if (logoInputRef.current) {
+        logoInputRef.current.value = "";
+      }
+    }
+  };
+
   return (
     <div className="max-w-5xl mx-auto p-8 space-y-8 pb-24">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -197,7 +258,15 @@ export default function CompanyProfilePage() {
           <div className="flex flex-col sm:flex-row items-start gap-8">
             <div className="flex flex-col items-center gap-4 shrink-0">
               <div className="h-32 w-32 rounded-full bg-zinc-100 border-4 border-white shadow-md flex items-center justify-center text-3xl font-bold text-zinc-400 relative overflow-hidden">
-                {companyName ? (
+                {companyLogo ? (
+                  <Image
+                    src={companyLogo}
+                    alt="Company logo"
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                ) : companyName ? (
                   <span>
                     {companyName
                       .split(" ")
@@ -305,17 +374,58 @@ export default function CompanyProfilePage() {
             </div>
           </div>
           <div className="space-y-2.5 sm:col-span-2">
-            <Label htmlFor="companyLogo" className="text-zinc-600">
-              Company Logo URL
+            <Label className="text-zinc-600">
+              Company Logo
             </Label>
-            <Input
-              id="companyLogo"
-              type="url"
-              value={companyLogo}
-              onChange={(e) => setCompanyLogo(e.target.value)}
-              className="border-zinc-300 focus-visible:ring-indigo-500 h-11"
-              placeholder="https://www.company.com/logo.png"
-            />
+            <div className="flex items-center gap-6">
+              {/* Logo Preview */}
+              <div className="h-24 w-24 rounded-lg border-2 border-dashed border-zinc-300 bg-zinc-50 flex items-center justify-center overflow-hidden relative">
+                {companyLogo ? (
+                  <Image
+                    src={companyLogo}
+                    alt="Company logo"
+                    fill
+                    className="object-contain p-2"
+                    unoptimized
+                  />
+                ) : (
+                  <Building2 className="h-8 w-8 text-zinc-300" />
+                )}
+              </div>
+              {/* Upload Controls */}
+              <div className="flex flex-col gap-2">
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                  id="logo-upload"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10"
+                  onClick={() => logoInputRef.current?.click()}
+                  disabled={isUploadingLogo}
+                >
+                  {isUploadingLogo ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 mr-2" />
+                      {companyLogo ? "Change Logo" : "Upload Logo"}
+                    </>
+                  )}
+                </Button>
+                <p className="text-xs text-zinc-500">
+                  JPG, PNG, or WebP. Max 5MB.
+                </p>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

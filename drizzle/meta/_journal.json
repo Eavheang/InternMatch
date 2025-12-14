@@ -15,6 +15,13 @@
       "when": 1763975944558,
       "tag": "0001_good_the_anarchist",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1765721232532,
+      "tag": "0002_tearful_carnage",
+      "breakpoints": true
     }
   ]
 }

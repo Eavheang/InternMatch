@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
+import Image from "next/image";
 import { useDashboard } from "@/components/dashboard/dashboard-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +28,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { skills as skillsList } from "@/constants/skills";
 import { careers as careerList } from "@/constants/career";
+import { Upload, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 // Searchable Dropdown Component
 function SearchableMultiSelect({
@@ -194,6 +197,11 @@ export default function StudentProfilePage() {
   // About Me
   const [aboutMe, setAboutMe] = useState("");
 
+  // Profile Image
+  const [profileImage, setProfileImage] = useState("");
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (profileData) {
       setFirstName(profileData.firstName || "");
@@ -233,6 +241,9 @@ export default function StudentProfilePage() {
         setGithub(social.github || "");
         setPortfolio(social.website || "");
       }
+
+      // Load profile image
+      setProfileImage((profileData.profileImageUrl as string) || "");
     }
   }, [profileData, user]);
 
@@ -313,6 +324,64 @@ export default function StudentProfilePage() {
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    if (!validTypes.includes(file.type)) {
+      toast.error("Only JPG, PNG, and WebP images are allowed");
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size must be less than 5MB");
+      return;
+    }
+
+    setIsUploadingImage(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      if (!token) {
+        toast.error("Authentication required");
+        return;
+      }
+
+      const response = await fetch("/api/student/profile-image", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to upload image");
+      }
+
+      setProfileImage(data.imageUrl);
+      toast.success("Profile image uploaded successfully!");
+    } catch (error) {
+      console.error("Image upload error:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to upload image"
+      );
+    } finally {
+      setIsUploadingImage(false);
+      // Reset file input
+      if (imageInputRef.current) {
+        imageInputRef.current.value = "";
+      }
+    }
+  };
+
   return (
     <div className="max-w-5xl mx-auto p-8 space-y-8 pb-24">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -339,7 +408,15 @@ export default function StudentProfilePage() {
           <div className="flex flex-col sm:flex-row items-start gap-8">
             <div className="flex flex-col items-center gap-4 shrink-0">
               <div className="h-32 w-32 rounded-full bg-zinc-100 border-4 border-white shadow-md flex items-center justify-center text-3xl font-bold text-zinc-400 relative overflow-hidden">
-                {firstName && lastName ? (
+                {profileImage ? (
+                  <Image
+                    src={profileImage}
+                    alt="Profile"
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                ) : firstName && lastName ? (
                   <span>
                     {firstName[0]}
                     {lastName[0]}
@@ -348,6 +425,38 @@ export default function StudentProfilePage() {
                   <PersonIcon className="h-12 w-12 text-zinc-300" />
                 )}
               </div>
+              {/* Upload Button */}
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
+                onChange={handleImageUpload}
+                className="hidden"
+                id="profile-image-upload"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9"
+                onClick={() => imageInputRef.current?.click()}
+                disabled={isUploadingImage}
+              >
+                {isUploadingImage ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4 mr-2" />
+                    {profileImage ? "Change Photo" : "Upload Photo"}
+                  </>
+                )}
+              </Button>
+              <p className="text-xs text-zinc-500 text-center">
+                JPG, PNG, or WebP. Max 5MB.
+              </p>
             </div>
 
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
