@@ -96,6 +96,26 @@ export default function DashboardLayout({
           profileKeys: profile ? Object.keys(profile) : [],
         });
 
+        // Admin role - redirect to admin dashboard
+        if (userData?.role === "admin") {
+          if (!pathname.startsWith("/dashboard/admin")) {
+            router.push("/dashboard/admin");
+            return;
+          }
+          // Admin is on admin routes - allow access
+          setUser(userData);
+          setProfileData(profile);
+          setIsAuthorized(true);
+          setLoading(false);
+          return;
+        }
+
+        // Non-admin users trying to access admin routes - redirect to main dashboard
+        if (pathname.startsWith("/dashboard/admin")) {
+          router.push("/dashboard");
+          return;
+        }
+
         // Role-based route protection
         const isStudentRoute =
           pathname.includes("/resume") ||
@@ -208,6 +228,15 @@ export default function DashboardLayout({
           <p className="text-zinc-600">Loading...</p>
         </div>
       </div>
+    );
+  }
+
+  // Admin users on admin routes - render children only (admin layout handles its own sidebar)
+  if (user?.role === "admin" && pathname.startsWith("/dashboard/admin")) {
+    return (
+      <DashboardProvider user={user} profileData={profileData} userPlan={userPlan}>
+        {children}
+      </DashboardProvider>
     );
   }
 

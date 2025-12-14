@@ -10,6 +10,7 @@ import {
   validatePassword,
 } from "@/lib/auth";
 import { sendVerificationEmail } from "@/lib/email";
+import { trackEvent } from "@/lib/analytics";
 
 export async function POST(request: NextRequest) {
   try {
@@ -188,6 +189,12 @@ export async function POST(request: NextRequest) {
       newUser.role,
       newUser.isVerified
     );
+
+    // Track registration event
+    await trackEvent("user.registered", newUser.id, {
+      role: newUser.role,
+      registrationSource: "web",
+    });
 
     return NextResponse.json(
       {

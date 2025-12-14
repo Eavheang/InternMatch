@@ -5,12 +5,15 @@ import { cn } from "@/lib/utils";
 
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+  React.HTMLAttributes<HTMLDivElement> & { variant?: "default" | "admin" }
+>(({ className, variant = "default", ...props }, ref) => (
   <div
     ref={ref}
     className={cn(
-      "rounded-3xl border border-black/5 bg-white text-zinc-900 shadow-2xl shadow-indigo-100",
+      "rounded-3xl border",
+      variant === "admin"
+        ? "border-[#768A96]/30 bg-white/80 text-[#29353C] shadow-lg shadow-[#AAC7D8]/20 backdrop-blur-sm"
+        : "border-black/5 bg-white text-zinc-900 shadow-2xl shadow-indigo-100",
       className
     )}
     {...props}

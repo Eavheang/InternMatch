@@ -49,6 +49,15 @@ export async function middleware(request: NextRequest) {
     // Verify token
     const decoded = await verifyToken(token);
 
+    // Check admin routes - require admin role
+    const isAdminRoute = pathname.startsWith("/api/admin");
+    if (isAdminRoute && decoded.role !== "admin") {
+      return NextResponse.json(
+        { error: "Access denied: Admin privileges required" },
+        { status: 403 }
+      );
+    }
+
     // Add user info to request headers for use in API routes
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set("x-user-id", decoded.userId);
@@ -72,6 +81,7 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     "/api/auth/me",
+    "/api/admin/:path*",
     "/api/company/:path*",
     "/api/student/:path*",
     "/api/students/:path*",

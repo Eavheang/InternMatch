@@ -15,7 +15,7 @@ export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
-  role: text("role", { enum: ["student", "company"] }).notNull(),
+  role: text("role", { enum: ["student", "company", "admin"] }).notNull(),
   // 2FA email verification
   isVerified: boolean("is_verified").notNull().default(false),
   verificationCode: text("verification_code"),
@@ -527,6 +527,62 @@ export const usageTracking = pgTable("usage_tracking", {
 export const usageTrackingRelations = relations(usageTracking, ({ one }) => ({
   user: one(users, {
     fields: [usageTracking.userId],
+    references: [users.id],
+  }),
+}));
+
+// =============================================
+// ADMIN ANALYTICS TABLES
+// =============================================
+
+// Analytics events table - tracks all user actions for analytics
+export const analyticsEvents = pgTable("analytics_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+  eventType: text("event_type").notNull(), // e.g., "ai.ats_analysis", "job.created", "application.submitted"
+  eventData: json("event_data"), // Additional event-specific data
+  metadata: json("metadata"), // Browser, device, etc.
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Analytics aggregates table - pre-computed metrics for performance
+export const analyticsAggregates = pgTable("analytics_aggregates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  metricType: text("metric_type").notNull(), // e.g., "daily_active_users", "feature_usage", "revenue"
+  metricValue: real("metric_value").notNull(),
+  dimension: json("dimension"), // e.g., { "feature": "ats_analysis", "plan": "pro" }
+  period: text("period").notNull(), // e.g., "2025-12-14", "2025-12", "2025-W50"
+  periodType: text("period_type", { enum: ["daily", "weekly", "monthly"] }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Admin actions table - audit log for admin operations
+export const adminActions = pgTable("admin_actions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  adminId: uuid("admin_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  actionType: text("action_type").notNull(), // e.g., "user.update", "user.deactivate", "system.config"
+  targetType: text("target_type"), // e.g., "user", "job", "company"
+  targetId: uuid("target_id"), // ID of the affected resource
+  details: json("details"), // Additional action details
+  ipAddress: text("ip_address"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Relations for analytics events
+export const analyticsEventsRelations = relations(analyticsEvents, ({ one }) => ({
+  user: one(users, {
+    fields: [analyticsEvents.userId],
+    references: [users.id],
+  }),
+}));
+
+// Relations for admin actions
+export const adminActionsRelations = relations(adminActions, ({ one }) => ({
+  admin: one(users, {
+    fields: [adminActions.adminId],
     references: [users.id],
   }),
 }));

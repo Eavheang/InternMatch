@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { users, students, companies } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { generateToken, comparePassword, validateEmail } from "@/lib/auth";
+import { trackEvent } from "@/lib/analytics";
 
 export async function POST(request: NextRequest) {
   try {
@@ -87,6 +88,11 @@ export async function POST(request: NextRequest) {
       user.role,
       user.isVerified
     );
+
+    // Track login event
+    await trackEvent("user.login", user.id, {
+      role: user.role,
+    });
 
     return NextResponse.json(
       {

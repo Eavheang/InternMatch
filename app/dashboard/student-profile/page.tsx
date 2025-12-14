@@ -103,9 +103,9 @@ function SearchableMultiSelect({
             No items added yet.
           </p>
         )}
-        {selectedItems.map((item) => (
+        {selectedItems.map((item, index) => (
           <div
-            key={item}
+            key={`${item}-${index}`}
             className="bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-2 transition-all hover:bg-indigo-100"
           >
             {item}
@@ -209,13 +209,15 @@ export default function StudentProfilePage() {
       setDegree((profileData.degree as string) || "");
 
       if (Array.isArray(profileData.skills)) {
-        setSkills(profileData.skills);
+        // Remove duplicates to avoid key collisions in React
+        setSkills([...new Set(profileData.skills)]);
       }
 
       if (profileData.careerInterest) {
         const interestStr = profileData.careerInterest as string;
         if (interestStr.includes(",")) {
-          setInterests(interestStr.split(",").map((s) => s.trim()));
+          // Remove duplicates to avoid key collisions in React
+          setInterests([...new Set(interestStr.split(",").map((s) => s.trim()))]);
         } else if (interestStr) {
           setInterests([interestStr]);
         }
