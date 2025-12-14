@@ -2,6 +2,7 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { type User, type ProfileData, type UserPlan } from "./dashboard-context";
 
 type DashboardSidebarProps = {
@@ -84,6 +85,12 @@ export function DashboardSidebar({ user, profileData, userPlan }: DashboardSideb
       ? profileData?.industry || "Technology"
       : profileData?.major || "Student";
 
+  // Get profile image URL based on role
+  const profileImageUrl =
+    user?.role === "company"
+      ? (profileData?.companyLogo as string) || null
+      : (profileData?.profileImageUrl as string) || null;
+
   // Get plan display name
   const getPlanDisplayName = () => {
     const plan = userPlan?.plan || "free";
@@ -102,8 +109,18 @@ export function DashboardSidebar({ user, profileData, userPlan }: DashboardSideb
       {/* User Profile Section */}
       <div className="p-6 bg-indigo-600 text-white">
         <div className="flex items-center gap-4">
-          <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center text-lg font-semibold">
-            {userInitials}
+          <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center text-lg font-semibold relative overflow-hidden">
+            {profileImageUrl ? (
+              <Image
+                src={profileImageUrl}
+                alt="Profile"
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            ) : (
+              userInitials
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold truncate">{displayName}</p>
