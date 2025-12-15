@@ -36,3 +36,39 @@ export function requireOwnership(request: NextRequest, resourceUserId: string) {
 
   return user;
 }
+
+/**
+ * Require admin role for accessing admin-only routes
+ */
+export function requireAdmin(request: NextRequest) {
+  const user = getAuthenticatedUser(request);
+
+  if (!user.userId) {
+    throw new Error("User not authenticated");
+  }
+
+  if (user.role !== "admin") {
+    throw new Error("Access denied: Admin privileges required");
+  }
+
+  return user;
+}
+
+/**
+ * Check if the authenticated user is an admin
+ */
+export function isAdmin(request: NextRequest): boolean {
+  const user = getAuthenticatedUser(request);
+  return user.role === "admin";
+}
+
+/**
+ * Get client IP address from request headers
+ */
+export function getClientIp(request: NextRequest): string | null {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+    request.headers.get("x-real-ip") ||
+    null
+  );
+}

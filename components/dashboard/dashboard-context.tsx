@@ -5,7 +5,7 @@ import { createContext, useContext, ReactNode } from "react";
 export type User = {
   id: string;
   email: string;
-  role: "student" | "company";
+  role: "student" | "company" | "admin";
   isVerified?: boolean;
 };
 
