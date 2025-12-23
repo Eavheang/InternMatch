@@ -9,7 +9,10 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -38,6 +41,7 @@
     "dotenv": "^17.2.3",
     "drizzle-kit": "^0.31.5",
     "drizzle-orm": "^0.44.6",
+    "framer-motion": "^12.23.26",
     "html2canvas": "^1.4.1",
     "jose": "^6.1.0",
     "jsonwebtoken": "^9.0.2",

@@ -3,7 +3,29 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { type User, type ProfileData } from "./dashboard-context";
+import {
+  Briefcase,
+  TrendingUp,
+  Award,
+  Calendar,
+  ChevronRight,
+  FileText,
+  UserCircle,
+  Zap,
+  MapPin,
+  Clock,
+  DollarSign,
+  Building2,
+  CheckCircle2,
+  AlertCircle,
+  Search,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type StudentDashboardProps = {
   user: User | null;
@@ -26,6 +48,22 @@ type Job = {
   [key: string]: unknown;
 };
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 },
+};
+
 export function StudentDashboard({ user, profileData }: StudentDashboardProps) {
   const [recentJobs, setRecentJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,6 +76,34 @@ export function StudentDashboard({ user, profileData }: StudentDashboardProps) {
     interviewsScheduled: 0,
     interviewsChange: "+0 from last week",
   });
+
+  // Calculate profile completeness
+  const calculateCompleteness = () => {
+    if (!profileData) return 0;
+    let score = 0;
+    const fields = [
+      "firstName",
+      "lastName",
+      "university",
+      "major",
+      "graduationYear",
+      "resumeUrl",
+      "skills",
+    ];
+    fields.forEach((field) => {
+      if (
+        profileData[field] &&
+        (Array.isArray(profileData[field])
+          ? profileData[field].length > 0
+          : true)
+      ) {
+        score += 100 / fields.length;
+      }
+    });
+    return Math.round(score);
+  };
+
+  const completeness = calculateCompleteness();
 
   useEffect(() => {
     const fetchRecentJobs = async () => {
@@ -53,25 +119,9 @@ export function StudentDashboard({ user, profileData }: StudentDashboardProps) {
 
           if (jobsData?.success && jobsData.data?.jobs) {
             const jobs = jobsData.data.jobs;
-
-            // Transform the job data for easier use
+            // Existing transformation logic...
             const transformedJobs = jobs.map(
-              (job: {
-                id: string;
-                jobTitle: string;
-                jobDescription: string;
-                requirements?: unknown;
-                benefits?: unknown;
-                company?: {
-                  id?: string;
-                  companyName?: string;
-                  companyLogo?: string;
-                  industry?: string;
-                  companySize?: string;
-                  website?: string;
-                };
-                [key: string]: unknown;
-              }) => ({
+              (job: any) => ({
                 id: job.id,
                 jobTitle: job.jobTitle,
                 jobDescription: job.jobDescription,
@@ -109,14 +159,13 @@ export function StudentDashboard({ user, profileData }: StudentDashboardProps) {
 
             setRecentJobs(transformedJobs);
 
-            // Update stats based on recent jobs
             setStats({
               activePostings: transformedJobs.length,
-              activePostingsChange: `+${transformedJobs.length} from last week`,
-              totalApplications: 0,
-              applicationsChange: "+0 from last week",
-              interviewsScheduled: 0,
-              interviewsChange: "+0 from last week",
+              activePostingsChange: `+${transformedJobs.length} new`,
+              totalApplications: 0, // In a real app, fetch from API
+              applicationsChange: "+0 this week",
+              interviewsScheduled: 0, // In a real app, fetch from API
+              interviewsChange: "+0 upcoming",
             });
           } else {
             setError("No jobs available at the moment");
@@ -136,386 +185,367 @@ export function StudentDashboard({ user, profileData }: StudentDashboardProps) {
   }, []);
 
   return (
-    <main className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-zinc-900">
-          Welcome back,{" "}
-          {profileData?.firstName || user?.email?.split("@")[0] || "User"}! 👋
-        </h1>
-        <p className="mt-2 text-zinc-600">
-          Here&apos;s what&apos;s happening with your internship search
-        </p>
-      </div>
+    <main className="min-h-screen bg-zinc-50/50 p-8 pb-20">
+      {/* Decorative Background */}
+      <div className="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-100/50 via-zinc-50/20 to-zinc-50 pointer-events-none" />
 
-      {/* Stats Cards */}
-      <div className="mb-8 grid gap-6 sm:grid-cols-3">
-        <StatsCard
-          title="New Jobs This Week"
-          value={stats.activePostings.toString()}
-          change={stats.activePostingsChange}
-          changeType={stats.activePostings > 0 ? "positive" : "neutral"}
-        />
-
-        <StatsCard
-          title="Applications"
-          value={stats.totalApplications.toString()}
-          change={stats.applicationsChange}
-          changeType={stats.totalApplications > 0 ? "positive" : "neutral"}
-        />
-
-        <StatsCard
-          title="Interviews Scheduled"
-          value={stats.interviewsScheduled.toString()}
-          change={stats.interviewsChange}
-          changeType={stats.interviewsScheduled > 0 ? "positive" : "neutral"}
-        />
-      </div>
-
-      {/* Recent Job Posts */}
-      <div className="mb-6 flex items-center justify-between">
+      {/* Header */}
+      <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl -mx-8 px-8 py-4 mb-8 border-b border-zinc-200/50 flex flex-col md:flex-row md:items-center md:justify-between gap-4 transition-all duration-200">
         <div>
-          <h2 className="text-2xl font-semibold text-zinc-900 flex items-center gap-2">
-            <BriefcaseIcon className="h-6 w-6 text-indigo-600" />
-            Recent Job Posts
-          </h2>
-          <p className="mt-1 text-sm text-zinc-600">
-            Latest internship opportunities from companies
+          <h1 className="text-2xl font-bold text-zinc-900 flex items-center gap-2">
+            Welcome back,{" "}
+            <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
+              {profileData?.firstName || user?.email?.split("@")[0] || "Student"}
+            </span>
+            !
+          </h1>
+          <p className="text-sm text-zinc-500 mt-1">
+            Ready to find your next great opportunity?
           </p>
         </div>
-        <Link
-          href="/dashboard/jobs"
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-        >
-          Browse All Jobs
-        </Link>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" className="gap-2 hidden sm:flex">
+            <Search className="w-4 h-4" />
+            Find Jobs
+          </Button>
+          <Button className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/20">
+            <Zap className="w-4 h-4 mr-2" />
+            Quick Apply
+          </Button>
+        </div>
       </div>
 
-      {/* Recent Jobs List */}
-      <div className="space-y-6">
-        {loading ? (
-          <div className="space-y-6">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="animate-pulse">
-                <div className="rounded-xl border border-zinc-200 bg-white p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-zinc-200 rounded-lg"></div>
-                    <div className="flex-1">
-                      <div className="h-5 bg-zinc-200 rounded w-3/4 mb-2"></div>
-                      <div className="h-4 bg-zinc-200 rounded w-1/2 mb-3"></div>
-                      <div className="h-3 bg-zinc-200 rounded w-full mb-2"></div>
-                      <div className="h-3 bg-zinc-200 rounded w-2/3"></div>
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+        className="space-y-8 max-w-7xl mx-auto"
+      >
+        {/* Top Section: Completion & Quick Stats */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left: Profile Status Card */}
+          <motion.div variants={itemVariants} className="lg:col-span-1">
+            <div className="h-full rounded-2xl bg-white border border-zinc-200/80 p-6 shadow-sm relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                <UserCircle className="w-24 h-24" />
+              </div>
+
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-zinc-900">Profile Status</h3>
+                  <span className="px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-medium">
+                    {completeness}% Complete
+                  </span>
+                </div>
+
+                <Progress value={completeness} className="h-2 mb-4 bg-zinc-100" indicatorClassName="bg-gradient-to-r from-indigo-500 to-violet-500" />
+
+                <div className="space-y-3">
+                  <p className="text-sm text-zinc-600">
+                    {completeness === 100
+                      ? "Great job! Your profile is ready for applications."
+                      : "Complete your profile to stand out to recruiters."}
+                  </p>
+
+                  {completeness < 100 && (
+                    <Button variant="ghost" className="p-0 h-auto text-indigo-600 font-medium text-xs flex items-center gap-1 hover:text-indigo-700 hover:bg-transparent">
+                      Complete Profile <ChevronRight className="w-3 h-3" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Right: Stats Grid */}
+          <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <motion.div variants={itemVariants}>
+              <StatsCard
+                title="Active Jobs"
+                value={stats.activePostings.toString()}
+                change={stats.activePostingsChange}
+                icon={Briefcase}
+                color="blue"
+              />
+            </motion.div>
+            <motion.div variants={itemVariants}>
+              <StatsCard
+                title="Applications"
+                value={stats.totalApplications.toString()}
+                change={stats.applicationsChange}
+                icon={FileText}
+                color="indigo"
+              />
+            </motion.div>
+            <motion.div variants={itemVariants}>
+              <StatsCard
+                title="Interviews"
+                value={stats.interviewsScheduled.toString()}
+                change={stats.interviewsChange}
+                icon={Calendar}
+                color="violet"
+              />
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <motion.div variants={itemVariants}>
+          <h2 className="text-lg font-semibold text-zinc-900 mb-4 px-1">Quick Actions</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <QuickActionCard
+              icon={FileText}
+              label="Resume"
+              subLabel="Update your CV"
+              href="/dashboard/resume"
+              color="emerald"
+            />
+            <QuickActionCard
+              icon={TrendingUp}
+              label="Interview Prep"
+              subLabel="Practice questions"
+              href="/dashboard/interview"
+              color="amber"
+            />
+            <QuickActionCard
+              icon={Award}
+              label="Skills"
+              subLabel="Add new skills"
+              href="/dashboard/profile"
+              color="cyan"
+            />
+            <QuickActionCard
+              icon={Briefcase}
+              label="Saved Jobs"
+              subLabel="View favorites"
+              href="/dashboard/jobs/saved"
+              color="rose"
+            />
+          </div>
+        </motion.div>
+
+        {/* Recent Job Posts */}
+        <motion.div variants={itemVariants}>
+          <div className="flex items-center justify-between mb-6 px-1">
+            <div>
+              <h2 className="text-lg font-semibold text-zinc-900">Recommended Jobs</h2>
+              <p className="text-sm text-zinc-500">Based on your profile and interests</p>
+            </div>
+            <Link href="/dashboard/jobs">
+              <Button variant="ghost" className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
+                View All <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            </Link>
+          </div>
+
+          <div className="grid gap-4">
+            {loading ? (
+              Array(3).fill(0).map((_, i) => (
+                <div key={i} className="bg-white rounded-xl p-6 border border-zinc-200/80">
+                  <div className="flex gap-4">
+                    <Skeleton className="w-12 h-12 rounded-lg" />
+                    <div className="space-y-2 flex-1">
+                      <Skeleton className="w-1/3 h-5" />
+                      <Skeleton className="w-1/4 h-4" />
                     </div>
                   </div>
                 </div>
+              ))
+            ) : error ? (
+              <div className="text-center py-12 bg-white rounded-xl border border-dashed border-zinc-200">
+                <AlertCircle className="w-10 h-10 text-zinc-300 mx-auto mb-3" />
+                <p className="text-zinc-500">{error}</p>
               </div>
-            ))}
+            ) : recentJobs.length > 0 ? (
+              recentJobs.map((job) => (
+                <motion.div key={job.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                  <RecentJobCard job={job} />
+                </motion.div>
+              ))
+            ) : (
+              <div className="text-center py-12 bg-white rounded-xl border border-dashed border-zinc-200">
+                <Briefcase className="w-10 h-10 text-zinc-300 mx-auto mb-3" />
+                <p className="text-zinc-500">No jobs found.</p>
+              </div>
+            )}
           </div>
-        ) : error ? (
-          <div className="text-center py-12">
-            <BriefcaseIcon className="mx-auto h-12 w-12 text-zinc-400" />
-            <h3 className="mt-4 text-lg font-semibold text-zinc-900">
-              Unable to load jobs
-            </h3>
-            <p className="mt-2 text-sm text-zinc-600">{error}</p>
-          </div>
-        ) : recentJobs.length > 0 ? (
-          <div className="space-y-6">
-            {recentJobs.map((job) => (
-              <RecentJobCard key={job.id} job={job} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <BriefcaseIcon className="mx-auto h-12 w-12 text-zinc-400" />
-            <h3 className="mt-4 text-lg font-semibold text-zinc-900">
-              No jobs available
-            </h3>
-            <p className="mt-2 text-sm text-zinc-600">
-              Check back later for new internship opportunities!
-            </p>
-          </div>
-        )}
-      </div>
+        </motion.div>
+      </motion.div>
     </main>
   );
 }
+
+// --- Sub Components ---
 
 function StatsCard({
   title,
   value,
   change,
-  changeType,
-  children,
+  icon: Icon,
+  color,
 }: {
   title: string;
   value: string;
   change: string;
-  changeType: "positive" | "negative" | "neutral";
-  children?: React.ReactNode;
+  icon: React.ComponentType<{ className?: string }>;
+  color: "blue" | "indigo" | "violet";
 }) {
-  const changeColors = {
-    positive: "text-emerald-600",
-    negative: "text-rose-600",
-    neutral: "text-zinc-600",
+  const colors = {
+    blue: "bg-blue-50 text-blue-600 border-blue-100",
+    indigo: "bg-indigo-50 text-indigo-600 border-indigo-100",
+    violet: "bg-violet-50 text-violet-600 border-violet-100",
   };
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-      <p className="text-sm font-medium text-zinc-600">{title}</p>
-      <p className="mt-2 text-3xl font-bold text-zinc-900">{value}</p>
-      {change && (
-        <p className={`mt-2 text-sm font-medium ${changeColors[changeType]}`}>
+    <div className="h-full rounded-2xl bg-white border border-zinc-200/80 p-6 shadow-sm hover:shadow-md transition-all duration-200">
+      <div className="flex items-start justify-between mb-4">
+        <div className={cn("p-2.5 rounded-xl border", colors[color])}>
+          <Icon className="w-5 h-5" />
+        </div>
+        <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full",
+          change.includes("+") ? "bg-emerald-50 text-emerald-700" : "bg-zinc-100 text-zinc-600"
+        )}>
           {change}
-        </p>
-      )}
-      {children}
+        </span>
+      </div>
+      <div>
+        <p className="text-sm font-medium text-zinc-500">{title}</p>
+        <p className="text-2xl font-bold text-zinc-900 mt-1">{value}</p>
+      </div>
     </div>
   );
 }
 
+function QuickActionCard({ icon: Icon, label, subLabel, href, color }: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  subLabel: string;
+  href: string;
+  color: "emerald" | "amber" | "cyan" | "rose";
+}) {
+  const colors = {
+    emerald: "bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100",
+    amber: "bg-amber-50 text-amber-600 group-hover:bg-amber-100",
+    cyan: "bg-cyan-50 text-cyan-600 group-hover:bg-cyan-100",
+    rose: "bg-rose-50 text-rose-600 group-hover:bg-rose-100",
+  };
+
+  return (
+    <Link href={href}>
+      <div className="h-full p-4 bg-white border border-zinc-200/80 rounded-xl hover:border-indigo-200 hover:shadow-sm transition-all duration-200 group cursor-pointer flex flex-col items-start gap-3">
+        <div className={cn("p-2 rounded-lg transition-colors", colors[color])}>
+          <Icon className="w-5 h-5" />
+        </div>
+        <div>
+          <h3 className="font-semibold text-zinc-900 text-sm group-hover:text-indigo-700 transition-colors">{label}</h3>
+          <p className="text-xs text-zinc-500">{subLabel}</p>
+        </div>
+      </div>
+    </Link>
+  )
+}
+
 function RecentJobCard({ job }: { job: Job }) {
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 1) return "1 day ago";
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
-    return `${Math.ceil(diffDays / 30)} months ago`;
-  };
-
-  const getJobTypeColor = (jobType: string | null) => {
-    switch (jobType) {
-      case "internship":
-        return "bg-blue-100 text-blue-800";
-      case "full-time":
-        return "bg-green-100 text-green-800";
-      case "part-time":
-        return "bg-yellow-100 text-yellow-800";
-      case "contract":
-        return "bg-purple-100 text-purple-800";
-      default:
-        return "bg-zinc-100 text-zinc-800";
-    }
-  };
-
-  const getExperienceLevelColor = (level: string | null) => {
-    switch (level) {
-      case "entry":
-        return "bg-emerald-100 text-emerald-800";
-      case "mid":
-        return "bg-orange-100 text-orange-800";
-      case "senior":
-        return "bg-red-100 text-red-800";
-      case "executive":
-        return "bg-indigo-100 text-indigo-800";
-      default:
-        return "bg-zinc-100 text-zinc-800";
+  const getJobTypeColor = (type?: string) => {
+    switch (type) {
+      case "internship": return "bg-blue-50 text-blue-700 border-blue-100";
+      case "full-time": return "bg-emerald-50 text-emerald-700 border-emerald-100";
+      default: return "bg-zinc-100 text-zinc-700 border-zinc-200";
     }
   };
 
   return (
     <Link href={`/dashboard/jobs/${job.id}`} className="block">
-      <div className="group rounded-xl border border-zinc-200 bg-white p-6 shadow-sm hover:shadow-lg hover:border-indigo-200 transition-all duration-200 cursor-pointer">
-        <div className="flex items-start gap-4">
-          {/* Company Logo */}
+      <motion.div
+        whileHover={{ y: -2, scale: 1.01 }}
+        className="group relative rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-sm transition-all duration-200 hover:border-indigo-200 hover:shadow-md"
+      >
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Logo */}
           <div className="flex-shrink-0">
             {job.companyLogo ? (
               <Image
                 src={job.companyLogo}
-                alt={`${job.companyName || "Company"} logo`}
-                width={48}
-                height={48}
-                className="w-12 h-12 rounded-lg object-cover border border-zinc-200"
+                alt={job.companyName || "Company"}
+                width={56}
+                height={56}
+                className="w-14 h-14 rounded-xl object-cover border border-zinc-100 shadow-sm"
               />
             ) : (
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                <span className="text-lg font-bold text-white">
-                  {job.companyName?.charAt(0).toUpperCase() || "?"}
-                </span>
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-xl shadow-inner">
+                {job.companyName?.charAt(0).toUpperCase() || "?"}
               </div>
             )}
           </div>
 
-          {/* Job Details */}
           <div className="flex-1 min-w-0">
+            {/* Header */}
             <div className="flex items-start justify-between mb-2">
-              <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-semibold text-zinc-900 group-hover:text-indigo-600 transition-colors truncate">
+              <div>
+                <h3 className="text-lg font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors">
                   {job.jobTitle}
                 </h3>
-                <p className="text-sm font-medium text-zinc-600 truncate">
+                <p className="text-sm font-medium text-zinc-500 flex items-center gap-2">
                   {job.companyName}
+                  {job.createdAt && (
+                    <>
+                      <span className="w-1 h-1 rounded-full bg-zinc-300" />
+                      <span className="text-xs text-zinc-400">Published {new Date(job.createdAt).toLocaleDateString()}</span>
+                    </>
+                  )}
                 </p>
               </div>
-              <span className="text-xs text-zinc-500 ml-4 flex-shrink-0">
-                {job.createdAt && typeof job.createdAt === "string"
-                  ? formatDate(job.createdAt)
-                  : "Recently"}
-              </span>
-            </div>
-
-            {/* Job Meta Info */}
-            <div className="flex items-center gap-3 mb-3 text-sm text-zinc-500">
-              {job.location && (
-                <span className="flex items-center gap-1">
-                  <LocationIcon className="w-4 h-4" />
-                  {job.location}
-                </span>
-              )}
-              {job.industry && typeof job.industry === "string" && (
-                <span className="flex items-center gap-1">
-                  <BuildingIcon className="w-4 h-4" />
-                  {job.industry}
-                </span>
-              )}
-              {job.salaryRange && typeof job.salaryRange === "string" && (
-                <span className="flex items-center gap-1">
-                  <DollarIcon className="w-4 h-4" />
-                  {job.salaryRange}
-                </span>
-              )}
-            </div>
-
-            {/* Job Description */}
-            <p className="text-sm text-zinc-700 mb-4 line-clamp-2 leading-relaxed">
-              {job.jobDescription || "No description available."}
-            </p>
-
-            {/* Tags */}
-            <div className="flex items-center gap-2 mb-4">
-              {job.status && typeof job.status === "string" && (
-                <span
-                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium capitalize ${
-                    job.status === "open"
-                      ? "bg-green-100 text-green-800"
-                      : job.status === "draft"
-                        ? "bg-yellow-100 text-yellow-800"
-                        : "bg-red-100 text-red-800"
-                  }`}
-                >
-                  {job.status}
-                </span>
-              )}
-              {job.jobType && typeof job.jobType === "string" && (
-                <span
-                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium capitalize ${getJobTypeColor(job.jobType)}`}
-                >
+              {job.jobType && (
+                <span className={cn("text-xs font-semibold px-2.5 py-1 rounded-full border hidden sm:inline-flex", getJobTypeColor(job.jobType))}>
                   {job.jobType}
                 </span>
               )}
-              {job.experienceLevel &&
-                typeof job.experienceLevel === "string" && (
-                  <span
-                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium capitalize ${getExperienceLevelColor(job.experienceLevel)}`}
-                  >
-                    {job.experienceLevel} Level
-                  </span>
-                )}
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">
-                <ClockIcon className="w-3 h-3 mr-1" />
-                New
-              </span>
             </div>
 
-            {/* Action Indicator */}
-            <div className="flex items-center gap-3">
-              <span className="inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg group-hover:bg-indigo-100 transition-colors">
-                View Details & Apply
-                <ArrowRightIcon className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-              </span>
+            {/* Meta */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4 text-sm text-zinc-500">
+              {job.location && (
+                <div className="flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-zinc-400" />
+                  {job.location}
+                </div>
+              )}
+              {job.salaryRange && (
+                <div className="flex items-center gap-1.5">
+                  <DollarSign className="w-4 h-4 text-zinc-400" />
+                  {job.salaryRange}
+                </div>
+              )}
+              {job.experienceLevel && (
+                <div className="flex items-center gap-1.5 capitalize">
+                  <Briefcase className="w-4 h-4 text-zinc-400" />
+                  {job.experienceLevel}
+                </div>
+              )}
+            </div>
+
+            {/* Description Preview */}
+            <p className="text-sm text-zinc-600 line-clamp-2 leading-relaxed mb-4">
+              {job.jobDescription || "No description provided."}
+            </p>
+
+            {/* Footer Actions */}
+            <div className="flex items-center justify-between pt-4 border-t border-zinc-100">
+              <div className="flex gap-2">
+                {/* Tags (Mobile) */}
+                {job.jobType && (
+                  <span className={cn("text-xs font-semibold px-2.5 py-1 rounded-full border sm:hidden", getJobTypeColor(job.jobType))}>
+                    {job.jobType}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2 text-sm font-semibold text-indigo-600 group-hover:translate-x-1 transition-transform">
+                View Position <ChevronRight className="w-4 h-4" />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </Link>
-  );
-}
-
-function LocationIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-    </svg>
-  );
-}
-
-function BriefcaseIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      className={className}
-    >
-      <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-    </svg>
-  );
-}
-
-function BuildingIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      className={className}
-    >
-      <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
-      <path d="M6 12h4v4h-4v-4Z" />
-      <path d="M14 12h4v4h-4v-4Z" />
-      <path d="M6 20h4v2h-4v-2Z" />
-      <path d="M14 20h4v2h-4v-2Z" />
-    </svg>
-  );
-}
-
-function DollarIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      className={className}
-    >
-      <line x1="12" y1="1" x2="12" y2="23" />
-      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-    </svg>
-  );
-}
-
-function ClockIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      className={className}
-    >
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
-    </svg>
-  );
-}
-
-function ArrowRightIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      className={className}
-    >
-      <line x1="5" y1="12" x2="19" y2="12" />
-      <polyline points="12 5 19 12 12 19" />
-    </svg>
   );
 }

@@ -105,7 +105,7 @@ export function DashboardSidebar({ user, profileData, userPlan }: DashboardSideb
   const planDisplayName = getPlanDisplayName();
 
   return (
-    <div className="w-64 bg-white border-r border-zinc-200 flex flex-col sticky top-0 h-screen overflow-y-auto">
+    <div className="w-64 bg-white/80 backdrop-blur-md border-r border-zinc-200 flex flex-col sticky top-0 h-screen overflow-y-auto z-50">
       {/* User Profile Section */}
       <div className="p-6 bg-indigo-600 text-white">
         <div className="flex items-center gap-4">
@@ -127,13 +127,12 @@ export function DashboardSidebar({ user, profileData, userPlan }: DashboardSideb
             <p className="text-sm text-indigo-100 truncate">
               {displaySubtitle}
             </p>
-            <span className={`inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded ${
-              userPlan?.plan === "free" 
-                ? "bg-gray-500" 
+            <span className={`inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded ${userPlan?.plan === "free"
+                ? "bg-gray-500"
                 : userPlan?.plan === "pro" || userPlan?.plan === "enterprise"
-                ? "bg-purple-500"
-                : "bg-blue-500"
-            }`}>
+                  ? "bg-purple-500"
+                  : "bg-blue-500"
+              }`}>
               {planDisplayName}
             </span>
           </div>
@@ -149,11 +148,10 @@ export function DashboardSidebar({ user, profileData, userPlan }: DashboardSideb
             <Link
               key={item.name}
               href={item.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                active
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${active
                   ? "bg-indigo-50 text-indigo-600"
                   : "text-zinc-700 hover:bg-zinc-50"
-              }`}
+                }`}
             >
               <Icon className="h-5 w-5" />
               {item.name}

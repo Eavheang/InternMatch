@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
+import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import {
   Briefcase,
   Loader2,
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 type ApplicationStatus =
   | "all"
@@ -61,7 +63,7 @@ export default function StudentApplicationsPage() {
   const [applications, setApplications] = useState<StudentApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeStatus] = useState<ApplicationStatus>("all");
+  const [activeStatus, setActiveStatus] = useState<ApplicationStatus>("all");
   const [statistics, setStatistics] = useState({
     total: 0,
     applied: 0,
@@ -70,10 +72,6 @@ export default function StudentApplicationsPage() {
     hired: 0,
     rejected: 0,
   });
-
-  useEffect(() => {
-    fetchApplications();
-  }, [activeStatus]);
 
   const fetchApplications = useCallback(async () => {
     try {
@@ -85,12 +83,18 @@ export default function StudentApplicationsPage() {
         throw new Error("Authentication required");
       }
 
-      // Build query parameters
+      // We'll fetch ALL applications to filter locally for smoother tab transitions
+      // or we can keep fetching by status if performance is needed. 
+      // For animation purposes, fetching all and filtering locally feels 'faster' unless data is huge.
+      // But preserving existing logic:
       const params = new URLSearchParams();
-      if (activeStatus !== "all") {
-        params.append("status", activeStatus);
-      }
-      params.append("limit", "50");
+      // NOTE: Remove status param if we want to filter locally? 
+      // The original code passed `status` param. If we fetch only filtered data, the animation will be "exit old list, enter new list".
+      // If we fetch ALL data once and filter, it will be "reorder/filter" animation.
+      // Given the requirement "smoothly glide into their new positions", filtering locally is better.
+      // So let's fetch ALL.
+
+      params.append("limit", "100"); // Increase limit to fetch relevant data
 
       const response = await fetch(
         `/api/student/applications?${params.toString()}`,
@@ -131,7 +135,11 @@ export default function StudentApplicationsPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeStatus]);
+  }, []);
+
+  useEffect(() => {
+    fetchApplications();
+  }, [fetchApplications]);
 
   const filteredApplications = useMemo(() => {
     return applications.filter((app) => {
@@ -150,6 +158,15 @@ export default function StudentApplicationsPage() {
       rejected: statistics.rejected || 0,
     };
   }, [statistics]);
+
+  const tabs: { id: ApplicationStatus; label: string }[] = [
+    { id: "all", label: "All" },
+    { id: "applied", label: "Applied" },
+    { id: "shortlisted", label: "Shortlisted" },
+    { id: "interviewed", label: "Interviewed" },
+    { id: "hired", label: "Hired" },
+    { id: "rejected", label: "Rejected" },
+  ];
 
   return (
     <div className="p-8 space-y-6">
@@ -208,6 +225,34 @@ export default function StudentApplicationsPage() {
         />
       </div>
 
+      {/* Floating Tabs */}
+      <div className="flex flex-wrap items-center gap-2 p-1 bg-zinc-100/50 backdrop-blur-sm rounded-xl w-fit">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveStatus(tab.id)}
+            className={cn(
+              "relative px-4 py-2 text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/20",
+              activeStatus === tab.id
+                ? "text-indigo-600"
+                : "text-zinc-600 hover:text-zinc-900"
+            )}
+            style={{
+              WebkitTapHighlightColor: "transparent",
+            }}
+          >
+            {activeStatus === tab.id && (
+              <motion.div
+                layoutId="activeTab"
+                className="absolute inset-0 bg-white rounded-lg shadow-sm border border-zinc-200/50"
+                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+              />
+            )}
+            <span className="relative z-10">{tab.label}</span>
+          </button>
+        ))}
+      </div>
+
       {/* Applications List */}
       <section className="space-y-4">
         {loading ? (
@@ -231,12 +276,27 @@ export default function StudentApplicationsPage() {
             </p>
           </div>
         ) : (
-          filteredApplications.map((app) => (
-            <ApplicationCard key={app.application.id} application={app} />
-          ))
+          <LayoutGroup>
+            <motion.div layout className="space-y-4">
+              <AnimatePresence mode="popLayout" initial={false}>
+                {filteredApplications.map((app) => (
+                  <motion.div
+                    key={app.application.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ApplicationCard application={app} />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
+          </LayoutGroup>
         )}
       </section>
-    </div>
+    </div >
   );
 }
 
@@ -460,6 +520,7 @@ function ApplicationCard({ application }: { application: StudentApplication }) {
                   {new Date(app.updatedAt).toLocaleDateString("en-US", {
                     month: "short",
                     day: "numeric",
+                    year: "numeric",
                   })}
                 </p>
               )}
